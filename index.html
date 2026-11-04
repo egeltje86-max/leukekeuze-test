@@ -298,6 +298,17 @@ button.antwoord{cursor:pointer;font-family:inherit}
 }
 /* heel smal (grote zoom): terugknop weer boven de pagina, zodat het zoekveld genoeg ruimte heeft */
 @media (max-width:300px){.balkterug{display:none!important}main .terug[data-terug]{display:inline-flex!important}}
+/* duidelijke scheiding per soort: eigen vlak en een naambalk die bovenaan blijft staan zolang je in die soort bent */
+.groepvak{background:var(--kaart);border:1px solid var(--lijn);border-radius:18px;padding:0 12px 14px;margin:22px 0 0}
+.groepbalk{position:sticky;top:var(--zb,66px);z-index:12;display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--nacht);color:#fff;margin:0 -12px 12px;padding:10px 16px;border-radius:18px 18px 0 0;min-height:50px}
+.groepbalk .gnaam{font-weight:700;font-size:19px;font-family:inherit;margin:0;color:#fff;line-height:1.25}
+.groepbalk .gtel{font-size:15px;color:#e9d9b4;white-space:nowrap}
+.groepbalk.vast{margin:4px 0 12px;border-radius:14px}
+.groepbalk.vast h1{font-size:23px}
+.springknop .n{margin-left:auto;font-weight:400;color:var(--zacht);font-size:14px;padding-left:8px}
+.eindeblok{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;border-top:3px solid var(--goud);margin:22px 0 0;padding:16px 0 0;font-size:17px}
+.eindeblok .meerknop,.eindeblok .lichtknop{margin:0;width:100%;max-width:440px}
+.groepbalk{flex-wrap:wrap}.groepbalk .gnaam{min-width:0;overflow-wrap:anywhere}
 </style>
 </head>
 <body>
@@ -468,7 +479,7 @@ function productRaster(lijst, opties) {
   var balk = '<div class="lijstbalk"><button class="balkknop" data-blad="prijs">Prijs ▾</button><button class="balkknop" data-blad="sorteer">Sorteren ▾</button>' + (extra ? '<button class="balkknop" data-blad="filters">Filters ▾</button>' : '') + pillen + '</div>';
   var pd = prijsDatumTekst();
   return balk + '<p class="aantal" id="aantal">' + l.length + ' producten' + (pd ? ' · ' + pd : '') + '</p>' +
-    (l.length ? '<div class="prods">' + l.slice(0, toon_).map(kaart).join('') + '</div>' + (l.length > toon_ ? '<button class="meerknop" data-zet="meer=' + ((UI.meer || 1) + 1) + '">Meer laden (nog ' + (l.length - toon_) + ')</button>' : '')
+    (l.length ? '<div class="prods">' + l.slice(0, toon_).map(kaart).join('') + '</div>' + (l.length > toon_ ? '<button class="meerknop" data-zet="meer=' + ((UI.meer || 1) + 1) + '">Meer laden (nog ' + (l.length - toon_) + ')</button>' : (opties.einde || ''))
       : '<div class="leegbord"><b>Geen producten met dit filter</b>' + (UI.prijs !== 'alles' ? '<br><button class="keus" data-zet="prijs=" style="margin-top:10px">Toon alle prijzen</button>' : 'Probeer een ander filter.') + '</div>');
 }
 function bladHtml(soort) {
@@ -655,41 +666,48 @@ function winkelRondkijken(P) {
   var meer = Math.max(1, +P.meer || 1), mix = ontdekMix(P.mix), n = 6 * meer;
   /* producten waarvan de foto niet werkt, zijn er al uit (fotocontrole); kaarten verdwijnen nooit achteraf, zodat de pagina niet verspringt */
   var kaarten = mix.slice(0, n).map(kaart).join('');
-  return '<h1>Lekker rondkijken</h1>' +
-    '<div class="knoprij" style="justify-content:flex-start;margin:0 0 12px"><button class="springknop" style="width:auto" data-spring="afdelingen">🛍️ Naar de afdelingen ↓</button></div>' +
-    '<div class="groepkop" style="margin-top:10px"><h2>✨ Ontdek iets nieuws</h2></div><p class="intro" style="margin:-4px 0 12px">Elke dag een nieuwe mix uit alle afdelingen.</p>' +
-    '<div class="prods" id="ontdek">' + kaarten + '</div>' +
-    (mix.length > n ? '<button class="meerknop" data-zet="meer=' + (meer + 1) + '">✨ Meer ontdekken</button>' : '') +
-    '<div class="groepkop" id="afdelingen"><h2>🛍️ Alle afdelingen</h2></div><div class="afdtegels groot"><a class="afdtegel" href="#/toppers"><i>🔥</i><span>Populair nu</span></a>' + S.boom.map(function (a) {
+  var tegels = '<div class="afdtegels groot"><a class="afdtegel" href="#/toppers"><i>🔥</i><span>Populair nu</span></a>' + S.boom.map(function (a) {
     return productenIn(a.id, true).length ? '<a class="afdtegel" href="#/a/' + a.id + '"><i>' + (AFD_ICOON[a.id] || '🛍️') + '</i><span>' + esc(a.naam) + '</span></a>' : '';
   }).join('') + '</div>';
+  return '<h1>Lekker rondkijken</h1><p class="intro" style="margin-bottom:10px">Kies een afdeling, of scrol verder en ontdek iets nieuws.</p>' + tegels +
+    '<section class="groepvak" id="ontdekvak"><div class="groepbalk"><span class="gnaam">✨ Ontdek iets nieuws</span></div><p class="intro" style="margin:0 0 12px">Elke dag een nieuwe mix uit alle afdelingen.</p>' +
+    '<div class="prods" id="ontdek">' + kaarten + '</div>' +
+    (mix.length > n ? '<button class="meerknop" data-zet="meer=' + (meer + 1) + '">✨ Meer ontdekken</button>' : '') + '</section>';
 }
 /* Afdeling: per groep meteen 4 producten (uit verschillende vakjes) en 'Alle ... bekijken'. Zo blader je zonder diep te tikken. */
 function vakZichtbaar(code) { return productenIn(code, true).length >= ZICHTBAAR_VANAF; }
 function eenPerVak(l, max) { var gezien = {}, uit = [], rest = []; l.forEach(function (p) { if (!gezien[p.vak]) { gezien[p.vak] = 1; uit.push(p); } else rest.push(p); }); return uit.concat(rest).slice(0, max); }
 function winkelAfd(a) {
   menu(a.id);
-  var groepen = a.groepen.filter(function (g) { return productenIn(a.id + '/' + g.id, true).length; });
+  var groepen = a.groepen.filter(function (g) { return productenIn(a.id + '/' + g.id, true).length; }), ic = AFD_ICOON[a.id] || '🛍️';
   if (!groepen.length) return '<h1>' + esc(a.naam) + '</h1>' + leeg('Deze afdeling wordt nog ingedeeld.');
-  return '<h1>' + esc(a.naam) + '</h1><div class="springknoppen">' + groepen.map(function (g) { return '<button class="springknop" data-spring="g-' + g.id + '">' + esc(g.naam) + '</button>'; }).join('') + '</div>' +
+  return '<h1>' + esc(a.naam) + '</h1><p class="intro" style="margin-bottom:10px">Tik op een soort om alleen die te zien, of scrol door de hele afdeling.</p><div class="springknoppen">' + groepen.map(function (g) { return '<a class="springknop" href="#/a/' + a.id + '/' + g.id + '">' + esc(g.naam) + ' <span class="n">' + productenIn(a.id + '/' + g.id, true).length + '</span></a>'; }).join('') + '</div>' +
     groepen.map(function (g) {
-      var code = a.id + '/' + g.id, l = productenIn(code, true);
-      return '<div class="groepkop" id="g-' + g.id + '"><h2>' + esc(g.naam) + '</h2></div><div class="prods">' + eenPerVak(l, 4).map(kaart).join('') + '</div><a class="allebekijk" href="#/a/' + code + '">Alle ' + l.length + ' bekijken →</a>';
+      var code = a.id + '/' + g.id, l = productenIn(code, true), toon_ = eenPerVak(l, 4);
+      return '<section class="groepvak" id="g-' + g.id + '"><div class="groepbalk"><span class="gnaam">' + esc(g.naam) + '</span><span class="gtel">' + toon_.length + ' van ' + l.length + '</span></div>' +
+        '<div class="prods">' + toon_.map(kaart).join('') + '</div><a class="allebekijk" href="#/a/' + code + '">Alle ' + l.length + ' in ' + esc(g.naam) + ' bekijken →</a></section>';
     }).join('');
+}
+function eindeBlok(naam, volgende, terug) {
+  return '<div class="eindeblok"><b>Dat was alles in ' + esc(naam) + '.</b>' + (volgende ? '<a class="meerknop" href="' + volgende[0] + '">Verder naar ' + esc(volgende[1]) + ' →</a>' : '') + (terug ? '<a class="lichtknop" href="' + terug[0] + '">' + esc(terug[1]) + '</a>' : '') + '</div>';
 }
 function winkelGroep(a, g) {
   menu(a.id);
-  var code = a.id + '/' + g.id, klant = !!window.LK_KLANT;
+  var code = a.id + '/' + g.id, klant = !!window.LK_KLANT, l = productenIn(code, true), ic = AFD_ICOON[a.id] || '🛍️';
   var vakken = g.vakjes.map(function (v) { var n = productenIn(code + '/' + v.id, true).length; if (klant && n < ZICHTBAAR_VANAF) return ''; return '<a class="springknop" href="#/a/' + code + '/' + v.id + '"' + (n < ZICHTBAAR_VANAF ? ' style="opacity:.5" title="Nog niet zichtbaar voor klanten: ' + n + ' van ' + ZICHTBAAR_VANAF + ' producten"' : '') + '>' + esc(v.naam) + '</a>'; }).join('');
-  return '<div class="kruim"><a href="#/a/' + a.id + '">' + esc(a.naam) + '</a></div><h1>' + esc(g.naam) + '</h1>' + (vakken ? '<div class="springknoppen">' + vakken + '</div>' : '') +
-    (productenIn(code, true).length ? productRaster(productenIn(code, true)) : leeg('Er staat nog niets in ' + g.naam + '.'));
+  var groepen = a.groepen.filter(function (x) { return productenIn(a.id + '/' + x.id, true).length; }), i = groepen.indexOf(g), vg = groepen[i + 1];
+  var einde = eindeBlok(g.naam, vg ? ['#/a/' + a.id + '/' + vg.id, vg.naam] : null, ['#/a/' + a.id, 'Terug naar ' + a.naam]);
+  return '<div class="kruim"><a href="#/a/' + a.id + '">' + esc(a.naam) + '</a></div><div class="groepbalk vast"><h1 class="gnaam">' + esc(g.naam) + '</h1></div>' + (vakken ? '<div class="springknoppen">' + vakken + '</div>' : '') +
+    (l.length ? productRaster(l, { einde: einde }) : leeg('Er staat nog niets in ' + g.naam + '.'));
 }
 function winkelVak(a, g, v) {
   menu(a.id);
-  var code = a.id + '/' + g.id + '/' + v.id, l = productenIn(code, true), gids = (window.SPOOK_GIDSEN || {})[code];
-  return '<div class="kruim"><a href="#/a/' + a.id + '">' + esc(a.naam) + '</a> › <a href="#/a/' + a.id + '/' + g.id + '">' + esc(g.naam) + '</a></div><h1>' + esc(v.naam) + '</h1>' +
+  var code = a.id + '/' + g.id + '/' + v.id, l = productenIn(code, true), gids = (window.SPOOK_GIDSEN || {})[code], ic = AFD_ICOON[a.id] || '🛍️';
+  var klant = !!window.LK_KLANT, vakken = g.vakjes.filter(function (x) { var n = productenIn(a.id + '/' + g.id + '/' + x.id, true).length; return klant ? n >= ZICHTBAAR_VANAF : n > 0; }), i = vakken.indexOf(v), vv = vakken[i + 1];
+  var einde = eindeBlok(v.naam, vv ? ['#/a/' + a.id + '/' + g.id + '/' + vv.id, vv.naam] : null, ['#/a/' + a.id + '/' + g.id, 'Terug naar ' + g.naam]);
+  return '<div class="kruim"><a href="#/a/' + a.id + '">' + esc(a.naam) + '</a> › <a href="#/a/' + a.id + '/' + g.id + '">' + esc(g.naam) + '</a></div><div class="groepbalk vast"><h1 class="gnaam">' + esc(v.naam) + '</h1></div>' +
     (gids ? '<details class="gids"><summary>💡 Koopadvies</summary><p>' + esc(gids) + '</p></details>' : '') +
-    (l.length ? productRaster(l) : leeg('Er staat nog niets in ' + v.naam + '.'));
+    (l.length ? productRaster(l, { einde: einde }) : leeg('Er staat nog niets in ' + v.naam + '.'));
 }
 /* Zoeken, zelfde techniek als op leukekeuze.nl:
    hoofdletters en accenten tellen niet, korte woorden (3 letters of minder) alleen aan het begin van een woord
@@ -1419,6 +1437,7 @@ function toon() {
   var r = UI.route, actief = { home: 'home', rondkijken: 'rond', a: 'rond', toppers: 'rond', nieuw: 'rond', vonk: 'vonk', cadeaus: 'vonk', favorieten: 'fav', werkplaats: 'werk', opslaan: 'opslaan' }[r] || '';
   [['m-winkel', 'home'], ['m-rond', 'rond'], ['m-vonk', 'vonk'], ['m-fav', 'fav'], ['m-werk', 'werk'], ['m-opslaan', 'opslaan'], ['o-home', 'home'], ['o-rond', 'rond'], ['o-vonk', 'vonk'], ['o-fav', 'fav']].forEach(function (x) { var e = $(x[0]); if (!e) return; var aan = actief === x[1]; e.classList.toggle('aan', aan); if (aan) e.setAttribute('aria-current', 'page'); else e.removeAttribute('aria-current'); });
   var metTerug = r !== 'home' && r !== 'werkplaats' && r !== 'opslaan'; $('terugbalk').hidden = !metTerug;
+  var zb = document.querySelector('.zoekbalk'); if (zb) document.documentElement.style.setProperty('--zb', zb.offsetHeight + 'px');
   m.innerHTML = (metTerug ? terugKnop() : '') + html;
   var zq = r === 'zoek' ? d.slice(1).join('/') : (P.q || ''); if ($('zoek').value !== zq && document.activeElement !== $('zoek')) $('zoek').value = zq;
   if ($('pform')) voorbeeld();
