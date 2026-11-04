@@ -239,13 +239,13 @@ function kaart(p) {
     '<div class="naar"><a href="' + esc(p.link || '#') + '" target="_blank" rel="nofollow sponsored noopener">Bekijk bij ' + esc(p.winkel || 'de winkel') + ' →</a></div></div></div>';
 }
 function productRaster(lijst) {
-  var pf = { alles: [0, 1e9], tot15: [0, 15], '15-30': [15, 30], '30-50': [30, 50], '50plus': [50, 1e9] }[UI.prijs];
+  var pf = { alles: [0, 1e9], tot10: [0, 10.001], tot25: [0, 25.001], tot50: [0, 50.001], tot100: [0, 100.001], '100plus': [100.001, 1e9] }[UI.prijs] || [0, 1e9];
   var l = lijst.filter(function (p) { var x = +p.prijs || 0; return x >= pf[0] && x < pf[1] && (!UI.fVoor || (p.voor || []).indexOf(UI.fVoor) !== -1) && (!UI.fLeeftijd || (p.leeftijd || []).indexOf(UI.fLeeftijd) !== -1) && (!UI.fAanbieding || +p.oudePrijs > +p.prijs); });
   if (UI.sorteer === 'laag') l.sort(function (a, b) { return a.prijs - b.prijs; });
   else if (UI.sorteer === 'hoog') l.sort(function (a, b) { return b.prijs - a.prijs; });
   else if (UI.sorteer === 'beste') l.sort(function (a, b) { return (+b.rating || 0) - (+a.rating || 0); });
   else if (UI.sorteer === 'nieuw') l.sort(function (a, b) { return String(b.datum).localeCompare(String(a.datum)); });
-  var chips = [['alles', 'Alle prijzen'], ['tot15', 'Tot €15'], ['15-30', '€15 – €30'], ['30-50', '€30 – €50'], ['50plus', '€50 en meer']].map(function (c) { return '<button class="chip' + (UI.prijs === c[0] ? ' aan' : '') + '" data-prijs="' + c[0] + '">' + c[1] + '</button>'; }).join('');
+  var chips = [['alles', 'Alle prijzen'], ['tot10', 'Tot €10'], ['tot25', 'Tot €25'], ['tot50', 'Tot €50'], ['tot100', 'Tot €100'], ['100plus', 'Meer dan €100']].map(function (c) { return '<button class="chip' + (UI.prijs === c[0] ? ' aan' : '') + '" data-prijs="' + c[0] + '">' + c[1] + '</button>'; }).join('');
   var sort = '<select class="kies" id="sorteer"><option value="standaard">Onze volgorde</option><option value="laag">Prijs laag – hoog</option><option value="hoog">Prijs hoog – laag</option><option value="beste">Best beoordeeld</option><option value="nieuw">Nieuwste eerst</option></select>';
   var heeft = function (veld) { return lijst.some(function (p) { return (p[veld] || []).length; }); };
   var extra = (heeft('voor') ? '<select class="kies" id="fvoor"><option value="">Voor iedereen</option>' + VOOR.map(function (x) { return '<option value="' + x[0] + '"' + (UI.fVoor === x[0] ? ' selected' : '') + '>' + x[1] + '</option>'; }).join('') + '</select>' : '') +
@@ -442,11 +442,110 @@ function tikfout(w, x) {
   for (var i = 0; i < 3; i++) if (w.slice(0, i) + w[i + 1] + w[i] + w.slice(i + 2) === x) return true;
   return false;
 }
+/* Woorden die klanten ook gebruiken voor een doelgroep of feestdag ('cadeau voor mama' vindt de cadeaus Voor haar). */
+var ZOEK_OOK = {
+  haar: 'vrouw vrouwen mama moeder vriendin zus zussen dochter dames meid',
+  hem: 'man mannen papa vader vriend broer zoon heren',
+  'opa-oma': 'opa oma grootouders grootvader grootmoeder',
+  kinderen: 'kind kids kinderen',
+  tieners: 'tiener tieners puber pubers',
+  baby: 'baby babys kraam kraamcadeau',
+  collega: 'collega collegas werk',
+  dierenliefhebber: 'dier dieren huisdier huisdieren dierenliefhebber',
+  sinterklaas: 'sint sinterklaas schoen schoencadeau pakjesavond',
+  moederdag: 'moederdag', vaderdag: 'vaderdag', valentijn: 'valentijn valentijnsdag',
+  kerst: 'kerst kerstmis kerstcadeau',
+  verjaardag: 'jarig verjaardag',
+  geboorte: 'baby kraam kraamcadeau geboorte',
+  afscheid: 'afscheid pensioen'
+};
+/* Woorden die niets zeggen over het product; die laten we weg als er nog andere woorden zijn. */
+var HULPWOORD = {};
+'voor een de het van met en aan mijn mn je jouw die dat wat te om cadeau cadeaus cadeautje cadeautjes kado kados kadootje geschenk geschenken idee ideeen leuk leuke leuks origineel originele beste mooi mooie liefhebber liefhebbers bezitter bezitters eigenaar fan fans jaar jarige jarig euro'.split(' ').forEach(function (w) { HULPWOORD[w] = 1; });
+/* Aan elkaar getypt ('sinterklaascadeau', 'parfumdames'): knip het woord in stukjes die wel in onze producten staan. */
+var ZW = null;
+function bekendWoord(w) {
+  if (!ZW) { ZW = {}; S.producten.forEach(function (p) { (zoekTekst(p) + zoekLabels(p)).split(/[^a-z0-9]+/).forEach(function (x) { if (x.length >= 3) { ZW[x] = 1; ZW[stam(x)] = 1; } }); }); Object.keys(HULPWOORD).forEach(function (x) { ZW[x] = 1; }); }
+  return !!ZW[w] || !!ZW[stam(w)];
+}
+function knip(w, diepte) {
+  if (bekendWoord(w)) return [w];
+  if (diepte > 3 || w.length < 6) return null;
+  var best = null, bestMin = 0;
+  for (var i = 3; i <= w.length - 3; i++) {
+    var links = w.slice(0, i), rechts = w.slice(i);
+    if (!bekendWoord(links)) { if (/s$/.test(links) && links.length > 3 && bekendWoord(links.slice(0, -1))) links = links.slice(0, -1); else continue; }
+    var r = knip(rechts, diepte + 1); if (!r) continue;
+    var kort = Math.min(links.length, Math.min.apply(null, r.map(function (x) { return x.length; })));
+    if (kort > bestMin) { bestMin = kort; best = [links].concat(r); }
+  }
+  return best;
+}
+/* Zoekvraag begrijpen zoals een klant typt: 'sinterklaas cadeau kind 7 jaar onder 25 euro'
+   -> leeftijd 6-8, prijs tot €25, en de woorden 'sinterklaas' en 'kind'. */
+function leeftijdCode(n) { return n <= 2 ? '0-2' : n <= 5 ? '3-5' : n <= 8 ? '6-8' : n <= 12 ? '9-12' : n <= 17 ? '13+' : 'volwassen'; }
+function zoekVraag(q) {
+  var t = ' ' + vouw(q).replace(/,/g, '.') + ' ', max = 0, leeftijd = '', m;
+  m = t.match(/(?:onder|tot|max|maximaal|hooguit|minder dan|niet meer dan|binnen|budget|rond|ongeveer)\s*(?:de\s*)?(?:€|eur|euro)?\s*(\d+)(?:\.\d+)?\s*(?:euro|eur|€|,-|-)?/) || t.match(/€\s*(\d+)(?:\.\d+)?/) || t.match(/(\d+)(?:\.\d+)?\s*(?:euro|eur)\b/);
+  if (m) { max = +m[1]; if (/rond|ongeveer/.test(m[0])) max = Math.round(max * 1.2); t = t.replace(m[0], ' '); }
+  m = t.match(/(\d{1,2})\s*-?\s*(?:jaar|jarige|jarig|jr|jaars)\b(?:\s*oud)?/) || t.match(/\b(\d{1,2})\s*(?:jaar\s*)?oud\b/);
+  if (m) { leeftijd = leeftijdCode(+m[1]); t = t.replace(m[0], ' '); }
+  var basis = S.producten.filter(zichtbaarVoorKlant), w = [], toon = [];
+  vouw(t).split(/[^a-z0-9]+/).filter(Boolean).forEach(function (ruw) {
+    var x = stam(ruw), stukken = [ruw];
+    if (x.length >= 6 && !basis.some(function (p) { return past(p, x); })) { var k = knip(x, 0); if (k && k.length > 1) stukken = k; }
+    stukken.forEach(function (d) { w.push(stam(d)); toon.push(ZW && !ZW[d] && ZW[d.slice(0, -1)] ? d.slice(0, -1) : d); });
+  });
+  var echt = [], echtToon = [];
+  w.forEach(function (x, i) { if (!HULPWOORD[x] && !HULPWOORD[toon[i]]) { echt.push(x); echtToon.push(toon[i]); } });
+  if (!echt.length && (max || leeftijd)) { w = []; toon = []; }
+  return { woorden: echt.length ? echt : w, toon: echt.length ? echtToon : toon, max: max, leeftijd: leeftijd };
+}
+/* Woorden voor doelgroep en feestdag tellen alleen als heel woord ('moeder' is niet 'moederdag', 'kind' is niet 'kinderbezem'). */
+/* Bij een cadeauvraag zonder product ('kerstcadeau moeder') laten we eerst de cadeaus zien die mensen voor die persoon het meest kopen,
+   steeds één uit elk vakje, zodat je meteen ideeën krijgt. */
+var DOELVAKKEN = {
+  haar: ['mode-sieraden/sieraden', 'beauty-verzorging/parfum/damesparfum', 'beauty-verzorging/giftsets/giftsets-voor-haar', 'beauty-verzorging/wellness/spa-ontspanning', 'wonen-koken/kaarsen-geur', 'eten-drinken/chocolade-snoep/chocolade', 'mode-sieraden/tassen-portemonnees/handtassen', 'wonen-koken/plaids-kussens', 'wonen-koken/foto-persoonlijk', 'mode-sieraden/kleding/pyjama-s-badjassen', 'boeken-films-muziek/boeken/romans-thrillers', 'eten-drinken/bubbels', 'mode-sieraden/horloges/dameshorloges', 'beauty-verzorging/bad-douche', 'boeken-films-muziek/boeken/kookboeken', 'wonen-koken/woondecoratie'],
+  hem: ['beauty-verzorging/parfum/herenparfum', 'beauty-verzorging/giftsets/giftsets-voor-hem', 'eten-drinken/sterke-drank/whisky', 'eten-drinken/bier', 'sport-buiten-tuin/klussen', 'sport-buiten-tuin/tuin/bbq-buitenkoken', 'mode-sieraden/horloges/herenhorloges', 'elektronica-gaming/smartwatches', 'elektronica-gaming/gadgets', 'elektronica-gaming/audio', 'eten-drinken/delicatessen/kaas-worst', 'beauty-verzorging/scheren-baard', 'mode-sieraden/kleding/sokken', 'sport-buiten-tuin/kamperen-outdoor/messen-multitools', 'sport-buiten-tuin/balsport-spel/darts', 'eten-drinken/wijn'],
+  'opa-oma': ['wonen-koken/foto-persoonlijk', 'boeken-films-muziek/boeken/invulboeken-dagboeken', 'speelgoed-spellen/puzzels/legpuzzels', 'boeken-films-muziek/boeken/puzzelboeken', 'wonen-koken/plaids-kussens', 'eten-drinken/chocolade-snoep/chocolade', 'eten-drinken/delicatessen/kaas-worst', 'sport-buiten-tuin/tuin/vogelhuisjes-insectenhotels', 'eten-drinken/koffie-thee-cacao', 'mode-sieraden/schoenen-sloffen/pantoffels-sloffen', 'speelgoed-spellen/spellen/kaart-dobbelspellen', 'eten-drinken/cadeaupakketten'],
+  collega: ['eten-drinken/chocolade-snoep/chocolade', 'eten-drinken/cadeaupakketten', 'wonen-koken/koffie-thee-zetten/mokken-theeglazen', 'eten-drinken/koffie-thee-cacao', 'hobby-creatief/papier-planners', 'wonen-koken/kaarsen-geur', 'elektronica-gaming/tablets-e-readers/powerbanks-opladers', 'elektronica-gaming/gadgets/handige-gadgets', 'wonen-koken/tafelen/borrelplanken-serveren', 'eten-drinken/wijn'],
+  tieners: ['elektronica-gaming/audio/oordopjes', 'elektronica-gaming/audio/bluetooth-speakers', 'elektronica-gaming/gaming', 'elektronica-gaming/foto-video/camera-s-instant-camera-s', 'mode-sieraden/kleding/truien-hoodies', 'beauty-verzorging/make-up-nagels', 'wonen-koken/verlichting/lichtsnoeren', 'speelgoed-spellen/poppen-knuffels/squishmallows', 'speelgoed-spellen/spellen/partyspellen', 'mode-sieraden/schoenen-sloffen/sneakers'],
+  dierenliefhebber: ['dieren/']
+};
+DOELVAKKEN.sinterklaas = SEIZOEN_VAKKEN.sinterklaas; DOELVAKKEN.kerst = SEIZOEN_VAKKEN.kerst;
+function doelVakken(woorden) {
+  var groep = null;
+  woorden.forEach(function (w) {
+    if (groep && groep.voor) return;
+    VOOR.forEach(function (x) { if (!groep || !groep.voor) if (DOELVAKKEN[x[0]] && labelWoorden('voor', x[0]).indexOf(w) !== -1) groep = { voor: true, vakken: DOELVAKKEN[x[0]] }; });
+    if (!groep) GELEGENHEID.forEach(function (x) { if (!groep && DOELVAKKEN[x[0]] && labelWoorden('gelegenheid', x[0]).indexOf(w) !== -1) groep = { vakken: DOELVAKKEN[x[0]] }; });
+  });
+  return groep ? groep.vakken : null;
+}
+function vakRang(p, vakken) { for (var i = 0; i < vakken.length; i++) if (String(p.vak).indexOf(vakken[i]) === 0) return i; return 999; }
+var LABELS = null;
+function labelWoorden(k, w) { return vouw(routeNaam(k, w) + ' ' + (ZOEK_OOK[w] || '')).split(/[^a-z0-9]+/).filter(function (x) { return x.length >= 3; }).map(stam); }
+function isLabel(w) {
+  if (!LABELS) { LABELS = {}; VOOR.forEach(function (x) { labelWoorden('voor', x[0]).forEach(function (y) { LABELS[y] = 1; }); }); GELEGENHEID.forEach(function (x) { labelWoorden('gelegenheid', x[0]).forEach(function (y) { LABELS[y] = 1; }); }); }
+  return !!LABELS[w];
+}
+var ZL = {};
+function zoekLabels(p) {
+  if (ZL[p.id]) return ZL[p.id];
+  var l = [];
+  ['voor', 'gelegenheid'].forEach(function (k) { (p[k] || []).forEach(function (w) { l = l.concat(labelWoorden(k, w)); }); });
+  return (ZL[p.id] = ' ' + l.join(' ') + ' ');
+}
+function heelWoordInTitel(p, w) { return new RegExp('(^|[^a-z0-9])' + w + '(en|s|je|jes)?([^a-z0-9]|$)').test(vouw(p.titel)); }
+function past(p, w) {
+  if (isLabel(w)) return zoekLabels(p).indexOf(' ' + w + ' ') !== -1 || heelWoordInTitel(p, w);
+  return bevat(zoekTekst(p), w);
+}
 var ZT = {};
 function zoekTekst(p) {
   if (ZT[p.id]) return ZT[p.id];
   var t = [p.titel, p.merk || '', p.winkel || '', p.tekst || '', plekken(p).map(vakNaam).join(' '), (p.varianten || []).map(function (v) { return v.naam; }).join(' '),
-    ['voor', 'gelegenheid', 'thema'].map(function (k) { return (p[k] || []).map(function (w) { return routeNaam(k, w); }).join(' '); }).join(' ')].join(' ');
+    (p.thema || []).map(function (w) { return routeNaam('thema', w); }).join(' ')].join(' ');
   t = vouw(t); t += (/playstation\s*5/.test(t) ? ' ps5' : '') + (/playstation\s*4/.test(t) ? ' ps4' : '');
   return (ZT[p.id] = t);
 }
@@ -454,33 +553,58 @@ function zoekScore(p, woorden) {
   var ti = ' ' + vouw(p.titel).replace(/[^a-z0-9]+/g, ' ') + ' ', ca = vouw(plekken(p).map(vakNaam).join(' '));
   /* Titel telt het zwaarst; staat het woord ook in de naam van het vakje (bijv. 'hond' in Hond), dan komt het product nog hoger. */
   return woorden.reduce(function (s, w) {
+    if (isLabel(w)) return s + (heelWoordInTitel(p, w) ? 15 : 1);
     var v = bevat(ca, w) ? 8 : 0;
     if (new RegExp(' ' + w + '(en|s|len|letje|letjes|je|jes)? ').test(ti)) return s + v + 15;
     if (ti.indexOf(' ' + w) !== -1) return s + v + 10;
-    if (ti.indexOf(w) !== -1) return s + v + 6;
-    if (w.length >= 4 && ti.split(' ').some(function (x) { return tikfout(w, x); })) return s + v + 8;
+    if (w.length > 3 && ti.indexOf(w) !== -1) return s + v + 6;
+    if (w.length >= 4 && !bevat(zoekTekst(p), w) && ti.split(' ').some(function (x) { return tikfout(w, x); })) return s + v + 8;
     return s + v + 1;
   }, 0);
 }
 function zoekProducten(q) {
-  var woorden = zoekWoorden(q), basis = S.producten.filter(zichtbaarVoorKlant);
-  if (!woorden.length) return [];
-  var l = basis.filter(function (p) { var t = zoekTekst(p); return woorden.every(function (w) { return bevat(t, w); }); });
+  var v = zoekVraag(q), woorden = v.woorden;
+  var basis = S.producten.filter(zichtbaarVoorKlant).filter(function (p) { return (!v.max || +p.prijs <= v.max) && (!v.leeftijd || (p.leeftijd || []).indexOf(v.leeftijd) !== -1); });
+  v.dichtbij = false;
+  if (!woorden.length) { v.lijst = (v.max || v.leeftijd) ? mengVakken(basis) : []; return v; }
+  var l = basis.filter(function (p) { return woorden.every(function (w) { return past(p, w); }); });
   if (l.length < 3 && woorden.some(function (w) { return w.length >= 4; })) {
     var al = {}; l.forEach(function (p) { al[p.id] = 1; });
     l = l.concat(basis.filter(function (p) {
       if (al[p.id]) return false;
       var t = zoekTekst(p), tw = null;
-      return woorden.every(function (w) { if (bevat(t, w)) return true; if (w.length < 4) return false; tw = tw || t.split(/[^a-z0-9]+/); return tw.some(function (x) { return tikfout(w, x); }); });
+      return woorden.every(function (w) { if (past(p, w)) return true; if (w.length < 4 || isLabel(w)) return false; tw = tw || t.split(/[^a-z0-9]+/); return tw.some(function (x) { return tikfout(w, x); }); });
     }));
   }
-  var sc = {}; l.forEach(function (p) { sc[p.id] = zoekScore(p, woorden); });
-  return l.map(function (p, i) { return [p, i]; }).sort(function (a, b) { return (sc[b[0].id] - sc[a[0].id]) || (a[1] - b[1]); }).map(function (x) { return x[0]; });
+  /* Niets met alle woorden? Laat dan zien wat er het dichtst bij komt (alle woorden op één na). */
+  if (!l.length && woorden.length > 1) {
+    l = basis.filter(function (p) { return woorden.filter(function (w) { return past(p, w); }).length >= woorden.length - 1; });
+    v.dichtbij = l.length > 0;
+  }
+  var sc = {}, dv = doelVakken(woorden), rang = {};
+  l.forEach(function (p) { sc[p.id] = zoekScore(p, woorden); if (dv) { rang[p.id] = vakRang(p, dv); if (rang[p.id] < 999) sc[p.id] += 5; } });
+  l = l.map(function (p, i) { return [p, i]; }).sort(function (a, b) { return (sc[b[0].id] - sc[a[0].id]) || (dv ? rang[a[0].id] - rang[b[0].id] : 0) || (a[1] - b[1]); }).map(function (x) { return x[0]; });
+  /* Bij gelijke score wisselen we de vakjes af, zodat je meteen verschillende ideeën ziet. */
+  var uit = [], k = 0;
+  while (k < l.length) { var e = k; while (e < l.length && sc[l[e].id] === sc[l[k].id]) e++; uit = uit.concat(mengVakken(l.slice(k, e), dv ? function (p) { return rang[p.id] < 999 ? 'r' + rang[p.id] : p.vak; } : null)); k = e; }
+  v.lijst = uit; return v;
+}
+function mengVakken(l, sleutel) {
+  var groep = {}, volg = [];
+  l.forEach(function (p) { var g = sleutel ? sleutel(p) : (p.vak || ''); if (!groep[g]) { groep[g] = []; volg.push(g); } groep[g].push(p); });
+  var uit = [], i = 0, door = true;
+  while (door) { door = false; volg.forEach(function (g) { if (groep[g][i]) { uit.push(groep[g][i]); door = true; } }); i++; }
+  return uit;
 }
 function winkelZoek(q) {
   menu(null);
-  var l = zoekProducten(q);
-  return '<h1>Zoeken: ' + esc(q) + '</h1><p class="intro">' + l.length + ' producten gevonden.</p>' + (l.length ? productRaster(l) : '<div class="leegbord"><b>Niets gevonden</b>Probeer een ander woord, of kijk bij de afdelingen.</div>');
+  var v = zoekProducten(q), l = v.lijst;
+  var lt = LEEFTIJD.find(function (x) { return x[0] === v.leeftijd; });
+  var hulp = (v.leeftijd || v.max) ? '<p class="intro" style="margin-top:-6px">We zochten op: ' + [v.toon.length ? '<b>' + esc(v.toon.join(' ')) + '</b>' : '', lt ? '<b>' + esc(lt[1]) + '</b>' : '', v.max ? '<b>tot € ' + v.max + '</b>' : ''].filter(Boolean).join(' · ') + '</p>' : '';
+  var tips = '<div class="leegbord"><b>Niets gevonden</b>Probeer een ander woord, of kies hieronder:<br><br>' +
+    nuGelegenheden().slice(0, 3).map(function (g) { return '<a class="knop licht klein" href="#/gelegenheid/' + g[0] + '">' + esc(g[1]) + '</a> '; }).join('') +
+    VOOR.slice(0, 4).map(function (x) { return '<a class="knop licht klein" href="#/voor/' + x[0] + '">' + esc(x[1]) + '</a> '; }).join('') + '</div>';
+  return '<h1>Zoeken: ' + esc(q) + '</h1><p class="intro">' + l.length + ' producten gevonden.' + (v.dichtbij ? ' Niet alles paste precies, dit komt het dichtst in de buurt.' : '') + '</p>' + hulp + (l.length ? productRaster(l) : tips);
 }
 
 /* ---------- werkplaats ---------- */
