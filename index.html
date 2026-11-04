@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>LeukeKeuze – testversie</title>
-<meta name="robots" content="noindex, nofollow">
 <style>
 :root{--bg:#f7f3ec;--kaart:#fff;--inkt:#1f1a17;--zacht:#776c63;--lijn:#e8dfd2;--goud:#c69a3f;--goud2:#f3e7cc;--nacht:#15202e;--groen:#2f7d4f;--oranje:#b8661c;--rood:#b3392f;--r:14px}
 *{box-sizing:border-box}html,body{margin:0}body{font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--inkt)}
@@ -124,25 +123,188 @@ footer.voet{border-top:1px solid var(--lijn);background:var(--kaart);margin-top:
  .gids{padding:9px 12px;font-size:14px;margin-bottom:10px}
  h1{margin-bottom:8px}
 }
+/* ===== LeukeKeuze 4.0 – mobiel eerst en toegankelijk (ontwerp Nova + Claude, 4-11-2026) =====
+   Grote knoppen (minstens 48 px), tekst minstens 16-17 px, sterk contrast, niets dat vanzelf beweegt,
+   geen menu dat je opzij moet schuiven, en de terugknop brengt je altijd terug waar je was. */
+:root{--inkt:#1c2b3f;--zacht:#5b5249;--goudtekst:#7d5f1c;--focus:#1c5fd1}
+body{font-size:17px}
+.logo b{color:var(--goudtekst)}
+:focus-visible{outline:3px solid var(--focus);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important;scroll-behavior:auto!important}}
+.vb{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+header{position:static}
+.modus a{min-height:44px;display:inline-flex;align-items:center;font-size:15px}
+.modus a.aan{background:var(--nacht);color:#fff}
+.zoekbalk{position:sticky;top:0;z-index:20;background:var(--kaart);border-bottom:1px solid var(--lijn)}
+.zoekbalk .wrap{padding-top:8px;padding-bottom:8px}
+.zoekbalk .zoek{max-width:680px;margin:0 auto}
+.zoekbalk input{min-height:50px;padding:12px 18px;font-size:17px;background:#fff;border:2px solid var(--lijn);-webkit-appearance:none;appearance:none}
+.zoekbalk input:focus{border-color:var(--goud)}
+.menu .wrap{flex-wrap:wrap}.menu{overflow:visible}
+.onderbalk{display:none}
+.terug{display:inline-flex;align-items:center;gap:6px;min-height:46px;padding:8px 16px 8px 12px;border:1px solid var(--lijn);border-radius:999px;background:var(--kaart);font-size:17px;cursor:pointer;margin:0 0 12px;color:var(--inkt)}
+main{padding-top:14px}
+h1{color:var(--inkt)}
+.intro,.kruim{color:var(--zacht)}
+.kruim{font-size:15px}
+/* homepage */
+.welkom{font-size:30px;margin:6px 0 4px}
+.grootknoppen{display:grid;gap:12px;margin:14px 0 26px;max-width:680px}
+@media (min-width:700px){.grootknoppen{grid-template-columns:1fr 1fr}}
+.grootknop{display:flex;align-items:center;gap:14px;min-height:76px;padding:14px 18px;border-radius:16px;font-size:20px;font-weight:700;border:2px solid var(--goud);background:var(--goud2);color:var(--inkt)}
+.grootknop.tweede{background:var(--kaart);border-color:var(--lijn)}
+.grootknop i{font-style:normal;font-size:30px;line-height:1}
+.grootknop small{display:block;font-weight:400;font-size:15px;color:var(--zacht);margin-top:2px}
+.grootknop:hover{border-color:var(--goud);filter:brightness(.98)}
+.wiezijnwij li{font-size:16px}
+/* productkaarten: vanzelf 1 per rij als het scherm smal is of de tekst groot staat */
+.prods{grid-template-columns:repeat(auto-fill,minmax(min(100%,10rem),1fr));gap:12px}
+.prod .titel{font-size:16px;line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.prod .info{padding:10px 12px 12px;gap:4px}
+.prod .winkel{font-size:15px;color:var(--zacht)}
+.prijs{font-size:19px;color:var(--inkt)}
+.prod .waarom{display:none}
+.prod .naar a{display:flex;align-items:center;justify-content:center;min-height:46px;padding:8px;font-size:15px;color:var(--inkt)}
+.hart{width:48px;height:48px;top:4px;right:4px;font-size:22px}
+.best{font-size:14px;color:#1f6b40}
+.lever{font-size:14px}
+.ster{font-size:14px}
+/* lijstbalk: Prijs / Sorteren / Filters als grote knoppen, de keuzes in een paneel van onderen */
+.lijstbalk{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:4px 0 10px}
+.balkknop{min-height:48px;padding:8px 16px;border:1px solid var(--lijn);border-radius:999px;background:var(--kaart);font-size:16px;cursor:pointer;color:var(--inkt)}
+.balkknop b{font-weight:700}
+.filterpil{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:6px 14px;border-radius:999px;background:var(--goud2);border:1px solid var(--goud);font-size:16px;cursor:pointer;color:var(--inkt)}
+.aantal{font-size:15px;color:var(--zacht);margin:0 0 10px}
+.meerknop{display:flex;align-items:center;justify-content:center;width:100%;max-width:440px;margin:18px auto 0;min-height:54px;border-radius:14px;border:2px solid var(--goud);background:var(--kaart);font-size:18px;font-weight:700;cursor:pointer;color:var(--inkt)}
+.blad{position:fixed;inset:0;z-index:60;background:rgba(15,22,34,.5);display:flex;align-items:flex-end;justify-content:center}
+.blad[hidden]{display:none}
+.blad .vel{background:var(--kaart);width:100%;max-width:560px;border-radius:18px 18px 0 0;padding:18px 16px calc(16px + env(safe-area-inset-bottom));max-height:85vh;overflow:auto}
+.blad h2{margin:0 0 12px;font-size:21px}
+.keuzeknop{display:flex;align-items:center;justify-content:space-between;width:100%;min-height:54px;padding:10px 16px;margin:0 0 8px;border:1px solid var(--lijn);border-radius:12px;background:#fff;font-size:18px;cursor:pointer;text-align:left;color:var(--inkt)}
+.keuzeknop.aan{border:2px solid var(--goud);background:var(--goud2);font-weight:700}
+.keuzeknop.aan::after{content:'✓';font-size:20px}
+.keuzeknop.sluit{justify-content:center;background:var(--nacht);color:#fff;border-color:var(--nacht);margin-top:6px}
+/* rondkijken */
+.afdtegels.groot{grid-template-columns:repeat(auto-fill,minmax(min(100%,10rem),1fr));gap:10px}
+.afdtegels.groot .afdtegel{min-height:76px;font-size:17px;padding:12px 14px}
+.afdtegels.groot .afdtegel i{font-size:28px}
+.springknoppen{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,9.5rem),1fr));gap:8px;margin:0 0 8px}
+.springknop{display:flex;align-items:center;min-height:50px;padding:8px 12px;border:1px solid var(--lijn);border-radius:12px;background:var(--kaart);font-size:16px;font-weight:600;cursor:pointer;text-align:left;color:var(--inkt)}
+.groepkop{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:28px 0 10px;scroll-margin-top:80px}
+.groepkop h2{margin:0}
+.allebekijk{display:flex;align-items:center;justify-content:center;min-height:50px;margin:10px 0 0;border:1px solid var(--lijn);border-radius:12px;background:var(--kaart);font-weight:700;font-size:17px}
+details.gids summary{cursor:pointer;font-weight:700;min-height:32px;list-style-position:inside}
+details.gids p{margin:6px 0 0}
+/* VONK */
+.vonk{max-width:600px;margin:0 auto}
+.antwoorden{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 12px}
+.antwoord{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:8px 14px;border-radius:999px;border:1px solid var(--goud);background:var(--goud2);font-size:16px;color:var(--inkt)}
+.vraagkaart{background:var(--kaart);border:1px solid var(--lijn);border-radius:18px;padding:18px 16px;min-height:430px}
+.vraagkaart .stap{font-size:15px;color:var(--zacht);margin:0 0 4px}
+.vraagkaart h1{font-size:26px;margin:0 0 16px}
+.opties{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,9.5rem),1fr));gap:10px}
+.optie{display:flex;align-items:center;gap:10px;min-height:64px;padding:10px 14px;border:2px solid var(--lijn);border-radius:14px;background:#fff;font-size:18px;font-weight:600;line-height:1.2;color:var(--inkt)}
+.optie i{font-style:normal;font-size:26px;line-height:1}
+.optie:hover{border-color:var(--goud)}
+.vorige{margin-top:16px}
+/* cadeauresultaten */
+.uitkomst h1{font-size:26px;margin-bottom:8px}
+.kiesrij{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 14px;align-items:center}
+.kiesrij .label{width:100%;font-weight:700;font-size:16px;margin-bottom:-2px}
+.keus{display:inline-flex;align-items:center;min-height:46px;padding:8px 14px;border-radius:999px;border:1px solid var(--lijn);background:#fff;font-size:16px;cursor:pointer;color:var(--inkt)}
+.keus.aan{border:2px solid var(--goud);background:var(--goud2);font-weight:700}
+.keus.aan::before{content:'✓\00a0'}
+.keus.meer{border-style:dashed}
+.tip{position:relative;border:2px solid var(--goud);border-radius:16px;background:var(--kaart);display:grid;grid-template-columns:minmax(90px,140px) 1fr;gap:14px;padding:12px;margin:0 0 14px;align-items:center}
+.tip .tfoto{aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:#fff}
+.tip .tfoto img{max-width:100%;max-height:100%;object-fit:contain}
+.tip .tlabel{display:inline-block;font-weight:700;font-size:15px;background:var(--goud2);border-radius:999px;padding:3px 10px;margin-bottom:6px}
+.tip .ttitel{font-weight:700;font-size:17px;line-height:1.3}
+.tip .treden{font-size:15px;color:var(--zacht);margin-top:4px}
+.melding2{background:var(--goud2);border-radius:12px;padding:12px 14px;margin:0 0 14px;font-size:16px}
+.melding2 .keus{margin-top:8px}
+.knoprij{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:18px 0 0}
+.knoprij .meerknop{margin:0}
+.lichtknop{display:flex;align-items:center;justify-content:center;min-height:54px;padding:8px 18px;border-radius:14px;border:1px solid var(--lijn);background:var(--kaart);font-size:17px;cursor:pointer;color:var(--inkt)}
+/* productpagina */
+.pp .koop{min-height:56px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.pp .klein{font-size:15px}
+details.meerinfo{margin:12px 0;border-top:1px solid var(--lijn);padding-top:10px}
+details.meerinfo summary{cursor:pointer;font-weight:700;min-height:40px;display:flex;align-items:center}
+.prijsdatum{font-size:14px;color:var(--zacht);margin-top:2px}
+/* verlanglijst */
+.favrij{display:grid;grid-template-columns:84px 1fr;gap:12px;align-items:center;background:var(--kaart);border:1px solid var(--lijn);border-radius:14px;padding:10px;margin:0 0 10px}
+.favrij .ffoto{aspect-ratio:1;display:flex;align-items:center;justify-content:center;background:#fff}
+.favrij img{max-width:100%;max-height:100%;object-fit:contain}
+.favrij .fnaam{font-weight:700;line-height:1.3}
+.favrij .facties{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.favrij .facties a,.favrij .facties button{display:inline-flex;align-items:center;min-height:44px;padding:6px 14px;border-radius:999px;border:1px solid var(--lijn);background:#fff;font-size:15px;cursor:pointer;color:var(--inkt)}
+.favrij .facties a.koopje{background:var(--goud2);border-color:var(--goud);font-weight:700}
+.laden{padding:40px 10px;text-align:center;color:var(--zacht);font-size:18px}
+@media (max-width:860px){
+ .menu{display:none}
+ header .modus{display:none}
+ .kop{height:auto;padding:10px 16px;gap:10px}
+ .logo{font-size:23px}
+ .onderbalk{display:grid;grid-template-columns:repeat(4,1fr);position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--kaart);border-top:1px solid var(--lijn);padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -2px 10px rgba(0,0,0,.05)}
+ .onderbalk a{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:62px;font-size:14px;gap:3px;color:var(--inkt);position:relative;border-top:3px solid transparent}
+ .onderbalk a i{font-style:normal;font-size:22px;line-height:1}
+ .onderbalk a.aan{border-top-color:var(--goud);font-weight:700;background:var(--goud2)}
+ .onderbalk b{position:absolute;top:5px;left:calc(50% + 8px);background:#c0334f;color:#fff;border-radius:999px;font-size:12px;padding:0 6px;line-height:18px}
+ body{padding-bottom:calc(66px + env(safe-area-inset-bottom))}
+ .melding{bottom:calc(80px + env(safe-area-inset-bottom))}
+ h1{font-size:27px}
+ .pp h1{font-size:24px}
+}
+@media (max-width:600px){
+ .prods{grid-template-columns:repeat(auto-fill,minmax(min(100%,10rem),1fr));gap:10px}
+ .prod .titel{font-size:15.5px;-webkit-line-clamp:2}
+ .prijs{font-size:18px}
+ .prod .winkel{font-size:14px}
+ .prod .naar a{min-height:44px;font-size:14.5px;padding:6px 4px}
+ .hart{width:48px;height:48px;font-size:21px;top:4px;right:4px}
+ .afdtegels.groot{grid-template-columns:repeat(auto-fill,minmax(min(100%,9.5rem),1fr))}
+ .afdtegels.groot .afdtegel{font-size:16px}
+}
+.pp{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.pp>*{min-width:0}
+@media (max-width:860px){.pp{grid-template-columns:minmax(0,1fr)}}
+.pp .grootfoto img,.prod img,.tip img,.favrij img{width:auto;height:auto}
+main{overflow-wrap:break-word}
+.grootknop span,.optie span,.tip>div,.favrij>div{min-width:0;overflow-wrap:anywhere}
+@media (max-width:340px){.tip{grid-template-columns:1fr}.tip .tfoto{max-width:180px}.grootknop{font-size:18px;padding:12px 14px;gap:10px}.grootknop i{font-size:24px}}
+/* heel smal scherm of grote zoom: alleen de pictogrammen in de onderbalk (de namen blijven voor schermlezers) */
+@media (max-width:300px){.onderbalk a{font-size:0;gap:0}.onderbalk a i{font-size:26px}.onderbalk b{font-size:12px}}
+[hidden]{display:none!important}
 </style>
 </head>
 <body>
 <div class="spook">🧪 Testversie van de nieuwe LeukeKeuze. Je kunt niets kapot maken. Dank je wel voor het testen!</div>
 <header><div class="wrap kop">
-  <a class="logo" href="#/">Leuke<b>Keuze</b></a>
-  <form class="zoek" id="zoekform"><input id="zoek" placeholder="Zoek een product…" autocomplete="off"></form>
-  <nav class="modus"><a href="#/favorieten" id="m-fav" class="hartlink" title="Mijn verlanglijstje">♡ Verlanglijst<b id="favteller" hidden></b></a><a href="#/" id="m-winkel">🛍️ Winkel</a><a href="#/werkplaats" id="m-werk" hidden>Werkplaats</a><a href="#/opslaan" id="m-opslaan" hidden>Opslaan</a></nav>
+  <a class="logo" href="#/" aria-label="LeukeKeuze, naar de homepage">Leuke<b>Keuze</b></a>
+  <nav class="modus" aria-label="Hoofdmenu"><a href="#/" id="m-winkel">🏠 Home</a><a href="#/rondkijken" id="m-rond">🛍️ Rondkijken</a><a href="#/vonk" id="m-vonk">✨ VONK</a><a href="#/favorieten" id="m-fav" class="hartlink">❤️ Verlanglijst<b id="favteller" hidden></b></a><a href="#/werkplaats" id="m-werk" hidden>🛠️ Werkplaats</a><a href="#/opslaan" id="m-opslaan" hidden>💾 Opslaan</a></nav>
 </div></header>
+<div class="zoekbalk"><div class="wrap"><form class="zoek" id="zoekform" role="search"><label for="zoek" class="vb">Zoek een product of cadeau</label><input id="zoek" type="search" enterkeyhint="search" placeholder="Bijv. LEGO of cadeau voor mama" autocomplete="off"></form></div></div>
 <div class="menu"><div class="wrap" id="menu"></div></div>
-<main class="wrap" id="main"></main>
+<main class="wrap" id="main" tabindex="-1"></main>
 <footer class="voet"><div class="wrap"><a href="#/info/zo-werkt-het">Zo werkt LeukeKeuze</a><a href="#/info/over-ons">Over ons</a><a href="#/info/contact">Contact</a><a href="#/info/privacy">Privacy &amp; cookies</a><span style="margin-left:auto">© LeukeKeuze</span></div></footer>
-<div class="melding" id="melding"></div>
+<div class="melding" id="melding" role="status"></div>
+<div class="vb" id="voorlezer" aria-live="polite"></div>
+<nav class="onderbalk" aria-label="Snelmenu"><a href="#/" id="o-home"><i aria-hidden="true">🏠</i>Home</a><a href="#/rondkijken" id="o-rond"><i aria-hidden="true">🛍️</i>Rondkijken</a><a href="#/vonk" id="o-vonk"><i aria-hidden="true">✨</i>VONK</a><a href="#/favorieten" id="o-fav"><i aria-hidden="true">❤️</i>Verlanglijst<b id="favteller2" hidden></b></a></nav>
+<div class="blad" id="blad" hidden><div class="vel" role="dialog" aria-modal="true" aria-labelledby="bladkop"><h2 id="bladkop"></h2><div id="bladinhoud"></div><button class="keuzeknop sluit" data-bladdicht="1">Sluiten</button></div></div>
+<script>window.LK_KLANT = true;</script>
 <script src="indeling.js"></script>
-<script src="sterren.js" onerror="window.SPOOK_STERREN=[]"></script>
-<script src="producten.js" onerror="window.SPOOK_PRODUCTEN_VERSIE=''"></script>
-<script src="gidsen.js" onerror="window.SPOOK_GIDSEN={}"></script>
+<script src="populair.js" onerror="window.LK_SNELHOME=''"></script>
 <script>
-(function () {
+/* Snelstart: de homepage staat meteen in beeld (vooraf klaargezet in populair.js), de rest laadt erachteraan. */
+(function () { var h = location.hash.replace(/^#\/?/, ''), m = document.getElementById('main');
+  if (!h && window.LK_SNELHOME) { m.innerHTML = window.LK_SNELHOME; if (window.LK_SNELMENU) document.getElementById('menu').innerHTML = window.LK_SNELMENU; ['m-winkel', 'o-home'].forEach(function (x) { var e = document.getElementById(x); if (e) e.classList.add('aan'); }); }
+  else m.innerHTML = '<div class="laden">Even laden…</div>'; })();
+</script>
+<script src="sterren.js" defer onerror="window.SPOOK_STERREN=[]"></script>
+<script src="producten.js" defer onerror="window.SPOOK_PRODUCTEN_VERSIE=''"></script>
+<script src="gidsen.js" defer onerror="window.SPOOK_GIDSEN={}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
 'use strict';
 var SLEUTEL = 'leukekeuze-testversie-v1';
 var $ = function (id) { return document.getElementById(id); };
@@ -172,7 +334,7 @@ if (S && S.compact) {
   var wegC = {}; (S.claudeWeg || []).forEach(function (id) { wegC[id] = 1; });
   var eigenC = {}; (S.producten || []).forEach(function (q) { eigenC[q.id] = q; });
   var kaartC = claudeKaart();
-  var lijstC = (window.SPOOK_PRODUCTEN || []).filter(function (q) { return !wegC[q.id]; }).map(function (q) { return eigenC[q.id] || JSON.parse(JSON.stringify(q)); });
+  var lijstC = (window.SPOOK_PRODUCTEN || []).filter(function (q) { return !wegC[q.id]; }).map(function (q) { return eigenC[q.id] || (window.LK_KLANT ? q : JSON.parse(JSON.stringify(q))); });
   S.producten = lijstC.concat((S.producten || []).filter(function (q) { return !kaartC[q.id]; }));
   delete S.compact; delete S.claudeWeg;
 }
@@ -193,11 +355,11 @@ else if ((S.versie || '') !== (window.SPOOK_INDELING_VERSIE || '')) { var nb = v
 if (window.SPOOK_PRODUCTEN_VERSIE && S.productenVersie !== window.SPOOK_PRODUCTEN_VERSIE) {
   if (!S.apartGezet) { var kaartA = claudeKaart(); S.apart = (S.producten || []).filter(function (q) { return !kaartA[q.id]; }); S.producten = []; S.apartGezet = new Date().toISOString(); }
   var vanClaude = {}; (window.SPOOK_PRODUCTEN || []).forEach(function (q) { vanClaude[q.id] = 1; });
-  S.producten = (window.SPOOK_PRODUCTEN || []).map(function (q) { return JSON.parse(JSON.stringify(q)); }).concat((S.producten || []).filter(function (q) { return !vanClaude[q.id]; }));
+  S.producten = (window.SPOOK_PRODUCTEN || []).map(function (q) { return window.LK_KLANT ? q : JSON.parse(JSON.stringify(q)); }).concat((S.producten || []).filter(function (q) { return !vanClaude[q.id]; }));
   S.productenVersie = window.SPOOK_PRODUCTEN_VERSIE;
   try { localStorage.setItem(SLEUTEL, staatTekst()); } catch (e) {}
 }
-function bewaar() { S.bijgewerkt = new Date().toISOString(); try { localStorage.setItem(SLEUTEL, staatTekst()); } catch (e) { melding('Let op: bewaren in de browser lukt niet. Gebruik Opslaan.'); } }
+function bewaar() { PI = {}; S.bijgewerkt = new Date().toISOString(); try { localStorage.setItem(SLEUTEL, staatTekst()); } catch (e) { melding('Let op: bewaren in de browser lukt niet. Gebruik Opslaan.'); } }
 window.__spook = { staat: function () { return S; }, bewaar: function () { bewaar(); } }; /* voor Claude's controle */
 
 function afd(id) { return S.boom.find(function (a) { return a.id === id; }); }
@@ -209,52 +371,84 @@ function vakNaam(code) {
 function alleVakjes() { var l = []; S.boom.forEach(function (a) { a.groepen.forEach(function (g) { g.vakjes.forEach(function (v) { l.push({ code: a.id + '/' + g.id + '/' + v.id, a: a, g: g, v: v }); }); }); }); return l; }
 /* een product hoort bij zijn eigen vakje + de extra vindplekken; tellen gebeurt op beide */
 function plekken(p) { return [p.vak].concat(p.ookIn || []); }
-function productenIn(prefix, klant) { return S.producten.filter(function (p) { return !klant || zichtbaarVoorKlant(p); }).filter(function (p) { return plekken(p).some(function (c) { return c === prefix || c.indexOf(prefix + '/') === 0; }); }); }
+var PI = {}, PI_VAN = null;
+function productenIn(prefix, klant) { if (PI_VAN !== S.producten || PI._n !== S.producten.length) { PI = { _n: S.producten.length }; PI_VAN = S.producten; } var k = prefix + '|' + !!klant; if (PI[k]) return PI[k].slice(); var r = productenInVers(prefix, klant); PI[k] = r; return r.slice(); }
+function productenInVers(prefix, klant) { return S.producten.filter(function (p) { return !klant || zichtbaarVoorKlant(p); }).filter(function (p) { return plekken(p).some(function (c) { return c === prefix || c.indexOf(prefix + '/') === 0; }); }); }
 
 /* ---------- winkel ---------- */
 var UI = { prijs: 'alles', sorteer: 'standaard', fVoor: '', fLeeftijd: '', fAanbieding: false, werkVak: null, bewerk: null, open: {} };
 function menu(actief) {
-  $('menu').innerHTML = '<a href="#/cadeaus" class="' + (actief === 'cadeaus' ? 'aan' : '') + '" style="font-weight:600;color:var(--inkt)">🎁 Cadeau zoeken</a>' + S.boom.map(function (a) {
-    var n = productenIn(a.id).length;
-    return '<a href="#/a/' + a.id + '" class="' + (a.id === actief ? 'aan ' : '') + (n ? '' : 'leeg') + '">' + esc(a.naam) + '</a>';
+  $('menu').innerHTML = '<a href="#/vonk" class="' + (actief === 'cadeaus' ? 'aan' : '') + '" style="font-weight:600;color:var(--inkt)">✨ VONK cadeauhulp</a>' + S.boom.map(function (a) {
+    var n = productenIn(a.id, true).length;
+    return n ? '<a href="#/a/' + a.id + '" class="' + (a.id === actief ? 'aan' : '') + '">' + esc(a.naam) + '</a>' : '';
   }).join('');
 }
 var FAVKEY = 'leukekeuze-verlanglijst';
 function favs() { try { return JSON.parse(localStorage.getItem(FAVKEY) || '[]'); } catch (e) { return []; } }
 function isFav(id) { return favs().indexOf(id) !== -1; }
 function wisselFav(id) { var f = favs(), i = f.indexOf(id); if (i === -1) f.push(id); else f.splice(i, 1); try { localStorage.setItem(FAVKEY, JSON.stringify(f)); } catch (e) {} favTeller(); return i === -1; }
-function favTeller() { var t = $('favteller'), n = favs().filter(function (id) { return S.producten.some(function (p) { return p.id === id; }); }).length; if (t) { t.textContent = n; t.hidden = !n; } }
+function favTeller() { var n = favs().filter(function (id) { return S.producten.some(function (p) { return p.id === id; }); }).length; ['favteller', 'favteller2'].forEach(function (x) { var t = $(x); if (t) { t.textContent = n; t.hidden = !n; } }); }
 function hartKnop(p) { return p.id ? '<button class="hart' + (isFav(p.id) ? ' aan' : '') + '" data-hart="' + p.id + '" title="Op mijn verlanglijstje" aria-label="Op mijn verlanglijstje">' + (isFav(p.id) ? '♥' : '♡') + '</button>' : ''; }
 function zichtbaarVoorKlant(p) { return p.status !== 'twijfel' && !p.uitFeed; }
 var CLAUDE_IDS = null;
 function isClaude(p) { if (!CLAUDE_IDS) { CLAUDE_IDS = {}; (window.SPOOK_PRODUCTEN || []).forEach(function (q) { CLAUDE_IDS[q.id] = 1; }); } return !!CLAUDE_IDS[p.id]; }
+/* Productkaart: foto, naam (hooguit 2 regels), prijs, winkel en het hartje. Meer informatie staat op de productpagina.
+   Het label 'Laagste prijs' staat er alleen als we echt minstens 2 winkels vergeleken hebben (p.vergeleken). */
+function vergelekenTekst(p, lang) { var n = +p.vergeleken || 0; return n >= 2 ? (lang ? '✓ Laagste prijs van de ' + n + ' winkels die wij vergeleken' : '✓ Laagste prijs van ' + n + ' winkels') : ''; }
 function kaart(p) {
-  var pl = p.id ? '#/product/' + p.id : null;
-  return '<div class="prod">' + hartKnop(p) + (pl ? '<a class="foto" href="' + pl + '">' : '<div class="foto">') + (p.foto ? '<img src="' + esc(p.foto) + '" alt="' + esc(p.titel) + '" loading="lazy">' : '<span style="color:#bbb">geen foto</span>') + (pl ? '</a>' : '</div>') +
+  var pl = p.id ? '#/product/' + p.id : null, vg = vergelekenTekst(p);
+  return '<div class="prod">' + hartKnop(p) + (pl ? '<a class="foto" href="' + pl + '" tabindex="-1" aria-hidden="true">' : '<div class="foto">') + (p.foto ? '<img src="' + esc(p.foto) + '" alt="" loading="lazy" width="200" height="200">' : '<span style="color:#888">geen foto</span>') + (pl ? '</a>' : '</div>') +
     '<div class="info"><div class="titel">' + (pl ? '<a href="' + pl + '">' + esc(p.titel || '') + '</a>' : esc(p.titel || 'Nog geen titel')) + '</div>' +
     '<div><span class="prijs">' + esc(geld(p.prijs)) + '</span>' + (p.oudePrijs && +p.oudePrijs > +p.prijs ? '<span class="oud">' + esc(geld(p.oudePrijs)) + '</span>' : '') + '</div>' +
-    (p.rating ? '<div class="ster">★ ' + esc(String(p.rating).replace('.', ',')) + ' / 10</div>' : '') +
-    ((p.varianten || []).length ? '<div class="kleurrij" style="font-size:13px">' + (p.varianten.length + 1) + ' kleuren: <b>' + esc(p.kleur || '') + '</b>' + p.varianten.map(function (v) { return ' · <a href="' + esc(v.link) + '" target="_blank" rel="nofollow sponsored noopener" style="text-decoration:underline">' + esc(v.naam) + '</a>'; }).join('') + '</div>' : '') +
-    '<div class="winkel">bij ' + esc(p.winkel || '?') + '</div>' + (isClaude(p) ? '<div class="best">✓ Laagste prijs die wij vonden</div>' : '') + (p.levertijd ? '<div class="lever">🚚 ' + esc(p.levertijd) + '</div>' : '') + (p.tekst ? '<div class="waarom">' + esc(p.tekst) + '</div>' : '') +
-    '<div class="naar"><a href="' + esc(p.link || '#') + '" target="_blank" rel="nofollow sponsored noopener">Bekijk bij ' + esc(p.winkel || 'de winkel') + ' →</a></div></div></div>';
+    '<div class="winkel">bij ' + esc(p.winkel || '?') + '</div>' + (vg ? '<div class="best">' + vg + '</div>' : '') +
+    '<div class="naar"><a href="' + esc(p.link || '#') + '" target="_blank" rel="nofollow sponsored noopener">Naar ' + esc(p.winkel || 'de winkel') + ' →</a></div></div></div>';
 }
-function productRaster(lijst) {
-  var pf = { alles: [0, 1e9], tot10: [0, 10.001], tot25: [0, 25.001], tot50: [0, 50.001], tot100: [0, 100.001], '100plus': [100.001, 1e9] }[UI.prijs] || [0, 1e9];
+/* Productlijst met grote knoppen Prijs / Sorteren / Filters. Alles wat je kiest staat in het adres van de pagina,
+   zodat je met de terugknop precies terugkomt bij dezelfde lijst. Er komen 24 producten per keer. */
+var PRIJZEN = [['alles', 'Alle prijzen'], ['tot10', 'Tot €10'], ['tot25', 'Tot €25'], ['tot50', 'Tot €50'], ['tot100', 'Tot €100'], ['100plus', 'Meer dan €100']];
+var SORTEER = [['standaard', 'Onze volgorde'], ['laag', 'Prijs: laag naar hoog'], ['hoog', 'Prijs: hoog naar laag'], ['nieuw', 'Nieuwste eerst']];
+var PER_KEER = 24;
+function prijsRange(k) { return { alles: [0, 1e9], tot10: [0, 10.001], tot25: [0, 25.001], tot50: [0, 50.001], tot100: [0, 100.001], '100plus': [100.001, 1e9] }[k] || [0, 1e9]; }
+function filterLijst(lijst) {
+  var pf = prijsRange(UI.prijs);
   var l = lijst.filter(function (p) { var x = +p.prijs || 0; return x >= pf[0] && x < pf[1] && (!UI.fVoor || (p.voor || []).indexOf(UI.fVoor) !== -1) && (!UI.fLeeftijd || (p.leeftijd || []).indexOf(UI.fLeeftijd) !== -1) && (!UI.fAanbieding || +p.oudePrijs > +p.prijs); });
   if (UI.sorteer === 'laag') l.sort(function (a, b) { return a.prijs - b.prijs; });
   else if (UI.sorteer === 'hoog') l.sort(function (a, b) { return b.prijs - a.prijs; });
-  else if (UI.sorteer === 'beste') l.sort(function (a, b) { return (+b.rating || 0) - (+a.rating || 0); });
   else if (UI.sorteer === 'nieuw') l.sort(function (a, b) { return String(b.datum).localeCompare(String(a.datum)); });
-  var chips = [['alles', 'Alle prijzen'], ['tot10', 'Tot €10'], ['tot25', 'Tot €25'], ['tot50', 'Tot €50'], ['tot100', 'Tot €100'], ['100plus', 'Meer dan €100']].map(function (c) { return '<button class="chip' + (UI.prijs === c[0] ? ' aan' : '') + '" data-prijs="' + c[0] + '">' + c[1] + '</button>'; }).join('');
-  var sort = '<select class="kies" id="sorteer"><option value="standaard">Onze volgorde</option><option value="laag">Prijs laag – hoog</option><option value="hoog">Prijs hoog – laag</option><option value="beste">Best beoordeeld</option><option value="nieuw">Nieuwste eerst</option></select>';
-  var heeft = function (veld) { return lijst.some(function (p) { return (p[veld] || []).length; }); };
-  var extra = (heeft('voor') ? '<select class="kies" id="fvoor"><option value="">Voor iedereen</option>' + VOOR.map(function (x) { return '<option value="' + x[0] + '"' + (UI.fVoor === x[0] ? ' selected' : '') + '>' + x[1] + '</option>'; }).join('') + '</select>' : '') +
-    (heeft('leeftijd') ? '<select class="kies" id="fleeftijd"><option value="">Elke leeftijd</option>' + LEEFTIJD.map(function (x) { return '<option value="' + x[0] + '"' + (UI.fLeeftijd === x[0] ? ' selected' : '') + '>' + x[1] + '</option>'; }).join('') + '</select>' : '') +
-    (lijst.some(function (p) { return +p.oudePrijs > +p.prijs; }) ? '<button class="chip' + (UI.fAanbieding ? ' aan' : '') + '" data-aanbieding="1">🏷️ Aanbieding</button>' : '');
-  return '<div class="werkbalk"><div class="chips" style="margin:0">' + chips + '</div><div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">' + extra + sort + '</div></div>' +
-    '<p style="color:var(--zacht);font-size:14px;margin:0 0 10px">' + l.length + ' producten</p>' +
-    (l.length ? '<div class="prods">' + l.map(kaart).join('') + '</div>' : '<div class="leegbord"><b>Geen producten gevonden</b>Probeer een ander filter.</div>');
+  return l;
 }
+function naamVan(lijst, w) { var x = lijst.find(function (y) { return y[0] === w; }); return x ? x[1] : w; }
+/* De datum van de productlijsten waar de prijzen uit komen (bijv. '2026-10-30/2026-11-04'). Eerlijk: prijzen kunnen veranderd zijn. */
+function datumKort(v) { var d = new Date(v.slice(0, 10) + 'T12:00:00'); return d.getDate() + ' ' + ['jan', 'feb', 'mrt', 'apr', 'mei', 'jun', 'jul', 'aug', 'sep', 'okt', 'nov', 'dec'][d.getMonth()]; }
+function prijsDatumBereik() { var v = String(window.SPOOK_PRIJSDATUM || '').split('/').filter(function (x) { return /^\d{4}-\d\d-\d\d/.test(x); }); if (!v.length) return ''; return v.length > 1 && v[0] !== v[1] ? datumKort(v[0]) + ' – ' + datumKort(v[1]) : datumKort(v[0]); }
+function prijsDatumTekst() { var b = prijsDatumBereik(); return b ? 'prijzen van ' + b : ''; }
+function productRaster(lijst, opties) {
+  opties = opties || {};
+  var l = filterLijst(lijst), toon_ = PER_KEER * Math.max(1, UI.meer || 1);
+  UI.blad = { heeftVoor: lijst.some(function (p) { return (p.voor || []).length; }) && !opties.geenVoor, heeftLeeftijd: lijst.some(function (p) { return (p.leeftijd || []).length; }), heeftAanbieding: lijst.some(function (p) { return +p.oudePrijs > +p.prijs; }) };
+  var pillen = (UI.prijs !== 'alles' ? '<button class="filterpil" data-zet="prijs=" aria-label="Prijsfilter weghalen">' + esc(naamVan(PRIJZEN, UI.prijs)) + ' ✕</button>' : '') +
+    (UI.fVoor ? '<button class="filterpil" data-zet="fvoor=" aria-label="Filter weghalen">' + esc(naamVan(VOOR, UI.fVoor)) + ' ✕</button>' : '') +
+    (UI.fLeeftijd ? '<button class="filterpil" data-zet="flft=" aria-label="Filter weghalen">' + esc(naamVan(LEEFTIJD, UI.fLeeftijd)) + ' ✕</button>' : '') +
+    (UI.fAanbieding ? '<button class="filterpil" data-zet="aanb=" aria-label="Filter weghalen">Aanbieding ✕</button>' : '');
+  var extra = UI.blad.heeftVoor || UI.blad.heeftLeeftijd || UI.blad.heeftAanbieding;
+  var balk = '<div class="lijstbalk"><button class="balkknop" data-blad="prijs">Prijs ▾</button><button class="balkknop" data-blad="sorteer">Sorteren ▾</button>' + (extra ? '<button class="balkknop" data-blad="filters">Filters ▾</button>' : '') + pillen + '</div>';
+  var pd = prijsDatumTekst();
+  return balk + '<p class="aantal" id="aantal">' + l.length + ' producten' + (pd ? ' · ' + pd : '') + '</p>' +
+    (l.length ? '<div class="prods">' + l.slice(0, toon_).map(kaart).join('') + '</div>' + (l.length > toon_ ? '<button class="meerknop" data-zet="meer=' + ((UI.meer || 1) + 1) + '">Meer laden (nog ' + (l.length - toon_) + ')</button>' : '')
+      : '<div class="leegbord"><b>Geen producten met dit filter</b>' + (UI.prijs !== 'alles' ? '<br><button class="keus" data-zet="prijs=" style="margin-top:10px">Toon alle prijzen</button>' : 'Probeer een ander filter.') + '</div>');
+}
+function bladHtml(soort) {
+  var knop = function (k, v, label, aan) { return '<button class="keuzeknop' + (aan ? ' aan' : '') + '" data-zet="' + k + '=' + esc(v) + '" data-bladdicht="1">' + esc(label) + '</button>'; };
+  if (soort === 'prijs') return ['Prijs', PRIJZEN.map(function (x) { return knop('prijs', x[0] === 'alles' ? '' : x[0], x[1], UI.prijs === x[0]); }).join('')];
+  if (soort === 'sorteer') return ['Sorteren', SORTEER.map(function (x) { return knop('sort', x[0] === 'standaard' ? '' : x[0], x[1], UI.sorteer === x[0]); }).join('')];
+  var b = UI.blad || {}, h = '';
+  if (b.heeftVoor) h += '<h3 style="margin:6px 0 8px">Voor wie</h3>' + knop('fvoor', '', 'Iedereen', !UI.fVoor) + VOOR.map(function (x) { return knop('fvoor', x[0], x[1], UI.fVoor === x[0]); }).join('');
+  if (b.heeftLeeftijd) h += '<h3 style="margin:14px 0 8px">Leeftijd</h3>' + knop('flft', '', 'Elke leeftijd', !UI.fLeeftijd) + LEEFTIJD.map(function (x) { return knop('flft', x[0], x[1], UI.fLeeftijd === x[0]); }).join('');
+  if (b.heeftAanbieding) h += '<h3 style="margin:14px 0 8px">Aanbieding</h3>' + knop('aanb', UI.fAanbieding ? '' : '1', UI.fAanbieding ? 'Alleen aanbiedingen (aan)' : 'Alleen aanbiedingen', UI.fAanbieding);
+  return ['Filters', h];
+}
+function openBlad(soort) { var x = bladHtml(soort); $('bladkop').textContent = x[0]; $('bladinhoud').innerHTML = x[1]; $('blad').hidden = false; var f = $('bladinhoud').querySelector('button'); if (f) f.focus(); UI.bladVan = document.activeElement; }
+function sluitBlad() { if ($('blad').hidden) return; $('blad').hidden = true; }
 function leeg(tekst) { return '<div class="leegbord"><b>Hier komen nog producten</b>' + esc(tekst) + ' We vullen dit vakje binnenkort.</div>'; }
 function nuGelegenheden() {
   var d = new Date(), md = (d.getMonth() + 1) * 100 + d.getDate();
@@ -280,35 +474,35 @@ function winkelRoute(soort, w) {
   var titel = { voor: 'Cadeaus ' + routeNaam(soort, w).toLowerCase().replace(/^voor /, 'voor '), gelegenheid: routeNaam(soort, w) + ' cadeaus', budget: 'Cadeaus ' + routeNaam(soort, w).toLowerCase(), thema: routeNaam(soort, w) + ' cadeaus' }[soort];
   if (soort === 'voor' && !/^voor /i.test(routeNaam(soort, w))) titel = 'Cadeaus voor ' + routeNaam(soort, w).toLowerCase();
   var l = routeProducten(soort, w);
-  return '<div class="kruim"><a href="#/">Home</a> › <a href="#/cadeaus">Cadeau zoeken</a> › ' + esc(routeNaam(soort, w)) + '</div><h1>' + esc(titel) + '</h1>' +
-    (l.length ? productRaster(l) : '<div class="leegbord"><b>Hier komen nog cadeaus</b>Zodra er producten met dit kenmerk zijn, staan ze hier.</div>');
+  var hulp = soort === 'gelegenheid' && ['sinterklaas', 'kerst', 'verjaardag'].indexOf(w) !== -1 ? '<div class="grootknoppen" style="margin-top:6px"><a class="grootknop" href="#/vonk?gel=' + w + '"><i>🎁</i><span>Help mij een ' + esc(routeNaam(soort, w).toLowerCase()) + 'cadeau vinden<small>Een paar korte vragen, dan zie je 6 ideeën</small></span></a></div>' : '';
+  return '<h1>' + esc(titel) + '</h1>' + hulp + (l.length ? productRaster(l, { geenVoor: soort === 'voor' }) : '<div class="leegbord"><b>Hier komen nog cadeaus</b>Zodra er producten met dit kenmerk zijn, staan ze hier.</div>');
 }
 function prijsBlok(prijs, oud) { return '<span class="prijs" style="font-size:26px">' + esc(geld(prijs)) + '</span>' + (+oud > +prijs ? '<span class="oud">' + esc(geld(oud)) + '</span> <span class="pil">−' + Math.round(100 - 100 * prijs / oud) + '%</span>' : ''); }
 function alleenKleuren(p) { return [p.kleur || ''].concat((p.varianten || []).map(function (v) { return v.naam; })).every(function (n) { return String(n).toLowerCase().split(/[\s-]+/).filter(Boolean).every(function (w) { return KLEURWOORD.test(w); }); }); }
 function winkelProduct(id) {
   var p = S.producten.find(function (x) { return x.id === id && zichtbaarVoorKlant(x); });
   menu(p ? p.vak.split('/')[0] : null);
-  if (!p) return '<div class="leegbord"><b>Dit product staat niet (meer) op LeukeKeuze</b><a href="#/">Naar de voorpagina</a></div>';
+  if (!p) return '<div class="leegbord"><b>Dit product is even niet beschikbaar</b>Bekijk andere ideeën.<br><br><a class="keus" href="#/vonk">🎁 Help mij een cadeau vinden</a></div>';
   var d = p.vak.split('/'), a = afd(d[0]), g = groep(a, d[1]), v = g && g.vakjes.find(function (x) { return x.id === d[2]; });
-  var naam = function (lijst, w) { var x = lijst.find(function (y) { return y[0] === w; }); return x ? x[1] : w; };
-  var kenm = [].concat((p.voor || []).map(function (w) { return '<a class="kenmerk" href="#/voor/' + w + '">' + esc(naam(VOOR, w)) + '</a>'; }), (p.leeftijd || []).map(function (w) { return '<span class="kenmerk">' + esc(naam(LEEFTIJD, w)) + '</span>'; }), (p.gelegenheid || []).map(function (w) { return '<a class="kenmerk" href="#/gelegenheid/' + w + '">' + esc(naam(GELEGENHEID, w)) + '</a>'; }), (p.thema || []).map(function (w) { return '<a class="kenmerk" href="#/thema/' + w + '">' + esc(naam(THEMA, w)) + '</a>'; })).join('');
-  var zelfde = productenIn(p.vak, true).filter(function (x) { return x.id !== p.id; }).slice(0, 4);
-  return '<div class="kruim"><a href="#/">Home</a>' + (a ? ' › <a href="#/a/' + a.id + '">' + esc(a.naam) + '</a>' : '') + (g ? ' › <a href="#/a/' + a.id + '/' + g.id + '">' + esc(g.naam) + '</a>' : '') + (v ? ' › <a href="#/a/' + p.vak + '">' + esc(v.naam) + '</a>' : '') + '</div>' +
-    '<div class="pp" style="margin-top:10px"><div class="grootfoto">' + (p.foto ? '<img id="ppfoto" src="' + esc(p.foto) + '" alt="' + esc(p.titel) + '">' : '') + '</div><div>' +
+  var kenm = [].concat((p.voor || []).map(function (w) { return '<a class="kenmerk" href="#/voor/' + w + '">' + esc(naamVan(VOOR, w)) + '</a>'; }), (p.leeftijd || []).map(function (w) { return '<span class="kenmerk">' + esc(naamVan(LEEFTIJD, w)) + '</span>'; }), (p.gelegenheid || []).map(function (w) { return '<a class="kenmerk" href="#/gelegenheid/' + w + '">' + esc(naamVan(GELEGENHEID, w)) + '</a>'; }), (p.thema || []).map(function (w) { return '<a class="kenmerk" href="#/thema/' + w + '">' + esc(naamVan(THEMA, w)) + '</a>'; })).join('');
+  var zelfde = productenIn(p.vak, true).filter(function (x) { return x.id !== p.id; }).slice(0, 4), vg = vergelekenTekst(p, true), pd = prijsDatumTekst();
+  return '<div class="kruim">' + (a ? '<a href="#/a/' + a.id + '">' + esc(a.naam) + '</a>' : '') + (g ? ' › <a href="#/a/' + a.id + '/' + g.id + '">' + esc(g.naam) + '</a>' : '') + (v ? ' › <a href="#/a/' + p.vak + '">' + esc(v.naam) + '</a>' : '') + '</div>' +
+    '<div class="pp" style="margin-top:10px"><div class="grootfoto">' + (p.foto ? '<img id="ppfoto" src="' + esc(p.foto) + '" alt="' + esc(p.titel) + '" width="500" height="500">' : '') + '</div><div>' +
     '<h1>' + esc(p.titel) + '</h1>' +
-    '<div id="ppprijs">' + prijsBlok(p.prijs, p.oudePrijs) + '</div>' +
-    (p.rating ? '<div class="ster" style="margin-top:4px">★ ' + esc(String(p.rating).replace('.', ',')) + ' / 10 bij ' + esc(p.winkel) + '</div>' : '') +
-    (p.tekst ? '<p style="font-size:17px;margin:14px 0">' + esc(p.tekst) + '</p>' : '') +
-    ((p.varianten || []).length ? '<div style="margin:10px 0"><b>' + (alleenKleuren(p) ? 'Kies je kleur:' : 'Maak je keuze:') + '</b><div class="chips" style="margin-top:6px" data-keuzes="' + p.id + '"><button type="button" class="chip aan" data-keuze="0" aria-pressed="true">' + esc(p.kleur || 'Deze') + '</button>' + p.varianten.map(function (x, i) { return '<button type="button" class="chip" data-keuze="' + (i + 1) + '" aria-pressed="false">' + esc(x.naam) + '</button>'; }).join('') + '</div></div>' : '') +
-    (kenm ? '<div style="margin:10px 0">' + kenm + '</div>' : '') +
-    '<a class="koop" id="ppkoop" href="' + esc(p.link) + '" target="_blank" rel="nofollow sponsored noopener">Bekijk en bestel bij ' + esc(p.winkel) + ' →</a>' +
-    '<button class="knop licht" style="width:100%;justify-content:center;margin-bottom:8px" data-hartgroot="' + p.id + '">' + (isFav(p.id) ? '♥ Op je verlanglijstje' : '♡ Zet op mijn verlanglijstje') + '</button>' +
-    (isClaude(p) ? '<div class="best" style="font-size:14px">✓ Dit is de laagste prijs die wij vonden bij onze winkels</div>' : '') + (p.levertijd ? '<div class="lever" style="font-size:14px">🚚 ' + esc(p.levertijd) + '</div>' : '') +
-    '<p class="klein">Je bestelt rechtstreeks bij ' + esc(p.winkel) + '. Daar betaal je, en daar regel je bezorging en retour. De prijs kan bij de winkel iets anders zijn dan hier. LeukeKeuze krijgt soms een kleine vergoeding van de winkel; jij betaalt niets extra. <a href="#/info/zo-werkt-het" style="text-decoration:underline">Zo werkt het</a></p>' +
-    '</div></div>' + (zelfde.length ? '<h2>Meer in ' + esc(v ? v.naam : 'dit vakje') + '</h2><div class="prods">' + zelfde.map(kaart).join('') + '</div>' : '');
+    '<div id="ppprijs">' + prijsBlok(p.prijs, p.oudePrijs) + '</div>' + (pd ? '<div class="prijsdatum">Prijs uit de productlijst van de winkel (' + esc(prijsDatumBereik()) + '). In de winkel kan de prijs veranderd zijn.</div>' : '') +
+    '<div style="margin-top:6px;font-size:16px">bij <b>' + esc(p.winkel) + '</b></div>' + (vg ? '<div class="best" style="font-size:15px">' + vg + '</div>' : '') + (p.levertijd ? '<div class="lever" style="font-size:15px">🚚 ' + esc(p.levertijd) + '</div>' : '') +
+    (p.tekst ? '<p style="font-size:17px;margin:12px 0">' + esc(p.tekst) + '</p>' : '') +
+    ((p.varianten || []).length ? '<div style="margin:10px 0"><b>' + (alleenKleuren(p) ? 'Kies je kleur:' : 'Maak je keuze:') + '</b><div class="chips" style="margin-top:6px" data-keuzes="' + p.id + '"><button type="button" class="keus aan" data-keuze="0" aria-pressed="true">' + esc(p.kleur || 'Deze') + '</button>' + p.varianten.map(function (x, i) { return '<button type="button" class="keus" data-keuze="' + (i + 1) + '" aria-pressed="false">' + esc(x.naam) + '</button>'; }).join('') + '</div></div>' : '') +
+    '<p class="klein" style="margin:12px 0 4px">Je gaat naar ' + esc(p.winkel) + '. Daar bestel en betaal je.</p>' +
+    '<a class="koop" id="ppkoop" href="' + esc(p.link) + '" target="_blank" rel="nofollow sponsored noopener">Bekijk bij ' + esc(p.winkel) + ' →</a>' +
+    '<button class="lichtknop" style="width:100%;margin-bottom:8px" data-hartgroot="' + p.id + '">' + (isFav(p.id) ? '♥ Op je verlanglijst' : '♡ Zet op mijn verlanglijst') + '</button>' +
+    '<details class="meerinfo"><summary>Meer informatie</summary>' + (kenm ? '<div style="margin:8px 0">' + kenm + '</div>' : '') +
+    '<p class="klein">Je bestelt rechtstreeks bij ' + esc(p.winkel) + '. Daar betaal je, en daar regel je bezorging en retour. LeukeKeuze rekent geen extra kosten. Wij krijgen soms een kleine vergoeding van de winkel. <a href="#/info/hoe-wij-vergelijken" style="text-decoration:underline">Hoe wij vergelijken</a></p></details>' +
+    '</div></div>' + (zelfde.length ? '<h2>Lijkt hierop</h2><div class="prods">' + zelfde.map(kaart).join('') + '</div>' : '');
 }
 var INFO = {
-  'zo-werkt-het': ['Zo werkt LeukeKeuze', '<h2>Wij zoeken, jij kiest</h2><p>LeukeKeuze is geen webwinkel. Wij zoeken bij betrouwbare Nederlandse winkels de leukste cadeaus uit, met de hand. Geen eindeloze lijsten, maar alleen producten die we zelf ook leuk zouden vinden om te krijgen.</p><h2>Je koopt bij de winkel zelf</h2><p>Zie je iets leuks? Dan ga je met één klik naar de winkel, bijvoorbeeld Coolblue, HEMA of bol. Daar bestel en betaal je, en daar regel je bezorging en retour. Zo heb je dezelfde zekerheid als altijd.</p><h2>Kost het mij iets?</h2><p>Nee. Koop je iets via LeukeKeuze, dan krijgen wij soms een kleine vergoeding van de winkel. Jij betaalt daar niets extra voor. Die vergoeding bepaalt nooit welk product wij kiezen.</p><h2>Prijzen</h2><p>We werken de prijzen elke dag bij. Toch kan een prijs bij de winkel net anders zijn. De prijs in de winkel is altijd de echte prijs.</p>'],
+  'zo-werkt-het': ['Zo werkt LeukeKeuze', '<h2>Wij zoeken, jij kiest</h2><p>LeukeKeuze is geen webwinkel. Wij zoeken bij betrouwbare winkels de cadeaus uit waar mensen het meest naar zoeken. Geen eindeloze lijsten, maar alleen producten die we zelf ook leuk zouden vinden om te krijgen.</p><h2>Je koopt bij de winkel zelf</h2><p>Zie je iets leuks? Dan ga je met één klik naar de winkel, bijvoorbeeld Coolblue, HEMA of bol. Daar bestel en betaal je, en daar regel je bezorging en retour. Zo heb je dezelfde zekerheid als altijd.</p><h2>Kost het mij iets?</h2><p>Nee. Koop je iets via LeukeKeuze, dan krijgen wij soms een kleine vergoeding van de winkel. Jij betaalt daar niets extra voor. Die vergoeding bepaalt nooit welk product wij kiezen.</p><h2>Prijzen</h2><p>Onze prijzen komen uit de productlijsten van de winkels, van de datum die erbij staat. Een prijs kan inmiddels veranderd zijn. De prijs in de winkel is altijd de echte prijs.</p><p><a href="#/info/hoe-wij-vergelijken" style="text-decoration:underline">Hoe wij vergelijken</a></p>'],
+  'hoe-wij-vergelijken': ['Hoe wij vergelijken', '<h2>Welke winkels</h2><p>Wij kijken in de productlijsten van bol en van de winkels waarmee we samenwerken via Awin, Daisycon en TradeTracker. Andere winkels vergelijken we niet.</p><h2>Welk product we laten zien</h2><p>Heeft meer dan één winkel precies hetzelfde product, dan laten we het één keer zien: bij de winkel met de laagste prijs. Is de prijs gelijk, dan kiezen we een winkel waarmee we samenwerken.</p><h2>Het label “Laagste prijs”</h2><p>Dat label staat alleen bij producten waarvan we echt de prijs van minstens twee winkels hebben vergeleken. Er staat bij hoeveel winkels dat waren. Het betekent niet dat het nergens anders goedkoper kan.</p><h2>De volgorde</h2><p>In een afdeling staan per soort product eerst de producten waar mensen het meest naar zoeken. Bij de cadeauhulp VONK hangt de volgorde af van je antwoorden: voor wie, de leeftijd, je budget en eventueel een interesse. Bij zoeken komen producten met je zoekwoorden in de naam bovenaan.</p><h2>Onze vergoeding</h2><p>Koop je iets via LeukeKeuze, dan krijgen wij vaak een kleine vergoeding van de winkel. Jij betaalt niets extra: je koopt rechtstreeks bij de winkel, voor de prijs van de winkel. Die vergoeding bepaalt nooit welk product of welke winkel we laten zien.</p><h2>Prijzen</h2><p>Onze prijzen komen uit de productlijsten van de winkels, van de datum die erbij staat. Prijzen kunnen veranderen. De prijs in de winkel is altijd de echte prijs.</p>'],
   'over-ons': ['Over LeukeKeuze', '<p>LeukeKeuze is gemaakt door Marius, voor iedereen die een leuk cadeau zoekt en geen zin heeft om uren te zoeken. We kijken naar wat mensen echt zoeken: voor wie het is, voor welke gelegenheid en wat het mag kosten.</p>'],
   'contact': ['Contact', '<p>Vragen, tips of een fout gezien? Mail ons: <b>leukekeuze.nl@gmail.com</b>. We antwoorden zo snel mogelijk.</p><p>Vragen over een bestelling? Neem dan contact op met de winkel waar je hebt besteld.</p>'],
   'privacy': ['Privacy & cookies', '<p>LeukeKeuze verzamelt geen persoonlijke gegevens. We tellen bezoekers zonder cookies en zonder je te volgen. Je favorieten worden alleen op je eigen apparaat bewaard.</p><p>Klik je door naar een winkel, dan gelden de privacyregels van die winkel.</p>']
@@ -326,12 +520,18 @@ function winkelLijst(soort) {
 function winkelFavorieten(gedeeld) {
   menu(null);
   var ids = gedeeld ? gedeeld.split(',') : favs(), l = ids.map(function (id) { return S.producten.find(function (p) { return p.id === id && zichtbaarVoorKlant(p); }); }).filter(Boolean);
-  if (gedeeld) return '<h1>🎁 Een verlanglijstje voor jou</h1><p class="intro">Iemand heeft dit verlanglijstje met je gedeeld. Klik op een product om het bij de winkel te bekijken.</p>' + (l.length ? '<div class="prods">' + l.map(kaart).join('') + '</div>' : '<div class="leegbord"><b>Deze producten zijn er niet meer</b></div>');
+  var weg = ids.length - l.length;
+  var rij = function (p, eigen) { return '<div class="favrij"><a class="ffoto" href="#/product/' + p.id + '" tabindex="-1" aria-hidden="true">' + (p.foto ? '<img src="' + esc(p.foto) + '" alt="" loading="lazy" width="84" height="84">' : '') + '</a><div><a class="fnaam" href="#/product/' + p.id + '">' + esc(p.titel) + '</a><div><span class="prijs">' + esc(geld(p.prijs)) + '</span> <span style="color:var(--zacht);font-size:15px">bij ' + esc(p.winkel) + '</span></div><div class="facties"><a class="koopje" href="' + esc(p.link) + '" target="_blank" rel="nofollow sponsored noopener">Naar ' + esc(p.winkel) + ' →</a>' + (eigen ? '<button data-favweg="' + p.id + '">Verwijder</button>' : '') + '</div></div></div>'; };
+  if (gedeeld) return '<h1>🎁 Een verlanglijst voor jou</h1><p class="intro">Iemand heeft deze verlanglijst met je gedeeld. Tik op een product om het bij de winkel te bekijken.</p>' + (weg ? '<p class="melding2">' + weg + (weg === 1 ? ' product is' : ' producten zijn') + ' niet meer beschikbaar.</p>' : '') + (l.length ? l.map(function (p) { return rij(p, false); }).join('') : '<div class="leegbord"><b>Deze producten zijn er niet meer</b></div>');
   var link = location.href.split('#')[0] + '#/lijst/' + l.map(function (p) { return p.id; }).join(',');
-  return '<h1>♡ Mijn verlanglijstje</h1><p class="intro">Klik op het hartje bij een product om het hier te bewaren. Deel je lijstje met familie of vrienden, bijvoorbeeld voor Sinterklaas of je verjaardag.</p>' +
-    (l.length ? '<p><button class="knop goud" id="deellijst" data-link="' + esc(link) + '">📤 Deel mijn verlanglijstje</button> <a class="knop licht" href="https://wa.me/?text=' + encodeURIComponent('Mijn verlanglijstje op LeukeKeuze: ' + link) + '" target="_blank" rel="noopener">WhatsApp</a></p><div class="prods">' + l.map(kaart).join('') + '</div>' : '<div class="leegbord"><b>Je verlanglijstje is nog leeg</b>Klik op ♡ bij een product.<br><br><a class="knop licht klein" href="#/cadeaus">Cadeau zoeken</a></div>');
+  return '<h1>❤️ Mijn verlanglijst' + (l.length ? ' (' + l.length + ')' : '') + '</h1>' +
+    (l.length ? '<div class="knoprij" style="justify-content:flex-start;margin:0 0 14px"><button class="meerknop" style="max-width:none;width:auto;padding:0 20px" id="deellijst" data-link="' + esc(link) + '">📤 Deel mijn lijst</button></div>' +
+      (UI.favWeg ? '<p class="melding2" id="favongedaan">Verwijderd: ' + esc(UI.favWeg.titel) + ' <button class="keus" data-favterug="1">Ongedaan maken</button></p>' : '') +
+      l.map(function (p) { return rij(p, true); }).join('') +
+      '<p class="klein" style="color:var(--zacht);font-size:15px">Je lijst wordt op deze telefoon of computer bewaard. Wis je je browsergeschiedenis, of gebruik je een ander apparaat, dan ben je hem kwijt. Deel je lijst, dan heb je de link als reserve.</p>'
+      : (UI.favWeg ? '<p class="melding2" id="favongedaan">Verwijderd: ' + esc(UI.favWeg.titel) + ' <button class="keus" data-favterug="1">Ongedaan maken</button></p>' : '') + '<div class="leegbord"><b>Je verlanglijst is nog leeg</b>Tik op ♡ bij een product om het te bewaren.<br><br><a class="grootknop" style="display:inline-flex;font-size:18px;min-height:60px" href="#/vonk"><i>🎁</i>Help mij een cadeau vinden</a></div>');
 }
-function winkelCadeaus() { menu('cadeaus'); return '<h1>Cadeau zoeken</h1><p class="intro">Weet je nog niet wat je zoekt? Begin bij de persoon, de gelegenheid of je budget.</p>' + ingangen(); }
+function winkelCadeaus() { return winkelVonk(params()); }
 var AFD_ICOON = { 'speelgoed-spellen': '🧸', 'elektronica-gaming': '🎧', 'mode-sieraden': '💍', 'beauty-verzorging': '💄', 'wonen-koken': '🏠', 'eten-drinken': '🍫', 'hobby-creatief': '🎨', 'sport-buiten-tuin': '⚽', 'boeken-films-muziek': '📚', 'dieren': '🐾' };
 /* per vakje onze nummer 1 (de lijst staat op volgorde van wat het meest gezocht wordt), om en om uit alle afdelingen */
 function nummerEen(filter, max) {
@@ -361,54 +561,55 @@ function seizoenToppers(soort, max) {
   return uit;
 }
 function heeft(p, veld, w) { return (p[veld] || []).indexOf(w) !== -1; }
+function populairNu(max) {
+  var nu = nuGelegenheden().map(function (g) { return g[0]; }), l = [];
+  var a = nu.indexOf('sinterklaas') !== -1 ? seizoenToppers('sinterklaas', max) : [], b = nu.indexOf('kerst') !== -1 ? seizoenToppers('kerst', max) : [];
+  for (var i = 0; l.length < max && (i < a.length || i < b.length); i++) { if (a[i] && l.indexOf(a[i]) === -1) l.push(a[i]); if (l.length < max && b[i] && l.indexOf(b[i]) === -1) l.push(b[i]); }
+  return l.length ? l : nummerEen(function () { return true; }, max);
+}
 function winkelHome() {
   menu(null);
-  var totaal = S.producten.filter(function (p) { return zichtbaarVoorKlant(p); }).length;
-  var nu = nuGelegenheden().map(function (g) { return g[0]; });
-  var seizoen = '';
-  if (nu.indexOf('sinterklaas') !== -1) seizoen += rijProducten('🎁 Sinterklaas: meest gezocht voor kinderen', seizoenToppers('sinterklaas', 8), '#/gelegenheid/sinterklaas');
-  if (nu.indexOf('kerst') !== -1) seizoen += rijProducten('🎄 Kerst: meest gezocht', seizoenToppers('kerst', 8), '#/gelegenheid/kerst');
-  if (!seizoen) seizoen = rijProducten('⭐ Meest gezocht', nummerEen(function () { return true; }, 8), '#/toppers');
-  return '<h1>Vind een leuke keuze</h1><p class="intro">De producten die mensen het meest zoeken, met de hand uitgezocht. Bij elk product staat de winkel waar het het goedkoopst is. ' + (totaal ? totaal + ' producten.' : 'De winkel is nog leeg: vul hem via de Werkplaats.') + '</p>' +
-    '<form class="zoek" id="zoekgroot" style="max-width:640px;margin:0 0 10px"><input id="zoek2" placeholder="Waar ben je naar op zoek? Bijv. lego, parfum, cadeau voor oma" style="padding:15px 20px;font-size:17px;background:#fff"></form>' +
-    '<div class="vertrouw"><span>Laagste prijs die wij vonden</span><span>Je koopt bij bekende winkels zoals bol, Coolblue en HEMA</span><span>Kost jou niets extra</span></div>' +
-    '<div class="afdtegels">' + S.boom.map(function (a) {
-      var n = productenIn(a.id, true).length;
-      return '<a class="afdtegel' + (n ? '' : ' leeg') + '" href="#/a/' + a.id + '"><i>' + (AFD_ICOON[a.id] || '🛍️') + '</i><span>' + esc(a.naam) + '</span></a>';
-    }).join('') + '</div>' +
-    seizoen +
-    rijProducten('⭐ Toppers van nu', toppers().slice(0, 8), '#/toppers') +
-    ingangen() +
-    rijProducten('✨ Nieuw binnen', nieuw().slice(0, 8), '#/nieuw') +
+  return '<h1 class="welkom">Vind snel een leuk cadeau</h1>' +
+    '<div class="grootknoppen"><a class="grootknop" href="#/vonk"><i>🎁</i><span>Help mij een cadeau vinden<small>Een paar korte vragen, dan zie je 6 ideeën</small></span></a>' +
+    '<a class="grootknop tweede" href="#/rondkijken"><i>🛍️</i><span>Lekker rondkijken<small>Blader door alle afdelingen</small></span></a></div>' +
+    '<h2 class="lijstkop">🔥 Populair nu</h2><div class="prods">' + populairNu(4).map(kaart).join('') + '</div><a class="allebekijk" href="#/toppers">Meer populaire cadeaus →</a>' +
     '<div class="wiezijnwij"><h2>Waarom LeukeKeuze?</h2><ul>' +
-    '<li><b>Wat mensen echt zoeken.</b> Per vakje kijken we welke producten nu het meest gezocht en gekocht worden. Die zetten we bovenaan.</li>' +
-    '<li><b>De goedkoopste winkel.</b> We vergelijken onze winkels en zetten de laagste prijs erbij die we vonden.</li>' +
-    '<li><b>Gewoon kopen bij de winkel.</b> Je bestelt en betaalt bij de winkel zelf. Daar regel je ook bezorging en retour.</li>' +
-    '<li><b>Het kost je niets.</b> Koop je iets via ons, dan krijgen wij soms een kleine vergoeding van de winkel. Jij betaalt niets extra.</li>' +
-    '</ul><a href="#/info/zo-werkt-het" style="text-decoration:underline">Lees hoe het werkt</a> · <a href="#/info/over-ons" style="text-decoration:underline">Wie zijn wij?</a></div>';
+    '<li><b>Wij vergelijken prijzen</b> bij onze aangesloten winkels.</li>' +
+    '<li><b>Je koopt rechtstreeks bij de winkel.</b> LeukeKeuze rekent geen extra kosten.</li>' +
+    '<li><b>Wat mensen echt zoeken.</b> Per soort product zetten we bovenaan wat het meest gezocht wordt.</li>' +
+    '</ul><a href="#/info/hoe-wij-vergelijken" style="text-decoration:underline">Hoe wij vergelijken</a> · <a href="#/info/over-ons" style="text-decoration:underline">Wie zijn wij?</a></div>';
 }
+function winkelRondkijken() {
+  menu(null);
+  return '<h1>Lekker rondkijken</h1><p class="intro">Kies een afdeling. Je ziet meteen producten.</p><div class="afdtegels groot"><a class="afdtegel" href="#/toppers"><i>🔥</i><span>Populair nu</span></a>' + S.boom.map(function (a) {
+    return productenIn(a.id, true).length ? '<a class="afdtegel" href="#/a/' + a.id + '"><i>' + (AFD_ICOON[a.id] || '🛍️') + '</i><span>' + esc(a.naam) + '</span></a>' : '';
+  }).join('') + '</div>';
+}
+/* Afdeling: per groep meteen 4 producten (uit verschillende vakjes) en 'Alle ... bekijken'. Zo blader je zonder diep te tikken. */
+function vakZichtbaar(code) { return productenIn(code, true).length >= ZICHTBAAR_VANAF; }
+function eenPerVak(l, max) { var gezien = {}, uit = [], rest = []; l.forEach(function (p) { if (!gezien[p.vak]) { gezien[p.vak] = 1; uit.push(p); } else rest.push(p); }); return uit.concat(rest).slice(0, max); }
 function winkelAfd(a) {
   menu(a.id);
-  var k = '<div class="kruim"><a href="#/">Home</a> › ' + esc(a.naam) + '</div><h1>' + esc(a.naam) + '</h1>';
-  if (!a.groepen.length) return k + leeg('Deze afdeling wordt nog ingedeeld.');
-  return k + '<p class="intro">Kies een soort.</p><div class="raster">' + a.groepen.map(function (g) {
-    var n = productenIn(a.id + '/' + g.id, true).length;
-    return '<a class="tegel' + (n ? '' : ' leeg') + '" href="#/a/' + a.id + '/' + g.id + '"><b>' + esc(g.naam) + '</b><small>' + g.vakjes.map(function (v) { return esc(v.naam); }).slice(0, 4).join(' · ') + (g.vakjes.length > 4 ? ' …' : '') + '</small><br><small>' + n + ' producten</small></a>';
-  }).join('') + '</div>';
+  var groepen = a.groepen.filter(function (g) { return productenIn(a.id + '/' + g.id, true).length; });
+  if (!groepen.length) return '<h1>' + esc(a.naam) + '</h1>' + leeg('Deze afdeling wordt nog ingedeeld.');
+  return '<h1>' + esc(a.naam) + '</h1><div class="springknoppen">' + groepen.map(function (g) { return '<button class="springknop" data-spring="g-' + g.id + '">' + esc(g.naam) + '</button>'; }).join('') + '</div>' +
+    groepen.map(function (g) {
+      var code = a.id + '/' + g.id, l = productenIn(code, true);
+      return '<div class="groepkop" id="g-' + g.id + '"><h2>' + esc(g.naam) + '</h2></div><div class="prods">' + eenPerVak(l, 4).map(kaart).join('') + '</div><a class="allebekijk" href="#/a/' + code + '">Alle ' + l.length + ' bekijken →</a>';
+    }).join('');
 }
 function winkelGroep(a, g) {
   menu(a.id);
-  var code = a.id + '/' + g.id;
-  return '<div class="kruim"><a href="#/">Home</a> › <a href="#/a/' + a.id + '">' + esc(a.naam) + '</a> › ' + esc(g.naam) + '</div><h1>' + esc(g.naam) + '</h1>' +
-    '<div class="chips">' + g.vakjes.map(function (v) { var n = productenIn(code + '/' + v.id, true).length; return '<a class="chip" href="#/a/' + code + '/' + v.id + '"' + (n < ZICHTBAAR_VANAF ? ' style="opacity:.5" title="Nog niet zichtbaar voor klanten: ' + n + ' van ' + ZICHTBAAR_VANAF + ' producten"' : '') + '>' + esc(v.naam) + ' <span style="color:var(--zacht)">(' + n + ')</span></a>'; }).join('') + '</div>' +
-    '<p style="font-size:13px;color:var(--zacht);margin:-6px 0 14px">Lichte vakjes zien klanten nog niet: daar staan minder dan ' + ZICHTBAAR_VANAF + ' producten in.</p>' +
+  var code = a.id + '/' + g.id, klant = !!window.LK_KLANT;
+  var vakken = g.vakjes.map(function (v) { var n = productenIn(code + '/' + v.id, true).length; if (klant && n < ZICHTBAAR_VANAF) return ''; return '<a class="springknop" href="#/a/' + code + '/' + v.id + '"' + (n < ZICHTBAAR_VANAF ? ' style="opacity:.5" title="Nog niet zichtbaar voor klanten: ' + n + ' van ' + ZICHTBAAR_VANAF + ' producten"' : '') + '>' + esc(v.naam) + '</a>'; }).join('');
+  return '<div class="kruim"><a href="#/a/' + a.id + '">' + esc(a.naam) + '</a></div><h1>' + esc(g.naam) + '</h1>' + (vakken ? '<div class="springknoppen">' + vakken + '</div>' : '') +
     (productenIn(code, true).length ? productRaster(productenIn(code, true)) : leeg('Er staat nog niets in ' + g.naam + '.'));
 }
 function winkelVak(a, g, v) {
   menu(a.id);
-  var code = a.id + '/' + g.id + '/' + v.id, l = productenIn(code, true);
-  return '<div class="kruim"><a href="#/">Home</a> › <a href="#/a/' + a.id + '">' + esc(a.naam) + '</a> › <a href="#/a/' + a.id + '/' + g.id + '">' + esc(g.naam) + '</a> › ' + esc(v.naam) + '</div><h1>' + esc(v.naam) + '</h1>' +
-    ((window.SPOOK_GIDSEN || {})[code] ? '<div class="gids"><b>💡 Koopgids</b>' + esc(window.SPOOK_GIDSEN[code]) + '</div>' : '') +
+  var code = a.id + '/' + g.id + '/' + v.id, l = productenIn(code, true), gids = (window.SPOOK_GIDSEN || {})[code];
+  return '<div class="kruim"><a href="#/a/' + a.id + '">' + esc(a.naam) + '</a> › <a href="#/a/' + a.id + '/' + g.id + '">' + esc(g.naam) + '</a></div><h1>' + esc(v.naam) + '</h1>' +
+    (gids ? '<details class="gids"><summary>💡 Koopadvies</summary><p>' + esc(gids) + '</p></details>' : '') +
     (l.length ? productRaster(l) : leeg('Er staat nog niets in ' + v.naam + '.'));
 }
 /* Zoeken, zelfde techniek als op leukekeuze.nl:
@@ -461,7 +662,7 @@ var ZOEK_OOK = {
 };
 /* Woorden die niets zeggen over het product; die laten we weg als er nog andere woorden zijn. */
 var HULPWOORD = {};
-'voor een de het van met en aan mijn mn je jouw die dat wat te om cadeau cadeaus cadeautje cadeautjes kado kados kadootje geschenk geschenken idee ideeen leuk leuke leuks origineel originele beste mooi mooie liefhebber liefhebbers bezitter bezitters eigenaar fan fans jaar jarige jarig euro'.split(' ').forEach(function (w) { HULPWOORD[w] = 1; });
+'voor een de het van met en aan mijn mn je jouw die dat wat te om iemand iets persoon cadeau cadeaus cadeautje cadeautjes kado kados kadootje geschenk geschenken idee ideeen leuk leuke leuks origineel originele beste mooi mooie liefhebber liefhebbers bezitter bezitters eigenaar fan fans jaar jarige jarig euro'.split(' ').forEach(function (w) { HULPWOORD[w] = 1; });
 /* Aan elkaar getypt ('sinterklaascadeau', 'parfumdames'): knip het woord in stukjes die wel in onze producten staan. */
 var ZW = null;
 function bekendWoord(w) {
@@ -596,18 +797,222 @@ function mengVakken(l, sleutel) {
   while (door) { door = false; volg.forEach(function (g) { if (groep[g][i]) { uit.push(groep[g][i]); door = true; } }); i++; }
   return uit;
 }
+/* Zoeken. Is het een cadeauvraag ('kerstcadeau moeder', 'cadeau voor opa onder 20 euro'), dan krijg je meteen de cadeau-ideeën van VONK,
+   met de antwoorden al ingevuld. Anders gewone resultaten, met bovenaan de beste match. */
+function cadeauVraag(q) {
+  var v = zoekVraag(q), P = {}, rest = [];
+  v.woorden.forEach(function (w) {
+    var raak = false;
+    VOOR.forEach(function (x) { if (labelWoorden('voor', x[0]).indexOf(w) !== -1) { raak = true; var m = { haar: 'vrouw', hem: 'man', kinderen: 'kind', tieners: 'kind', baby: 'baby', 'opa-oma': 'opa-oma', collega: 'vriend', dierenliefhebber: '' }[x[0]]; if (x[0] === 'dierenliefhebber') P.int = 'dieren'; else if (!P.voor) P.voor = m; if (x[0] === 'tieners' && !P.lft) P.lft = '13+'; } });
+    GELEGENHEID.forEach(function (x) { if (labelWoorden('gelegenheid', x[0]).indexOf(w) !== -1) { raak = true; if (['sinterklaas', 'kerst', 'verjaardag'].indexOf(x[0]) !== -1) P.gel = x[0]; } });
+    if (!raak) rest.push(w);
+  });
+  if (v.leeftijd) { if (v.leeftijd === '0-2') P.voor = 'baby'; else if (v.leeftijd !== 'volwassen') { if (!P.voor || P.voor === 'kind') { P.voor = 'kind'; P.lft = v.leeftijd; } } }
+  if (rest.length || (!P.voor && !P.int)) return null;
+  if (!P.voor) P.voor = 'anders';
+  if (P.voor === 'kind' && !P.lft) P.lft = 'alle';
+  P.budget = v.max ? String(v.max) : 'alles';
+  return P;
+}
 function winkelZoek(q) {
   menu(null);
+  var cv = cadeauVraag(q);
+  if (cv) { cv.q = q; history.replaceState(history.state, '', maakHash('vonk', cv)); UI.route = 'vonk'; return winkelVonk(cv); }
   var v = zoekProducten(q), l = v.lijst;
   var lt = LEEFTIJD.find(function (x) { return x[0] === v.leeftijd; });
   var hulp = (v.leeftijd || v.max) ? '<p class="intro" style="margin-top:-6px">We zochten op: ' + [v.toon.length ? '<b>' + esc(v.toon.join(' ')) + '</b>' : '', lt ? '<b>' + esc(lt[1]) + '</b>' : '', v.max ? '<b>tot € ' + v.max + '</b>' : ''].filter(Boolean).join(' · ') + '</p>' : '';
-  var tips = '<div class="leegbord"><b>Niets gevonden</b>Probeer een ander woord, of kies hieronder:<br><br>' +
-    nuGelegenheden().slice(0, 3).map(function (g) { return '<a class="knop licht klein" href="#/gelegenheid/' + g[0] + '">' + esc(g[1]) + '</a> '; }).join('') +
-    VOOR.slice(0, 4).map(function (x) { return '<a class="knop licht klein" href="#/voor/' + x[0] + '">' + esc(x[1]) + '</a> '; }).join('') + '</div>';
-  return '<h1>Zoeken: ' + esc(q) + '</h1><p class="intro">' + l.length + ' producten gevonden.' + (v.dichtbij ? ' Niet alles paste precies, dit komt het dichtst in de buurt.' : '') + '</p>' + hulp + (l.length ? productRaster(l) : tips);
+  if (v.max && !UI.prijsUitUrl) l = l.filter(function (p) { return +p.prijs <= v.max; });
+  var tikfoutTekst = '';
+  if (l.length && !v.dichtbij) { var w0 = v.woorden.filter(function (w) { return !l.some(function (p) { return bevat(zoekTekst(p), w); }); }); if (w0.length) { var vb = null; l.slice(0, 5).some(function (p) { return vouw(p.titel).split(/[^a-z0-9]+/).some(function (x) { if (tikfout(w0[0], x)) { vb = x; return true; } }); }); if (vb) tikfoutTekst = '<p class="melding2">Bedoelde je: <b>' + esc(vb) + '</b>? Dit hebben we gevonden.</p>'; } }
+  var beste = '';
+  if (l.length && !UI.sorteer.match(/laag|hoog|nieuw/) && UI.prijs === 'alles') {
+    var ti = function (p) { return ' ' + vouw(p.titel).replace(/[^a-z0-9]+/g, ' ') + ' '; };
+    var eerste = l[0];
+    if (v.woorden.length > 1 && v.woorden.every(function (w) { return ti(eerste).indexOf(' ' + w) !== -1; }) && (l.length === 1 || !v.woorden.every(function (w) { return ti(l[1]).indexOf(' ' + w) !== -1; }))) {
+      beste = '<div class="tip"><a class="tfoto" href="#/product/' + eerste.id + '" tabindex="-1" aria-hidden="true">' + (eerste.foto ? '<img src="' + esc(eerste.foto) + '" alt="" width="140" height="140">' : '') + '</a><div><span class="tlabel">Beste match</span><div class="ttitel"><a href="#/product/' + eerste.id + '">' + esc(eerste.titel) + '</a></div><div><span class="prijs">' + esc(geld(eerste.prijs)) + '</span> <span style="color:var(--zacht)">bij ' + esc(eerste.winkel) + '</span></div><a class="koop" style="display:flex;align-items:center;justify-content:center;min-height:48px;margin-top:8px;border-radius:12px;background:var(--goud);color:#fff;font-weight:700" href="' + esc(eerste.link) + '" target="_blank" rel="nofollow sponsored noopener">Bekijk bij ' + esc(eerste.winkel) + ' →</a></div></div>';
+      l = l.slice(1);
+    }
+  }
+  var geen = '<div class="leegbord"><b>Niets gevonden voor “' + esc(q) + '”</b>Probeer een ander woord, of:<div class="grootknoppen" style="margin:14px auto 0;max-width:520px;text-align:left"><a class="grootknop" href="#/vonk"><i>🎁</i><span>Help mij een cadeau vinden</span></a><a class="grootknop tweede" href="#/rondkijken"><i>🛍️</i><span>Lekker rondkijken</span></a></div></div>';
+  return '<h1>Zoeken: ' + esc(q) + '</h1>' + (v.dichtbij ? '<p class="melding2">Niet alles paste precies. Dit komt het dichtst in de buurt.</p>' : '') + tikfoutTekst + hulp + beste + (l.length || beste ? productRaster(l) : geen);
 }
-
 /* ---------- werkplaats ---------- */
+/* ---------- VONK: de cadeauhulp (zonder AI) ----------
+   Eén vaste vraagkaart. Voor wie → (alleen bij kind/tiener: hoe oud) → wat mag het kosten → 6 ideeën.
+   Elke vraag is een eigen adres, dus de terugknop van de telefoon gaat één vraag terug.
+   VONK kiest per ontvanger eerst uit de vakjes die voor die persoon het meest gekocht worden, steeds één uit elk vakje.
+   Een interesse zoekt in álle vakjes van die interesse, dus ook buiten de vaste selectie. We sluiten niemand iets af. */
+var VONK_VOOR = [['vrouw', '👩', 'Vrouw / mama'], ['man', '👨', 'Man / papa'], ['kind', '🧒', 'Kind / tiener'], ['baby', '👶', 'Baby'], ['opa-oma', '👵', 'Opa / oma'], ['vriend', '🎉', 'Vriend / collega'], ['anders', '🎁', 'Iemand anders']];
+var VONK_LFT = [['3-5', '3–5 jaar'], ['6-8', '6–8 jaar'], ['9-12', '9–12 jaar'], ['13+', '13–17 jaar']];
+var VONK_BUDGET = [['10', 'Tot €10'], ['25', 'Tot €25'], ['50', 'Tot €50'], ['100', 'Tot €100'], ['alles', 'Maakt niet uit']];
+var VONK_GEL = [['sinterklaas', '🎅 Sinterklaas'], ['kerst', '🎄 Kerst'], ['verjaardag', '🎂 Verjaardag']];
+/* Interesses = groepen vakjes. Geen nieuwe indeling: het zijn de bestaande vakjes. */
+var INTERESSE = {
+  verwennen: ['💆', 'Verwennen', ['beauty-verzorging/', 'wonen-koken/kaarsen-geur/']],
+  mode: ['💍', 'Sieraden & mode', ['mode-sieraden/']],
+  wonen: ['🕯️', 'Wonen & sfeer', ['wonen-koken/woondecoratie/', 'wonen-koken/plaids-kussens/', 'wonen-koken/verlichting/', 'wonen-koken/kaarsen-geur/', 'wonen-koken/foto-persoonlijk/', 'wonen-koken/tafelen/']],
+  eten: ['🍫', 'Eten & drinken', ['eten-drinken/', 'wonen-koken/koken-bakken/', 'wonen-koken/koffie-thee-zetten/', 'boeken-films-muziek/boeken/kookboeken']],
+  techniek: ['🎧', 'Techniek & gadgets', ['elektronica-gaming/']],
+  klussen: ['🌱', 'Klussen & tuin', ['sport-buiten-tuin/klussen/', 'sport-buiten-tuin/tuin/']],
+  sport: ['⚽', 'Sport & buiten', ['sport-buiten-tuin/fietsen-steps/', 'sport-buiten-tuin/fitness-yoga/', 'sport-buiten-tuin/wandelen-hardlopen/', 'sport-buiten-tuin/kamperen-outdoor/', 'sport-buiten-tuin/balsport-spel/', 'sport-buiten-tuin/zwemmen-wintersport/', 'speelgoed-spellen/buiten-spelen/']],
+  lezen: ['📚', 'Lezen & puzzelen', ['boeken-films-muziek/boeken/', 'boeken-films-muziek/kinderboeken/', 'speelgoed-spellen/puzzels/']],
+  dieren: ['🐶', 'Dieren', ['dieren/', 'speelgoed-spellen/speelfiguren-voertuigen/dieren-dinofiguren']],
+  creatief: ['🎨', 'Creatief', ['hobby-creatief/', 'speelgoed-spellen/knutselen/']],
+  gamen: ['🎮', 'Gamen', ['elektronica-gaming/gaming/']],
+  muziek: ['🎵', 'Muziek', ['boeken-films-muziek/muziek/', 'hobby-creatief/muziek-maken/', 'elektronica-gaming/audio/', 'speelgoed-spellen/leren-ontdekken/muziekspeelgoed-karaoke']],
+  bouwen: ['🧱', 'Bouwen', ['speelgoed-spellen/bouwen/']],
+  fantasie: ['🧸', 'Fantasie & rollenspel', ['speelgoed-spellen/rollenspel-verkleden/', 'speelgoed-spellen/poppen-knuffels/', 'speelgoed-spellen/speelfiguren-voertuigen/']],
+  knutselen: ['✂️', 'Knutselen', ['speelgoed-spellen/knutselen/', 'hobby-creatief/']],
+  buiten: ['🛝', 'Buiten spelen', ['speelgoed-spellen/buiten-spelen/', 'sport-buiten-tuin/']],
+  knuffels: ['🧸', 'Knuffels', ['speelgoed-spellen/poppen-knuffels/knuffels', 'speelgoed-spellen/poppen-knuffels/squishmallows']],
+  boekjes: ['📖', 'Boekjes', ['boeken-films-muziek/kinderboeken/']],
+  ontdekken: ['🔬', 'Ontdekken & wetenschap', ['speelgoed-spellen/leren-ontdekken/']],
+  verzamelen: ['🃏', 'Verzamelen', ['speelgoed-spellen/spellen/verzamelkaarten-pokemon', 'speelgoed-spellen/poppen-knuffels/squishmallows']],
+  spellen: ['🎲', 'Spellen', ['speelgoed-spellen/spellen/']],
+  modeverzorging: ['💄', 'Mode & verzorging', ['mode-sieraden/', 'beauty-verzorging/']]
+};
+/* welke interesses vooraan staan (4) en welke onder 'Meer interesses'. Iedereen kan alles kiezen. */
+var VONK_INT = {
+  volw: ['verwennen', 'mode', 'wonen', 'eten', 'techniek', 'klussen', 'sport', 'lezen', 'dieren', 'creatief', 'gamen', 'muziek'],
+  vrouw: ['verwennen', 'mode', 'wonen', 'eten'], man: ['eten', 'klussen', 'techniek', 'sport'], 'opa-oma': ['lezen', 'wonen', 'eten', 'klussen'], vriend: ['eten', 'wonen', 'techniek', 'verwennen'], anders: ['eten', 'wonen', 'techniek', 'lezen'],
+  '3-5': ['bouwen', 'fantasie', 'knutselen', 'buiten', 'knuffels', 'boekjes', 'muziek'],
+  '6-8': ['bouwen', 'creatief', 'sport', 'gamen', 'lezen', 'dieren', 'ontdekken', 'verzamelen', 'spellen'],
+  '9-12': ['bouwen', 'creatief', 'sport', 'gamen', 'lezen', 'dieren', 'ontdekken', 'verzamelen', 'spellen'],
+  '13+': ['gamen', 'muziek', 'modeverzorging', 'sport', 'creatief', 'lezen', 'techniek'],
+  alle: ['bouwen', 'creatief', 'sport', 'gamen', 'lezen', 'dieren', 'ontdekken', 'spellen']
+};
+function vonkInteresses(P) {
+  if (P.voor === 'baby') return [];
+  if (P.voor === 'kind') return VONK_INT[P.lft] || VONK_INT.alle;
+  var voor = VONK_INT[P.voor] || VONK_INT.anders; return voor.concat(VONK_INT.volw.filter(function (k) { return voor.indexOf(k) === -1; }));
+}
+var BABY_VAKKEN = ['speelgoed-spellen/baby-peuter/', 'boeken-films-muziek/kinderboeken/prentenboeken', 'speelgoed-spellen/poppen-knuffels/knuffels', 'speelgoed-spellen/bouwen/lego-duplo'];
+function vonkDoelVakken(P) {
+  if (P.voor === 'vrouw') return DOELVAKKEN.haar; if (P.voor === 'man') return DOELVAKKEN.hem; if (P.voor === 'opa-oma') return DOELVAKKEN['opa-oma']; if (P.voor === 'vriend') return DOELVAKKEN.collega;
+  if (P.voor === 'baby') return BABY_VAKKEN;
+  if (P.voor === 'kind') return P.lft === '13+' ? DOELVAKKEN.tieners : SEIZOEN_VAKKEN.sinterklaas.filter(function (v) { return P.gel !== 'kerst' || v.indexOf('chocoladeletters') === -1; });
+  return null;
+}
+var VOOR_LABEL = { vrouw: 'haar', man: 'hem', 'opa-oma': 'opa-oma', vriend: 'collega', baby: 'baby', kind: 'kinderen' };
+function vonkKandidaten(P) {
+  var max = P.budget && P.budget !== 'alles' ? +P.budget : 0;
+  var l = S.producten.filter(function (p) { return zichtbaarVoorKlant(p) && p.foto && +p.prijs > 0 && p.link; });
+  var zonderBudget = l;
+  var kerstig = function (p) { return /kerst|christmas|advent/i.test(p.titel) || p.vak.indexOf('wonen-koken/kerstdecoratie/') === 0; };
+  var sintig = function (p) { return /sinterklaas|\bsint\b|piet(en)?\b|chocoladeletter/i.test(p.titel) || p.vak === 'eten-drinken/chocolade-snoep/chocoladeletters'; };
+  var filt = function (p) {
+    if (P.gel === 'sinterklaas' && kerstig(p)) return false;
+    if (P.gel === 'kerst' && sintig(p)) return false;
+    if (P.gel === 'verjaardag' && (kerstig(p) || sintig(p))) return false;
+    var lf = p.leeftijd || [];
+    if (P.voor === 'kind') { if (P.lft === 'alle' ? !lf.some(function (x) { return ['3-5', '6-8', '9-12', '13+'].indexOf(x) !== -1; }) : lf.indexOf(P.lft) === -1) return false; }
+    else if (P.voor === 'baby') { if (lf.indexOf('0-2') === -1 && (p.voor || []).indexOf('baby') === -1) return false; }
+    else if (lf.length && lf.indexOf('volwassen') === -1) return false;
+    if (P.int && INTERESSE[P.int]) { if (!INTERESSE[P.int][2].some(function (v) { return plekken(p).some(function (c) { return c.indexOf(v) === 0; }); })) return false; }
+    return true;
+  };
+  zonderBudget = l.filter(filt);
+  l = zonderBudget.filter(function (p) { return !max || +p.prijs <= max; });
+  return { lijst: l, zonderBudget: zonderBudget, max: max };
+}
+function vonkVolgorde(P, l) {
+  var dv = P.int ? null : vonkDoelVakken(P), lab = VOOR_LABEL[P.voor];
+  var rang = function (p) { if (!dv) return 999; for (var i = 0; i < dv.length; i++) if (plekken(p).some(function (c) { return c.indexOf(dv[i]) === 0; })) return i; return 999; };
+  var groep = {}, volg = [];
+  var metRang = l.map(function (p, i) { return { p: p, i: i, r: rang(p), lab: lab && (p.voor || []).indexOf(lab) !== -1 ? 0 : 1 }; });
+  /* zonder interesse: alleen producten uit de doelvakjes of met het label van de ontvanger ('anders': alles) */
+  if (dv && !P.int && P.voor !== 'anders') metRang = metRang.filter(function (x) { return x.r < 999 || x.lab === 0; });
+  metRang.sort(function (a, b) { return (a.r - b.r) || (a.lab - b.lab) || (a.i - b.i); });
+  metRang.forEach(function (x) { var g = x.r < 999 ? 'r' + x.r : x.p.vak; if (!groep[g]) { groep[g] = []; volg.push(g); } groep[g].push(x.p); });
+  var uit = [], i = 0, door = true;
+  while (door) { door = false; volg.forEach(function (g) { if (groep[g][i]) { uit.push(groep[g][i]); door = true; } }); i++; }
+  return uit;
+}
+function vonkTip(zes) {
+  /* Alleen een tip als er een echte reden is die voor dat ene product geldt. We hebben (nog) geen beoordelingen;
+     een duidelijke aanbieding (minstens 10% korting) is wel een echte reden. Commissie telt nooit mee. */
+  var beste = null, korting = 0;
+  zes.forEach(function (p) { if (+p.oudePrijs > +p.prijs) { var k = Math.round(100 - 100 * p.prijs / p.oudePrijs); if (k >= 10 && k > korting) { korting = k; beste = p; } } });
+  return beste ? { p: beste, reden: 'Nu in de aanbieding: ' + korting + '% korting (was ' + geld(beste.oudePrijs) + ').' } : null;
+}
+function vonkVraag(P) {
+  if (P.vraag) return P.vraag;
+  if (!P.voor || !VONK_VOOR.some(function (x) { return x[0] === P.voor; })) return 'voor';
+  if (P.voor === 'kind' && !P.lft) return 'lft';
+  if (!P.budget) return 'budget';
+  return '';
+}
+function vonkLabel(P, k) {
+  if (k === 'voor') { var x = VONK_VOOR.find(function (y) { return y[0] === P.voor; }); return x ? x[1] + ' ' + x[2] : ''; }
+  if (k === 'lft') { if (P.lft === 'alle') return 'Alle leeftijden'; var l = VONK_LFT.find(function (y) { return y[0] === P.lft; }); return l ? l[1] : ''; }
+  if (k === 'budget') { if (P.budget === 'alles') return 'Elk budget'; return 'Tot €' + P.budget; }
+  if (k === 'gel') { var g = VONK_GEL.find(function (y) { return y[0] === P.gel; }); return g ? g[1] : ''; }
+  return '';
+}
+function vonkAntwoorden(P, behalve) {
+  var b = [];
+  ['gel', 'voor', 'lft', 'budget'].forEach(function (k) {
+    if (!P[k] || k === behalve) return;
+    if (k === 'lft' && P.voor !== 'kind') return;
+    var o = Object.assign({}, P); delete o.meer;
+    var href = k === 'gel' ? (function () { var z = Object.assign({}, o); delete z.gel; return maakHash('vonk', z); })() : maakHash('vonk', Object.assign(o, { vraag: k }));
+    b.push('<a class="antwoord" href="' + href + '" aria-label="' + esc(vonkLabel(P, k)) + ' – ' + (k === 'gel' ? 'weghalen' : 'veranderen') + '">' + esc(vonkLabel(P, k)) + (k === 'gel' ? ' ✕' : ' ✎') + '</a>');
+  });
+  return b.length ? '<div class="antwoorden">' + b.join('') + '</div>' : '';
+}
+function winkelVonk(P) {
+  menu('cadeaus');
+  var vraag = vonkVraag(P);
+  if (vraag) {
+    var stappenLijst = ['voor'].concat(P.voor === 'kind' || (!P.voor && vraag !== 'budget') ? ['lft'] : []).concat(['budget']);
+    if (P.voor && P.voor !== 'kind') stappenLijst = ['voor', 'budget'];
+    var nr = stappenLijst.indexOf(vraag) + 1, tot = stappenLijst.length;
+    var basis = Object.assign({}, P); delete basis.vraag; delete basis.meer; delete basis.int;
+    var opt = function (k, waarde, icoon, tekst) {
+      var o = Object.assign({}, basis); o[k] = waarde;
+      if (k === 'voor') { if (waarde !== 'kind') delete o.lft; else if (P.voor !== 'kind') delete o.lft; }
+      if (k === 'voor' && waarde === 'kind' && !o.lft) o.vraag = 'lft';
+      return '<a class="optie" href="' + maakHash('vonk', o) + '">' + (icoon ? '<i aria-hidden="true">' + icoon + '</i>' : '') + '<span>' + esc(tekst) + '</span></a>';
+    };
+    var titel = '', opties = '';
+    if (vraag === 'voor') { titel = 'Voor wie zoek je een cadeau?'; opties = VONK_VOOR.map(function (x) { return opt('voor', x[0], x[1], x[2]); }).join(''); }
+    else if (vraag === 'lft') { titel = 'Hoe oud is hij of zij?'; opties = VONK_LFT.map(function (x) { return opt('lft', x[0], '', x[1]); }).join(''); }
+    else { titel = 'Wat mag het kosten?'; opties = VONK_BUDGET.map(function (x) { return opt('budget', x[0], '', x[1]); }).join(''); }
+    if (P.vraag && vraag === 'lft' && P.voor === 'kind') { /* na het veranderen van de leeftijd: direct door naar budget als dat al gekozen was */ }
+    return '<div class="vonk"><p style="margin:0 0 8px;font-weight:700;color:var(--goudtekst)">✨ VONK cadeauhulp</p>' + vonkAntwoorden(P, vraag) +
+      '<div class="vraagkaart"><p class="stap">Vraag ' + Math.max(1, nr) + (P.voor ? ' van ' + tot : '') + '</p><h1>' + titel + '</h1><div class="opties">' + opties + '</div>' +
+      (nr > 1 || P.vraag ? '<button type="button" class="lichtknop vorige" data-terug="1">← Vorige vraag</button>' : '') + '</div></div>';
+  }
+  return vonkUitkomst(P);
+}
+function vonkUitkomst(P) {
+  var k = vonkKandidaten(P), alle = vonkVolgorde(P, k.lijst), meer = Math.max(1, +P.meer || 1), n = 6 * meer;
+  var wie = { vrouw: 'een vrouw of mama', man: 'een man of papa', kind: P.lft === 'alle' ? 'een kind' : P.lft === '13+' ? 'een tiener (13–17 jaar)' : 'een kind van ' + vonkLabel(P, 'lft'), baby: 'een baby', 'opa-oma': 'opa of oma', vriend: 'een vriend(in) of collega', anders: 'iemand' }[P.voor] || 'iemand';
+  var gelT = P.gel ? vonkLabel(P, 'gel').replace(/^\S+ /, '') : '';
+  var titel = (gelT ? gelT + 'cadeau' : 'Cadeau') + '-ideeën voor ' + wie + (k.max ? ', tot €' + k.max : '');
+  /* interesses: 4 vooraan, de rest achter 'Meer interesses' (klapt open, schuift niet opzij) */
+  var ints = vonkInteresses(P), open = UI.vonkMeerInt || (P.int && ints.indexOf(P.int) >= 4);
+  var intKnop = function (key) { var x = INTERESSE[key]; if (!x) return ''; var aan = P.int === key; return '<button class="keus' + (aan ? ' aan' : '') + '" data-zet="int=' + (aan ? '' : key) + '" aria-pressed="' + aan + '">' + x[0] + ' ' + esc(x[1]) + '</button>'; };
+  var intRij = ints.length ? '<div class="kiesrij"><span class="label">Maak persoonlijker:</span>' + ints.slice(0, 4).map(intKnop).join('') + (ints.length > 4 ? (open ? ints.slice(4).map(intKnop).join('') : '<button class="keus meer" data-meerint="1">Meer interesses ▾</button>') : '') + '</div>' : '';
+  var nu = nuGelegenheden().map(function (g) { return g[0]; });
+  var gels = VONK_GEL.filter(function (g) { return g[0] === 'verjaardag' || nu.indexOf(g[0]) !== -1 || P.gel === g[0]; });
+  var gelRij = '<div class="kiesrij"><span class="label">Gelegenheid:</span>' + gels.map(function (g) { var aan = P.gel === g[0]; return '<button class="keus' + (aan ? ' aan' : '') + '" data-zet="gel=' + (aan ? '' : g[0]) + '" aria-pressed="' + aan + '">' + esc(g[1]) + '</button>'; }).join('') + '</div>';
+  var zes = alle.slice(0, n), tip = meer === 1 ? vonkTip(zes) : null;
+  if (tip) { zes = [tip.p].concat(zes.filter(function (p) { return p !== tip.p; })); }
+  var tipHtml = tip ? '<div class="tip"><a class="tfoto" href="#/product/' + tip.p.id + '" tabindex="-1" aria-hidden="true"><img src="' + esc(tip.p.foto) + '" alt="" width="140" height="140"></a><div><span class="tlabel">⭐ Onze tip</span><div class="ttitel"><a href="#/product/' + tip.p.id + '">' + esc(tip.p.titel) + '</a></div><div><span class="prijs">' + esc(geld(tip.p.prijs)) + '</span> <span style="color:var(--zacht)">bij ' + esc(tip.p.winkel) + '</span></div><div class="treden">Waarom: ' + esc(tip.reden) + '</div></div>' + hartKnop(tip.p) + '</div>' : '';
+  var rest = tip ? zes.slice(1) : zes;
+  var tekort = '';
+  if (k.max && alle.length < 6) {
+    var hoger = Math.round(k.max * 1.4 / 5) * 5, extra = vonkVolgorde(P, k.zonderBudget.filter(function (p) { return +p.prijs <= hoger; })).length;
+    tekort = '<div class="melding2">We vonden er ' + alle.length + ' binnen je budget van €' + k.max + '.' + (extra > alle.length ? '<br><button class="keus" data-zet="budget=' + hoger + '">Toon ook tot €' + hoger + ' (' + extra + ')</button>' : '') + '</div>';
+  }
+  var pd = prijsDatumTekst();
+  var lijstHtml = !alle.length ? '<div class="leegbord"><b>Hier vonden we geen cadeau voor</b>Kies iets anders bij je antwoorden hierboven, of haal een interesse weg.' + (P.int ? '<br><button class="keus" data-zet="int=" style="margin-top:10px">Interesse weghalen</button>' : '') + '</div>'
+    : tipHtml + (rest.length ? '<div class="prods">' + rest.map(kaart).join('') + '</div>' : '');
+  return '<div class="uitkomst"><p style="margin:0 0 6px;font-weight:700;color:var(--goudtekst)">✨ VONK cadeauhulp</p><h1>' + esc(titel) + '</h1>' + vonkAntwoorden(P, '') + intRij + gelRij + tekort +
+    '<p class="aantal" id="aantal">' + (alle.length ? (P.int ? 'Aangepast: ' + esc(INTERESSE[P.int][1].toLowerCase()) + '. ' : '') + Math.min(n, alle.length) + ' van de ' + alle.length + ' ideeën' : '0 ideeën') + (pd ? ' · ' + pd : '') + '</p>' + lijstHtml +
+    '<div class="knoprij">' + (alle.length > n ? '<button class="meerknop" data-zet="meer=' + (meer + 1) + '">✨ Meer cadeau-ideeën</button>' : '') + '<a class="lichtknop" href="#/vonk" data-opnieuw="1">Opnieuw beginnen</a></div></div>';
+}
 var VOOR = [['haar','Voor haar'],['hem','Voor hem'],['kinderen','Kinderen'],['tieners','Tieners'],['opa-oma','Opa & oma'],['collega','Collega'],['baby','Baby & kraam'],['dierenliefhebber','Dierenliefhebber']];
 var LEEFTIJD = [['0-2','0–2 jaar'],['3-5','3–5 jaar'],['6-8','6–8 jaar'],['9-12','9–12 jaar'],['13+','13+'],['volwassen','Volwassenen']];
 var GELEGENHEID = [['sinterklaas','Sinterklaas'],['kerst','Kerst'],['verjaardag','Verjaardag'],['valentijn','Valentijn'],['moederdag','Moederdag'],['vaderdag','Vaderdag'],['geboorte','Geboorte'],['afscheid','Afscheid & pensioen']];
@@ -875,38 +1280,87 @@ function opslaan() {
 }
 
 /* ---------- router ---------- */
+/* ---------- adres van de pagina: pad + keuzes (bijv. #/vonk?voor=kind&lft=6-8&budget=25) ---------- */
+function hashDelen() { var h = location.hash.replace(/^#\/?/, ''), i = h.indexOf('?'); var rauw = i === -1 ? h : h.slice(0, i); return { rauw: rauw, pad: decodeURIComponent(rauw), q: i === -1 ? '' : h.slice(i + 1) }; }
+function params() { var o = {}; hashDelen().q.split('&').forEach(function (kv) { if (!kv) return; var x = kv.split('='); try { o[decodeURIComponent(x[0])] = decodeURIComponent((x[1] || '').replace(/\+/g, ' ')); } catch (e) {} }); return o; }
+function maakHash(rauwPad, o) { var q = Object.keys(o).filter(function (k) { return o[k] !== '' && o[k] != null; }).map(function (k) { return encodeURIComponent(k) + '=' + encodeURIComponent(o[k]); }).join('&'); return '#/' + rauwPad + (q ? '?' + q : ''); }
+/* Een keuze op dezelfde pagina (filter, interesse, meer laden): adres bijwerken zonder nieuwe stap, de pagina blijft op zijn plek. */
+function zetParams(wijzig) {
+  var h = hashDelen(), o = params(), k;
+  for (k in wijzig) o[k] = wijzig[k];
+  if (!('meer' in wijzig)) delete o.meer;
+  var y = window.scrollY, doel = maakHash(h.rauw, o);
+  history.replaceState(history.state, '', doel); toon(); window.scrollTo(0, y); bewaarPlek();
+  var a = $('aantal') || document.querySelector('main h1'); if (a) $('voorlezer').textContent = a.textContent;
+}
+/* Terugkomen waar je was: per adres onthouden hoe ver je naar beneden was (zolang het tabblad open is). */
+var PLEKKEY = 'lk-plek';
+function plekken_() { try { return JSON.parse(sessionStorage.getItem(PLEKKEY) || '{}'); } catch (e) { return {}; } }
+function bewaarPlek() { try { var p = plekken_(); p[location.hash || '#/'] = window.scrollY; sessionStorage.setItem(PLEKKEY, JSON.stringify(p)); } catch (e) {} }
+var plekTimer; window.addEventListener('scroll', function () { clearTimeout(plekTimer); plekTimer = setTimeout(bewaarPlek, 120); }, { passive: true });
+function stappen(n) { try { if (n == null) return +sessionStorage.getItem('lk-stap') || 0; sessionStorage.setItem('lk-stap', Math.max(0, n)); } catch (e) { return 0; } }
+function terugKnop() { return '<button type="button" class="terug" data-terug="1">← Terug</button>'; }
 function toon() {
-  var h = decodeURIComponent(location.hash.replace(/^#\/?/, '')), d = h.split('/'), m = $('main'), html;
-  ['m-winkel', 'm-werk', 'm-opslaan', 'm-fav'].forEach(function (x) { $(x).classList.remove('aan'); }); favTeller();
-  if (d[0] === 'werkplaats') { $('m-werk').classList.add('aan'); laadFeed(); html = werkplaats(); }
-  else if (d[0] === 'opslaan') { $('m-opslaan').classList.add('aan'); html = opslaan(); }
-  else {
-    $('m-winkel').classList.add('aan');
-    if (d[0] === 'zoek') html = winkelZoek(d.slice(1).join('/'));
-    else if (d[0] === 'cadeaus') html = winkelCadeaus();
-    else if (d[0] === 'product' && d[1]) html = winkelProduct(d[1]);
-    else if (d[0] === 'info' && d[1]) html = winkelInfo(d[1]);
-    else if (d[0] === 'toppers' || d[0] === 'nieuw') html = winkelLijst(d[0]);
-    else if (d[0] === 'favorieten') html = winkelFavorieten();
-    else if (d[0] === 'lijst' && d[1]) html = winkelFavorieten(d[1]);
-    else if (['voor', 'gelegenheid', 'budget', 'thema'].indexOf(d[0]) !== -1 && d[1]) html = winkelRoute(d[0], d[1]);
-    else if (d[0] === 'a') {
-      var a = afd(d[1]), g = groep(a, d[2]), v = g && g.vakjes.find(function (x) { return x.id === d[3]; });
-      html = v ? winkelVak(a, g, v) : g ? winkelGroep(a, g) : a ? winkelAfd(a) : winkelHome();
-    } else html = winkelHome();
-  }
-  m.innerHTML = html;
-  var so = $('sorteer'); if (so) so.value = UI.sorteer;
+  var hd = hashDelen(), h = hd.pad, d = h.split('/'), m = $('main'), html, P = params();
+  UI.prijs = P.prijs || 'alles'; UI.sorteer = P.sort || 'standaard'; UI.fVoor = P.fvoor || ''; UI.fLeeftijd = P.flft || ''; UI.fAanbieding = !!P.aanb; UI.meer = +P.meer || 1; UI.prijsUitUrl = !!P.prijs;
+  UI.route = d[0] || 'home';
+  favTeller();
+  if (d[0] === 'werkplaats') { laadFeed(); html = werkplaats(); }
+  else if (d[0] === 'opslaan') { html = opslaan(); }
+  else if (d[0] === 'zoek') html = winkelZoek(d.slice(1).join('/'));
+  else if (d[0] === 'cadeaus' || d[0] === 'vonk') html = winkelVonk(P);
+  else if (d[0] === 'rondkijken') html = winkelRondkijken();
+  else if (d[0] === 'product' && d[1]) html = winkelProduct(d[1]);
+  else if (d[0] === 'info' && d[1]) html = winkelInfo(d[1]);
+  else if (d[0] === 'toppers' || d[0] === 'nieuw') html = winkelLijst(d[0]);
+  else if (d[0] === 'favorieten') html = winkelFavorieten();
+  else if (d[0] === 'lijst' && d[1]) html = winkelFavorieten(d[1]);
+  else if (['voor', 'gelegenheid', 'budget', 'thema'].indexOf(d[0]) !== -1 && d[1]) html = winkelRoute(d[0], d[1]);
+  else if (d[0] === 'a') {
+    var a = afd(d[1]), g = groep(a, d[2]), v = g && g.vakjes.find(function (x) { return x.id === d[3]; });
+    html = v ? winkelVak(a, g, v) : g ? winkelGroep(a, g) : a ? winkelAfd(a) : winkelHome();
+    UI.route = 'a';
+  } else { html = winkelHome(); UI.route = 'home'; }
+  var r = UI.route, actief = { home: 'home', rondkijken: 'rond', a: 'rond', toppers: 'rond', nieuw: 'rond', vonk: 'vonk', cadeaus: 'vonk', favorieten: 'fav', werkplaats: 'werk', opslaan: 'opslaan' }[r] || '';
+  [['m-winkel', 'home'], ['m-rond', 'rond'], ['m-vonk', 'vonk'], ['m-fav', 'fav'], ['m-werk', 'werk'], ['m-opslaan', 'opslaan'], ['o-home', 'home'], ['o-rond', 'rond'], ['o-vonk', 'vonk'], ['o-fav', 'fav']].forEach(function (x) { var e = $(x[0]); if (!e) return; var aan = actief === x[1]; e.classList.toggle('aan', aan); if (aan) e.setAttribute('aria-current', 'page'); else e.removeAttribute('aria-current'); });
+  m.innerHTML = (r !== 'home' && r !== 'werkplaats' && r !== 'opslaan' ? terugKnop() : '') + html;
+  var zq = r === 'zoek' ? d.slice(1).join('/') : (P.q || ''); if ($('zoek').value !== zq && document.activeElement !== $('zoek')) $('zoek').value = zq;
   if ($('pform')) voorbeeld();
   if (d[0] === 'werkplaats' && UI.focusFq) { var fq = $('fq'); if (fq) { fq.focus(); fq.setSelectionRange(fq.value.length, fq.value.length); } }
 }
-window.addEventListener('hashchange', function () { UI.prijs = 'alles'; UI.fVoor = ''; UI.fLeeftijd = ''; UI.fAanbieding = false; toon(); window.scrollTo(0, 0); });
+if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
+/* Nieuwe stap vooruit: bovenaan beginnen. Terug (of vooruit) met de knop van de telefoon: terug op de plek waar je was. */
+window.addEventListener('hashchange', function () {
+  var nieuw = UI.nieuw; UI.nieuw = false;
+  stappen(stappen() + (nieuw ? 1 : -1));
+  UI.vonkMeerInt = false; sluitBlad();
+  toon();
+  var y = 0; if (!nieuw) { y = plekken_()[location.hash || '#/'] || 0; }
+  window.scrollTo(0, y);
+  if (nieuw) { var h1 = document.querySelector('main h1'); if (h1) $('voorlezer').textContent = h1.textContent; }
+});
+document.addEventListener('click', function (e) {
+  var a = e.target.closest('a[href^="#"]'); if (a && !e.defaultPrevented) { bewaarPlek(); if (a.getAttribute('href') !== location.hash) UI.nieuw = true; }
+}, true);
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape') sluitBlad(); });
+document.addEventListener('click', function (e) {
+  if (e.target.id === 'blad') { sluitBlad(); return; }
+  var bl = e.target.closest('[data-blad]'); if (bl) { openBlad(bl.dataset.blad); return; }
+  var zt = e.target.closest('[data-zet]'); if (zt) { var kv = zt.dataset.zet.split('='), w = {}; w[kv[0]] = kv.slice(1).join('='); if (zt.dataset.bladdicht) sluitBlad(); zetParams(w); return; }
+  if (e.target.closest('[data-bladdicht]')) { sluitBlad(); return; }
+  if (e.target.closest('[data-terug]')) { if (stappen() > 0) history.back(); else { UI.nieuw = true; location.hash = '#/'; } return; }
+  var sp = e.target.closest('[data-spring]'); if (sp) { var doel = $(sp.dataset.spring); if (doel) { doel.scrollIntoView(); var h2 = doel.querySelector('h2'); if (h2) { h2.setAttribute('tabindex', '-1'); h2.focus({ preventScroll: true }); } } return; }
+  if (e.target.closest('[data-meerint]')) { UI.vonkMeerInt = true; var y0 = window.scrollY; toon(); window.scrollTo(0, y0); return; }
+  if (e.target.closest('[data-opnieuw]')) { UI.vonkMeerInt = false; return; }
+  var fw = e.target.closest('[data-favweg]'); if (fw) { var p0 = S.producten.find(function (x) { return x.id === fw.dataset.favweg; }); wisselFav(fw.dataset.favweg); UI.favWeg = p0 || { id: fw.dataset.favweg, titel: '' }; var y1 = window.scrollY; toon(); window.scrollTo(0, y1); clearTimeout(UI.favTimer); UI.favTimer = setTimeout(function () { UI.favWeg = null; var o = $('favongedaan'); if (o) o.remove(); }, 5000); return; }
+  if (e.target.closest('[data-favterug]')) { if (UI.favWeg && !isFav(UI.favWeg.id)) wisselFav(UI.favWeg.id); UI.favWeg = null; var y2 = window.scrollY; toon(); window.scrollTo(0, y2); return; }
+});
 /* Zoeken: na 'Ga' of Enter gaat het toetsenbord dicht en zie je meteen de resultaten. */
 function startZoeken(invoer) {
   var q = invoer.value.trim(); if (!q) return;
   invoer.blur();
   var doel = '#/zoek/' + encodeURIComponent(q);
-  if (location.hash === doel) { toon(); window.scrollTo(0, 0); } else location.hash = doel;
+  if (location.hash === doel) { toon(); window.scrollTo(0, 0); } else { UI.nieuw = true; location.hash = doel; }
 }
 document.addEventListener('submit', function (e) { if (e.target.id !== 'zoekgroot') return; e.preventDefault(); startZoeken($('zoek2')); });
 $('zoekform').addEventListener('submit', function (e) { e.preventDefault(); startZoeken($('zoek')); });
@@ -953,9 +1407,9 @@ document.addEventListener('click', function (e) {
   if (e.target.id === 'fmeer') { UI.ftoon += 60; feedVernieuw(); return; }
   var kz = e.target.closest('[data-keuze]'); if (kz) { var pk = S.producten.find(function (x) { return x.id === kz.parentNode.dataset.keuzes; }); if (pk) { var n = +kz.dataset.keuze, vk = n ? pk.varianten[n - 1] : { foto: pk.foto, prijs: pk.prijs, link: pk.link, winkel: pk.winkel, oud: pk.oudePrijs };
       var im = $('ppfoto'); if (im && vk.foto) im.src = vk.foto; $('ppprijs').innerHTML = prijsBlok(vk.prijs || pk.prijs, n ? '' : vk.oud); var kp = $('ppkoop'); kp.href = vk.link || pk.link; kp.textContent = 'Bekijk en bestel bij ' + (vk.winkel || pk.winkel) + ' →';
-      kz.parentNode.querySelectorAll('.chip').forEach(function (c) { c.classList.toggle('aan', c === kz); c.setAttribute('aria-pressed', c === kz ? 'true' : 'false'); }); } return; }
-  var hk = e.target.closest('[data-hart],[data-hartgroot]'); if (hk) { e.preventDefault(); var hid = hk.dataset.hart || hk.dataset.hartgroot, aan = wisselFav(hid); if (hk.dataset.hart) { hk.classList.toggle('aan', aan); hk.textContent = aan ? '♥' : '♡'; } else hk.textContent = aan ? '♥ Op je verlanglijstje' : '♡ Zet op mijn verlanglijstje'; melding(aan ? 'Op je verlanglijstje gezet' : 'Van je verlanglijstje gehaald'); if (location.hash === '#/favorieten') blijfStaan(toon); return; }
-  if (e.target.id === 'deellijst') { var lk = e.target.dataset.link; if (navigator.share) navigator.share({ title: 'Mijn verlanglijstje', url: lk }).catch(function () {}); else if (navigator.clipboard) navigator.clipboard.writeText(lk).then(function () { melding('Link gekopieerd. Plak hem in een bericht.'); }); else prompt('Kopieer deze link:', lk); return; }
+      kz.parentNode.querySelectorAll('.chip,.keus').forEach(function (c) { c.classList.toggle('aan', c === kz); c.setAttribute('aria-pressed', c === kz ? 'true' : 'false'); }); } return; }
+  var hk = e.target.closest('[data-hart],[data-hartgroot]'); if (hk) { e.preventDefault(); var hid = hk.dataset.hart || hk.dataset.hartgroot, aan = wisselFav(hid); if (hk.dataset.hart) { hk.classList.toggle('aan', aan); hk.textContent = aan ? '♥' : '♡'; } else hk.textContent = aan ? '♥ Op je verlanglijst' : '♡ Zet op mijn verlanglijst'; melding(aan ? 'Op je verlanglijst gezet' : 'Van je verlanglijst gehaald'); if (location.hash === '#/favorieten') blijfStaan(toon); return; }
+  if (e.target.id === 'deellijst') { var lk = e.target.dataset.link; if (navigator.share) navigator.share({ title: 'Mijn verlanglijst op LeukeKeuze', url: lk }).catch(function () {}); else if (navigator.clipboard) navigator.clipboard.writeText(lk).then(function () { melding('Link gekopieerd. Plak hem in een bericht.'); }); else prompt('Kopieer deze link:', lk); return; }
   if (e.target.id === 'bijwerken') { bijwerken(); return; }
   if (e.target.id === 'zetterug') { var al1 = alleLinks(); (S.apart || []).forEach(function (q) { if (!al1[q.link]) S.producten.push(q); }); S.apart = []; bewaar(); melding('Je eigen producten staan weer in de winkel.'); toon(); return; }
   var bk = e.target.closest('[data-bewaar]'); if (bk) { var xb = FM().alles[+bk.dataset.bewaar]; S.sterren = S.sterren || []; var stondAl = fzKeuze().some(function (q) { return q.link === xb.link; }); if (!stondAl) { var nb = vanFeed(xb); nb._id = 'ster:' + Date.now().toString(36); S.sterren.push(nb); bewaar(); } bk.outerHTML = '<span class="pil">🔖 bewaard</span>'; sterTeller(); melding(stondAl ? 'Dit product stond al bij je sterren.' : 'Bewaard bij je sterren. Daar vind je het terug als je het juiste vakje kiest.'); return; }
@@ -1000,7 +1454,7 @@ document.addEventListener('click', function (e) {
   else if (t.id === 'reset') { if (confirm('Alles in deze browser wissen en opnieuw beginnen met de indeling uit het bestand?')) { S = vanBestand(); bewaar(); melding('Opnieuw begonnen'); toon(); } }
 });
 toon();
-})();
+});
 </script>
 </body>
 </html>
