@@ -599,10 +599,12 @@ function seizoenToppers(soort, max) {
 }
 function heeft(p, veld, w) { return (p[veld] || []).indexOf(w) !== -1; }
 function populairNu(max) {
-  var nu = nuGelegenheden().map(function (g) { return g[0]; }), l = [];
-  var a = nu.indexOf('sinterklaas') !== -1 ? seizoenToppers('sinterklaas', max) : [], b = nu.indexOf('kerst') !== -1 ? seizoenToppers('kerst', max) : [];
-  for (var i = 0; l.length < max && (i < a.length || i < b.length); i++) { if (a[i] && l.indexOf(a[i]) === -1) l.push(a[i]); if (l.length < max && b[i] && l.indexOf(b[i]) === -1) l.push(b[i]); }
-  return l.length ? l : nummerEen(function () { return true; }, max);
+  var nu = nuGelegenheden().map(function (g) { return g[0]; }), l = [], ruim = max + 4;
+  var a = nu.indexOf('sinterklaas') !== -1 ? seizoenToppers('sinterklaas', ruim) : [], b = nu.indexOf('kerst') !== -1 ? seizoenToppers('kerst', ruim) : [];
+  for (var i = 0; l.length < ruim && (i < a.length || i < b.length); i++) { if (a[i] && l.indexOf(a[i]) === -1) l.push(a[i]); if (l.length < ruim && b[i] && l.indexOf(b[i]) === -1) l.push(b[i]); }
+  var kapot = {}; (window.LK_FOTO_KAPOT || []).forEach(function (id) { kapot[id] = 1; });
+  l = l.filter(function (p) { return !kapot[p.id]; });
+  return l.length ? l.slice(0, max) : nummerEen(function (p) { return !kapot[p.id]; }, max);
 }
 function winkelHome() {
   menu(null);
@@ -616,9 +618,49 @@ function winkelHome() {
     '<li><b>Wat mensen echt zoeken.</b> Per soort product zetten we bovenaan wat het meest gezocht wordt.</li>' +
     '</ul><a href="#/info/hoe-wij-vergelijken" style="text-decoration:underline">Hoe wij vergelijken</a> · <a href="#/info/over-ons" style="text-decoration:underline">Wie zijn wij?</a></div>';
 }
-function winkelRondkijken() {
+/* ---------- Verrassingsmix, stap 1: '✨ Ontdek iets nieuws' ----------
+   Elke dag een andere, gevarieerde mix uit alle afdelingen. Er wordt NIETS over de bezoeker onthouden:
+   de mix hangt alleen af van de datum. Die datum staat in het adres (mix=...), dus wie teruggaat ziet
+   precies dezelfde mix, ook na middernacht. Winkel, netwerk of vergoeding tellen nergens mee. */
+function dagSleutel(d) { d = d || new Date(); return d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0'); }
+function hashTekst(t) { var h = 2166136261; for (var i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 16777619); } h ^= h >>> 16; h = Math.imul(h, 2246822507); h ^= h >>> 13; h = Math.imul(h, 3266489909); h ^= h >>> 16; return h >>> 0; }
+function prijsSoort(p) { var x = +p.prijs; return x < 25 ? 0 : x < 75 ? 1 : 2; }
+var MIXCACHE = {};
+function ontdekMix(sleutel) {
+  if (MIXCACHE[sleutel]) return MIXCACHE[sleutel];
+  var nu = nuGelegenheden().map(function (g) { return g[0]; });
+  var buitenSeizoen = function (p) { return (/kerst|christmas|advent/i.test(p.titel) && nu.indexOf('kerst') === -1) || (/sinterklaas|chocoladeletter|\bsint\b/i.test(p.titel) && nu.indexOf('sinterklaas') === -1); };
+  /* per vakje kiezen we één van de bovenste 3 (wat het meest gezocht wordt), elke dag een andere */
+  var perVak = {};
+  var kapot = {}; (window.LK_FOTO_KAPOT || []).forEach(function (id) { kapot[id] = 1; }); /* uit de automatische fotocontrole */
+  S.producten.forEach(function (p) { if (!zichtbaarVoorKlant(p) || !p.foto || kapot[p.id] || !(+p.prijs > 0) || !p.link || buitenSeizoen(p)) return; (perVak[p.vak] = perVak[p.vak] || []).push(p); });
+  var keuzes = Object.keys(perVak).filter(function (v) { return productenIn(v, true).length >= ZICHTBAAR_VANAF; }).map(function (v) { var top = perVak[v].slice(0, 3); return { p: top[hashTekst(sleutel + v) % top.length], r: hashTekst(v + '|' + sleutel) }; });
+  keuzes.sort(function (a, b) { return a.r - b.r; });
+  /* volgorde: steeds een andere afdeling dan de vorige twee, en afwisselend goedkoop / midden / duurder */
+  var rest = keuzes.map(function (k) { return k.p; }), uit = [];
+  while (rest.length) {
+    /* binnen elk rijtje van 6: liefst elke afdeling maar één keer */
+    var vorige = uit.slice(uit.length - uit.length % 6).map(function (p) { return p.vak.split('/')[0]; }).concat(uit.slice(-2).map(function (p) { return p.vak.split('/')[0]; })), vp = uit.length ? prijsSoort(uit[uit.length - 1]) : -1;
+    var i = rest.findIndex(function (p) { return vorige.indexOf(p.vak.split('/')[0]) === -1 && prijsSoort(p) !== vp; });
+    if (i === -1) i = rest.findIndex(function (p) { return vorige.indexOf(p.vak.split('/')[0]) === -1; });
+    if (i === -1) i = 0;
+    uit.push(rest.splice(i, 1)[0]);
+  }
+  return (MIXCACHE[sleutel] = uit);
+}
+function winkelRondkijken(P) {
   menu(null);
-  return '<h1>Lekker rondkijken</h1><p class="intro">Kies een afdeling. Je ziet meteen producten.</p><div class="afdtegels groot"><a class="afdtegel" href="#/toppers"><i>🔥</i><span>Populair nu</span></a>' + S.boom.map(function (a) {
+  P = P || {};
+  if (!/^\d{8}$/.test(P.mix || '')) { P.mix = dagSleutel(); history.replaceState(history.state, '', maakHash('rondkijken', P)); }
+  var meer = Math.max(1, +P.meer || 1), mix = ontdekMix(P.mix), n = 6 * meer;
+  /* producten waarvan de foto niet werkt, zijn er al uit (fotocontrole); kaarten verdwijnen nooit achteraf, zodat de pagina niet verspringt */
+  var kaarten = mix.slice(0, n).map(kaart).join('');
+  return '<h1>Lekker rondkijken</h1>' +
+    '<div class="knoprij" style="justify-content:flex-start;margin:0 0 12px"><button class="springknop" style="width:auto" data-spring="afdelingen">🛍️ Naar de afdelingen ↓</button></div>' +
+    '<div class="groepkop" style="margin-top:10px"><h2>✨ Ontdek iets nieuws</h2></div><p class="intro" style="margin:-4px 0 12px">Elke dag een nieuwe mix uit alle afdelingen.</p>' +
+    '<div class="prods" id="ontdek">' + kaarten + '</div>' +
+    (mix.length > n ? '<button class="meerknop" data-zet="meer=' + (meer + 1) + '">✨ Meer ontdekken</button>' : '') +
+    '<div class="groepkop" id="afdelingen"><h2>🛍️ Alle afdelingen</h2></div><div class="afdtegels groot"><a class="afdtegel" href="#/toppers"><i>🔥</i><span>Populair nu</span></a>' + S.boom.map(function (a) {
     return productenIn(a.id, true).length ? '<a class="afdtegel" href="#/a/' + a.id + '"><i>' + (AFD_ICOON[a.id] || '🛍️') + '</i><span>' + esc(a.naam) + '</span></a>' : '';
   }).join('') + '</div>';
 }
@@ -1362,7 +1404,7 @@ function toon() {
   else if (d[0] === 'opslaan') { html = opslaan(); }
   else if (d[0] === 'zoek') html = winkelZoek(d.slice(1).join('/'));
   else if (d[0] === 'cadeaus' || d[0] === 'vonk') html = winkelVonk(P);
-  else if (d[0] === 'rondkijken') html = winkelRondkijken();
+  else if (d[0] === 'rondkijken') html = winkelRondkijken(P);
   else if (d[0] === 'product' && d[1]) html = winkelProduct(d[1]);
   else if (d[0] === 'info' && d[1]) html = winkelInfo(d[1]);
   else if (d[0] === 'toppers' || d[0] === 'nieuw') html = winkelLijst(d[0]);
