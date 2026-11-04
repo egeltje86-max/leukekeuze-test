@@ -411,11 +411,76 @@ function winkelVak(a, g, v) {
     ((window.SPOOK_GIDSEN || {})[code] ? '<div class="gids"><b>💡 Koopgids</b>' + esc(window.SPOOK_GIDSEN[code]) + '</div>' : '') +
     (l.length ? productRaster(l) : leeg('Er staat nog niets in ' + v.naam + '.'));
 }
+/* Zoeken, zelfde techniek als op leukekeuze.nl:
+   hoofdletters en accenten tellen niet, korte woorden (3 letters of minder) alleen aan het begin van een woord
+   ('aap' vindt niet 'Jaap' of 'slaap'), meervoud en verkleinwoord tellen mee ('fietsjes' vindt 'fiets', 'honden' vindt 'hond'),
+   één tikfout mag ('lgeo' vindt 'lego'), en treffers in de titel komen bovenaan. */
+function vouw(t) { t = String(t || '').toLowerCase(); return t.normalize ? t.normalize('NFD').replace(/[̀-ͯ]/g, '') : t; }
+function stam(w) { var k = w.replace(/(tjes|tje|jes|je|'s|en|s)$/, ''); return k.length >= 4 ? k : w; }
+function zoekWoorden(t) { return vouw(t).split(/[^a-z0-9]+/).filter(Boolean).map(stam); }
+var NIET_IN = { nijntje: 'konijntje', nijn: 'konijn' };
+function bevat(t, w) {
+  if (w.length <= 3) return (' ' + t).search(new RegExp('[^a-z0-9]' + w)) !== -1;
+  if (t.indexOf(w) === -1) return false;
+  return NIET_IN[w] ? t.split(NIET_IN[w]).join(' ').indexOf(w) !== -1 : true;
+}
+function bijna(a, b) {
+  if (Math.abs(a.length - b.length) > 1) return false;
+  var i = 0, j = 0, fout = 0;
+  while (i < a.length && j < b.length) {
+    if (a[i] === b[j]) { i++; j++; continue; }
+    if (++fout > 1) return false;
+    if (a[i + 1] === b[j] && a[i] === b[j + 1]) { i += 2; j += 2; continue; }
+    if (a.length > b.length) i++; else if (b.length > a.length) j++; else { i++; j++; }
+  }
+  return fout + (a.length - i) + (b.length - j) <= 1;
+}
+function tikfout(w, x) {
+  if (!x) return false;
+  if (w.length >= 5) return bijna(w, x) || (x.length > w.length && bijna(w, x.slice(0, w.length)));
+  if (w.length !== 4 || x.length !== 4) return false;
+  for (var i = 0; i < 3; i++) if (w.slice(0, i) + w[i + 1] + w[i] + w.slice(i + 2) === x) return true;
+  return false;
+}
+var ZT = {};
+function zoekTekst(p) {
+  if (ZT[p.id]) return ZT[p.id];
+  var t = [p.titel, p.merk || '', p.winkel || '', p.tekst || '', plekken(p).map(vakNaam).join(' '), (p.varianten || []).map(function (v) { return v.naam; }).join(' '),
+    ['voor', 'gelegenheid', 'thema'].map(function (k) { return (p[k] || []).map(function (w) { return routeNaam(k, w); }).join(' '); }).join(' ')].join(' ');
+  t = vouw(t); t += (/playstation\s*5/.test(t) ? ' ps5' : '') + (/playstation\s*4/.test(t) ? ' ps4' : '');
+  return (ZT[p.id] = t);
+}
+function zoekScore(p, woorden) {
+  var ti = ' ' + vouw(p.titel).replace(/[^a-z0-9]+/g, ' ') + ' ', ca = vouw(plekken(p).map(vakNaam).join(' '));
+  /* Titel telt het zwaarst; staat het woord ook in de naam van het vakje (bijv. 'hond' in Hond), dan komt het product nog hoger. */
+  return woorden.reduce(function (s, w) {
+    var v = bevat(ca, w) ? 8 : 0;
+    if (new RegExp(' ' + w + '(en|s|len|letje|letjes|je|jes)? ').test(ti)) return s + v + 15;
+    if (ti.indexOf(' ' + w) !== -1) return s + v + 10;
+    if (ti.indexOf(w) !== -1) return s + v + 6;
+    if (w.length >= 4 && ti.split(' ').some(function (x) { return tikfout(w, x); })) return s + v + 8;
+    return s + v + 1;
+  }, 0);
+}
+function zoekProducten(q) {
+  var woorden = zoekWoorden(q), basis = S.producten.filter(zichtbaarVoorKlant);
+  if (!woorden.length) return [];
+  var l = basis.filter(function (p) { var t = zoekTekst(p); return woorden.every(function (w) { return bevat(t, w); }); });
+  if (l.length < 3 && woorden.some(function (w) { return w.length >= 4; })) {
+    var al = {}; l.forEach(function (p) { al[p.id] = 1; });
+    l = l.concat(basis.filter(function (p) {
+      if (al[p.id]) return false;
+      var t = zoekTekst(p), tw = null;
+      return woorden.every(function (w) { if (bevat(t, w)) return true; if (w.length < 4) return false; tw = tw || t.split(/[^a-z0-9]+/); return tw.some(function (x) { return tikfout(w, x); }); });
+    }));
+  }
+  var sc = {}; l.forEach(function (p) { sc[p.id] = zoekScore(p, woorden); });
+  return l.map(function (p, i) { return [p, i]; }).sort(function (a, b) { return (sc[b[0].id] - sc[a[0].id]) || (a[1] - b[1]); }).map(function (x) { return x[0]; });
+}
 function winkelZoek(q) {
   menu(null);
-  var w = q.toLowerCase().split(/\s+/).filter(Boolean);
-  var l = S.producten.filter(zichtbaarVoorKlant).filter(function (p) { var t = (p.titel + ' ' + (p.winkel || '') + ' ' + (p.tekst || '') + ' ' + plekken(p).map(vakNaam).join(' ') + ' ' + ['voor', 'gelegenheid', 'thema'].map(function (k) { return (p[k] || []).map(function (w) { return routeNaam(k, w); }).join(' '); }).join(' ')).toLowerCase(); return w.every(function (x) { return t.indexOf(x) !== -1; }); });
-  return '<h1>Zoeken: ' + esc(q) + '</h1><p class="intro">' + l.length + ' producten gevonden.</p>' + (l.length ? productRaster(l) : '<div class="leegbord"><b>Niets gevonden</b>Probeer een ander woord.</div>');
+  var l = zoekProducten(q);
+  return '<h1>Zoeken: ' + esc(q) + '</h1><p class="intro">' + l.length + ' producten gevonden.</p>' + (l.length ? productRaster(l) : '<div class="leegbord"><b>Niets gevonden</b>Probeer een ander woord, of kijk bij de afdelingen.</div>');
 }
 
 /* ---------- werkplaats ---------- */
@@ -712,8 +777,15 @@ function toon() {
   if (d[0] === 'werkplaats' && UI.focusFq) { var fq = $('fq'); if (fq) { fq.focus(); fq.setSelectionRange(fq.value.length, fq.value.length); } }
 }
 window.addEventListener('hashchange', function () { UI.prijs = 'alles'; UI.fVoor = ''; UI.fLeeftijd = ''; UI.fAanbieding = false; toon(); window.scrollTo(0, 0); });
-document.addEventListener('submit', function (e) { if (e.target.id !== 'zoekgroot') return; e.preventDefault(); var q = $('zoek2').value.trim(); if (q) location.hash = '#/zoek/' + encodeURIComponent(q); });
-$('zoekform').addEventListener('submit', function (e) { e.preventDefault(); var q = $('zoek').value.trim(); if (q) location.hash = '#/zoek/' + encodeURIComponent(q); });
+/* Zoeken: na 'Ga' of Enter gaat het toetsenbord dicht en zie je meteen de resultaten. */
+function startZoeken(invoer) {
+  var q = invoer.value.trim(); if (!q) return;
+  invoer.blur();
+  var doel = '#/zoek/' + encodeURIComponent(q);
+  if (location.hash === doel) { toon(); window.scrollTo(0, 0); } else location.hash = doel;
+}
+document.addEventListener('submit', function (e) { if (e.target.id !== 'zoekgroot') return; e.preventDefault(); startZoeken($('zoek2')); });
+$('zoekform').addEventListener('submit', function (e) { e.preventDefault(); startZoeken($('zoek')); });
 document.addEventListener('keydown', function (e) { if (e.target.id === 'fq' && e.key === 'Enter') e.preventDefault(); });
 var zoekTimer;
 document.addEventListener('input', function (e) {
