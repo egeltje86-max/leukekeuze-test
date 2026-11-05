@@ -1,0 +1,525 @@
+/* =========================================================
+   LeukeKeuze 2.0 – LICHTE LOOK (warenhuis, naar Nova's voorbeeld)
+   Laadt na stijl.css en zet de kleuren om: crème achtergrond, donkerblauwe balken, goud als accent.
+   ========================================================= */
+:root {
+  --bg: #F7F3EC;
+  --bg-2: #FFFFFF;
+  --kaart: #FFFFFF;
+  --kaart-2: #F1ECE3;
+  --knop-bg: #EFE9DE;
+  --knop-bg-hover: #E6DECF;
+  --knop-lijn: rgba(10, 16, 32, .14);
+  --lijn: rgba(10, 16, 32, .12);
+  --lijn-sterk: rgba(184, 134, 46, .6);
+  --lijn-zacht: rgba(10, 16, 32, .08);
+  --goud: #B8862E;
+  --goud-licht: #B8862E;
+  --goud-donker: #8F6620;
+  --tekst: #141A2A;
+  --tekst-2: #4F556A;
+  --tekst-3: #5F667A; /* 31-10-2026: donkerder voor leesbaarheid (GO Marius) */
+  --schaduw: 0 8px 24px rgba(10, 16, 32, .08);
+  --gloed: 0 0 0 1px var(--lijn-sterk), 0 8px 24px rgba(184, 134, 46, .18);
+}
+body { background: var(--bg); color: var(--tekst); }
+
+/* Donkerblauwe balken boven en onder blijven, zoals in het voorbeeld. */
+.topbalk { background: #070C18; color: #BDB6A8; }
+.topbalk svg { color: #D9A848; }
+.header { background: #0A1020; border-bottom: 0; }
+.logo { color: #fff; }
+.logo .k { color: #F2CB74; }
+.icoonknop { color: #F4ECDD; }
+.icoonknop:hover { background: rgba(255,255,255,.08); color: #F2CB74; }
+.hoofdnav a, .hoofdnav button { color: #F4ECDD; }
+.hoofdnav a:hover, .hoofdnav button:hover, .hoofdnav [aria-expanded="true"], .hoofdnav [aria-current="page"] { color: #F2CB74; }
+.zoekrij { background: #0A1020; border-bottom: 0; }
+.onderbalk { background: rgba(10,16,32,.97); border-top: 1px solid rgba(217,168,72,.3); }
+.onderbalk a, .onderbalk button { color: #BDB6A8; }
+.onderbalk [aria-current="page"] { color: #F2CB74; }
+.footer { background: #0A1020; color: #BDB6A8; }
+.footer h3, .footer h4, .footer strong { color: #F4ECDD; }
+.footer a { color: #BDB6A8; }
+
+/* Hero: foto met donkere waas links, tekst wit (zoals het voorbeeld). */
+.hero { background: #0A1020; color: #F4ECDD; }
+.hero::after { background: linear-gradient(180deg, rgba(10,16,32,.1) 0%, rgba(10,16,32,.75) 55%, rgba(10,16,32,.9) 100%); }
+.hero .kicker { color: #D9A848; }
+.hero h1 em { color: #F2CB74; }
+.hero p { color: #D9D2C4; }
+.hero .populair > span { color: #F2CB74; }
+.hero .chip { background: rgba(10,16,32,.62); border-color: rgba(255,255,255,.35); color: #fff; -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px); }
+.hero .chip:hover { background: rgba(10,16,32,.8); border-color: var(--goud, #C9A23A); }
+@media (min-width: 760px) {
+  .hero::after { background: linear-gradient(90deg, rgba(10,16,32,.92) 0%, rgba(10,16,32,.75) 38%, rgba(10,16,32,.15) 70%, rgba(10,16,32,0) 100%); }
+}
+
+/* Mobiel menu (lade) en megamenu licht. */
+.lade { background: #fff; color: var(--tekst); }
+.lade-uitgelicht { background: linear-gradient(135deg, rgba(184,134,46,.14), rgba(184,134,46,.04)); }
+.megamenu { background: #fff; box-shadow: 0 24px 50px rgba(10,16,32,.18); }
+.megamenu li a:hover { color: var(--tekst); }
+
+/* Chips, knoppen, kaarten. */
+.chip { background: #fff; border-color: rgba(10,16,32,.16); color: var(--tekst); }
+.chip:hover { border-color: var(--goud); color: var(--goud-donker); }
+.chip[aria-pressed="true"], .chip.actief { background: #0A1020; color: #fff; border-color: #0A1020; }
+.tabs .chip:not([aria-pressed="true"]) { background: #fff; }
+.knop-goud { color: #141A2A; box-shadow: 0 6px 18px rgba(184,134,46,.28); }
+.knop-rand { border-color: var(--goud); color: var(--goud-donker); }
+.knop-rand:hover { background: rgba(184,134,46,.08); }
+.knop[disabled], .knop.uit { background: #E6E0D4; color: var(--tekst-3); }
+.prodkaart, .catkaart, .groep, .awkaart, .gidskaart { background: #fff; border-color: rgba(10,16,32,.08); box-shadow: 0 2px 10px rgba(10,16,32,.05); }
+.prodkaart:hover, .catkaart:hover { border-color: var(--goud); }
+.prodkaart .beeld, .prodkaart .beeld.echt { background: #fff; }
+.prodkaart .shop, .shop { color: var(--goud-donker); }
+.prodkaart .prijs, .product .prijs { color: #141A2A; }
+.subkaart .rond { border-color: #fff; background: #fff; box-shadow: 0 3px 12px rgba(10,16,32,.12); }
+.subkaart:hover .rond, .subkaart.actief .rond { border-color: var(--goud); }
+.subkaart.actief { color: var(--goud-donker); }
+.persoon-subs .subkaart small { color: var(--tekst-3); }
+.groep span { background: linear-gradient(transparent, rgba(8,14,30,.8)); }
+.sectie-kop h2 { color: #141A2A; }
+.sectie-kop .meer, .sectie-kop a { color: var(--goud-donker); }
+
+/* Reclameblokken: foto met donkere waas blijft, tekst wit. */
+.actie { color: #F4ECDD; }
+.actie h3 { color: #fff; }
+.actie p { color: #D9D2C4; }
+
+/* Paginakop: lichte waas over de foto, donkere tekst. */
+.paginakop { background: #fff; }
+.paginakop .achter.vaag img { filter: blur(22px) brightness(1.05) saturate(.8); opacity: .35; }
+.paginakop::after { background: linear-gradient(90deg, rgba(247,243,236,.95) 0%, rgba(247,243,236,.8) 50%, rgba(247,243,236,.5) 100%); }
+.paginakop.zonder::after { background: none; }
+.paginakop h1 { color: #141A2A; }
+.paginakop p { color: var(--tekst-2); }
+.kruimel, .kruimel a { color: var(--tekst-3); }
+
+/* VONK-balk en zoekbalk-kaart. */
+.vonk-kaart { background: linear-gradient(135deg, #0F1830, #1B2742); color: #F4ECDD; border-color: rgba(217,168,72,.35); }
+.vonk-kaart h2 { color: #fff; }
+.vonk-kaart p { color: #BDB6A8; }
+.vonk-kaart .rond-pijl { color: #0A1020; }
+
+/* Werkbalk, filters, formulieren. */
+.werkbalk .aantal { color: var(--tekst-2); }
+.sorteer select { color: var(--tekst); background: #fff; }
+.filter-paneel, .toast { background: #fff; color: var(--tekst); }
+.specs dl > div:nth-child(odd) { background: rgba(10,16,32,.03); }
+.stap .nr { color: #141A2A; }
+.stappen { background: #fff; border: 1px solid var(--lijn-zacht); border-radius: 16px; }
+.alle-winkels .aw-brug { color: var(--goud-donker); border-top-color: rgba(184,134,46,.3); }
+.lees-ook span { color: var(--tekst); }
+.lijst-deel-velden input, .lijst-deel-velden select { background: #fff; color: var(--tekst); }
+.lijst-zelf strong { color: var(--tekst); }
+.gids, .gids p { color: var(--tekst-2); }
+.gids h2 { color: var(--tekst); }
+/* Hero op telefoon korter, zodat de personen sneller in beeld komen. */
+@media (max-width: 759px) { .hero-inhoud { padding-top: 110px; } }
+.lade-titel { font: 600 20px/1 var(--f-kop); color: var(--tekst); }
+.lade-links { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 10px; padding: 0 0 14px; }
+.lade-links a { display: block; padding: 7px 2px; font-size: 14.5px; color: var(--tekst-2); }
+.lade-label { margin-top: 10px; }
+
+/* Luxe details (punt van Nova): meer lucht rond de producten, mooiere tussenkoppen, gouden afwerking van knoppen. */
+.sectie { padding-top: 26px; }
+.sectie-kop { margin-bottom: 18px; }
+.sectie-kop h2 { font-family: var(--f-kop); font-weight: 500; letter-spacing: -.01em; position: relative; padding-bottom: 10px; }
+.sectie-kop h2::after { content: ''; position: absolute; left: 0; bottom: 0; width: 44px; height: 2px; background: linear-gradient(90deg, #D9A848, rgba(217,168,72,.2)); border-radius: 2px; }
+.prodgrid { gap: 14px; }
+@media (min-width: 760px) { .prodgrid { gap: 22px; } }
+.prodkaart { border-radius: 16px; box-shadow: 0 2px 10px rgba(10,16,32,.05); transition: transform .2s, box-shadow .2s, border-color .2s; }
+.prodkaart:hover { transform: translateY(-2px); box-shadow: 0 10px 26px rgba(10,16,32,.1); }
+
+.knop-goud { background: linear-gradient(180deg, #F2CB74 0%, #D9A848 100%); border: 1px solid #B8862E; color: #141A2A; box-shadow: 0 4px 14px rgba(184,134,46,.25), inset 0 1px 0 rgba(255,255,255,.5); }
+.knop-goud:hover { background: linear-gradient(180deg, #F6D68A 0%, #E0B055 100%); box-shadow: 0 8px 22px rgba(184,134,46,.35), inset 0 1px 0 rgba(255,255,255,.5); }
+.werkbalk { margin: 18px 0 16px; padding: 14px 16px; background: #fff; border: 1px solid var(--lijn-zacht); border-radius: 14px; }
+.werkbalk-onder { margin-top: 10px; }
+.sorteer select { border: 1px solid var(--lijn); border-radius: 10px; padding: 8px 32px 8px 12px; }
+.paginakop h1 { letter-spacing: -.01em; }
+.paginakop .binnen { padding-top: 26px; padding-bottom: 32px; }
+.subkaarten .subkaart .rond { box-shadow: 0 4px 14px rgba(10,16,32,.14); }
+/* Collectie-banner (Persoonlijke cadeaus) */
+.collectie-banner { position: relative; display: block; margin-top: 22px; min-height: 230px; border-radius: 20px; overflow: hidden; border: 1px solid var(--lijn); box-shadow: var(--schaduw); isolation: isolate; color: #F4ECDD; }
+.collectie-banner img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: -2; transition: transform .6s; }
+.collectie-banner::before { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, rgba(10,16,32,.9) 0%, rgba(10,16,32,.65) 50%, rgba(10,16,32,.15) 100%); }
+.collectie-banner:hover img { transform: scale(1.04); }
+.collectie-tekst { padding: 24px; max-width: 380px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; min-height: 230px; justify-content: flex-end; }
+.collectie-tekst .kicker { font: 700 11px/1.2 var(--f-ui); letter-spacing: .16em; text-transform: uppercase; color: #F2CB74; margin: 0; }
+.collectie-tekst h2 { font: 600 26px/1.15 var(--f-kop); color: #fff; margin: 0; }
+.collectie-tekst p { margin: 0 0 8px; color: #D9D2C4; font-size: 14.5px; }
+.vonk-stapjes span { background: rgba(10,16,32,.1); }
+.vonk-keuze, .vonk-optie { background: #fff; border: 1px solid var(--lijn); color: var(--tekst); }
+.vonk-keuze:hover, .vonk-optie:hover { border-color: var(--goud); }
+@media (min-width: 600px) { .persoon-subs.gelegenheden { grid-template-columns: repeat(5, 1fr); } }
+.sectie-kop .kicker { font: 700 10.5px/1 var(--f-ui); letter-spacing: .22em; text-transform: uppercase; color: var(--goud-donker); margin: 0 0 6px; display: block; }
+/* 'Bedoel je…' op de zoekpagina en pagina-tips tijdens het typen */
+.bedoel-je { margin: 16px 0 6px; }
+.bedoel-je h2 { font: 500 20px/1.2 var(--f-kop); margin-bottom: 10px; }
+.bedoel-knoppen { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+@media (min-width: 760px) { .bedoel-knoppen { grid-template-columns: repeat(4, 1fr); } }
+.bedoel { display: flex; align-items: center; gap: 8px; padding: 12px 12px; border-radius: 12px; background: #fff; border: 1px solid var(--lijn); font: 600 14px/1.25 var(--f-ui); color: var(--tekst); box-shadow: 0 2px 8px rgba(10,16,32,.05); }
+.bedoel svg { width: 16px; height: 16px; flex: none; color: var(--goud-donker); }
+.bedoel small { display: block; font: 500 11.5px/1.2 var(--f-ui); color: var(--tekst-3); }
+.bedoel.persoon { border-color: rgba(184,134,46,.45); background: #FFFBF3; }
+.bedoel:hover { border-color: var(--goud); }
+.zoek-tips .zt-pagina { background: #FFFBF3; font-weight: 600; }
+.zoek-tips .zt-pagina + .zt-item:not(.zt-pagina) { border-top: 1px solid var(--lijn-zacht); }
+.zoek-tips .zt-ic { width: 44px; height: 44px; display: grid; place-items: center; color: var(--goud-donker); flex: none; }
+.zoek-tips .zt-ic svg { width: 18px; height: 18px; }
+.zoek-tips .zt-titel small { color: var(--tekst-3); font-weight: 500; }
+.zoek-tips .zt-pagina { padding: 4px 14px; }
+.zoek-tips .zt-ic { width: 32px; height: 32px; }
+/* 'Verder zoeken' onder een product */
+.verder-knoppen { display: grid; grid-template-columns: 1fr; gap: 10px; }
+@media (min-width: 760px) { .verder-knoppen { grid-template-columns: repeat(2, 1fr); } }
+.verder-knop { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 14px; background: #fff; border: 1px solid var(--lijn); box-shadow: 0 2px 10px rgba(10,16,32,.05); color: var(--tekst); min-height: 64px; }
+.verder-knop > svg { width: 22px; height: 22px; flex: none; color: var(--goud-donker); }
+.verder-knop span { flex: 1; min-width: 0; }
+.verder-knop strong { display: block; font: 600 15px/1.25 var(--f-ui); }
+.verder-knop small { display: block; font: 500 12.5px/1.2 var(--f-ui); color: var(--tekst-3); margin-top: 2px; }
+.verder-knop .pijl { width: 18px; height: 18px; color: var(--tekst-3); }
+.verder-knop:hover { border-color: var(--goud); }
+.werkbalk .voor-chips { margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dashed var(--lijn-zacht); }
+.werkbalk .voor-chips .chip { font-size: 12.5px; padding: 8px 13px; }
+.prodkaart .reden { margin: 6px 0 0; font: 500 12.5px/1.35 var(--f-tekst); color: var(--tekst-2); display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.prodkaart .info { display: flex; flex-direction: column; }
+.prodkaart .info .prijs { margin-top: 0; }
+.prodkaart .reden::before { content: '★ '; color: var(--goud); }
+.chip.verras { display: inline-flex; align-items: center; gap: 6px; border-color: rgba(184,134,46,.5); color: var(--goud-donker); background: #FFFBF3; }
+.chip.verras svg { width: 15px; height: 15px; }
+.werkbalk-onder { flex-wrap: wrap; }
+.werkbalk-onder .aantal { margin-right: auto; }
+/* Toegankelijkheid: grotere tikdoelen voor kleine links, minder bewegen als iemand dat instelt. */
+.footer-onder a { display: inline-block; padding: 8px 2px; }
+.sectie-kop .meer { padding: 8px 0; }
+.kruimel a { display: inline-block; padding: 6px 0; }
+.prodkaart .shop { font-size: 11.5px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; scroll-behavior: auto !important; } }
+
+/* Donkere paginakop (verlanglijstje): donkerblauw met goud, zoals het menu */
+.paginakop.donker { background: radial-gradient(120% 140% at 100% 0%, rgba(217,168,72,.18), transparent 55%), #0A1020; border-bottom: 1px solid rgba(217,168,72,.35); }
+.paginakop.donker::after { background: none; }
+.paginakop.donker h1 { color: #F4ECDD; }
+.paginakop.donker h1::first-letter { color: #F2CB74; }
+.paginakop.donker p { color: #BDB6A8; }
+.paginakop.donker .kruimel, .paginakop.donker .kruimel a { color: #8D897F; }
+
+/* Delen: compact, leesbaar, onder de cadeaus */
+.lijst-deel { display: block; background: #fff; border: 1px solid rgba(184,134,46,.35); border-radius: 16px; padding: 16px; box-shadow: 0 2px 10px rgba(10,16,32,.05); }
+.lijst-deel-tekst { color: var(--tekst-2); font-size: 14px; margin-bottom: 12px; }
+.lijst-deel-tekst strong { color: var(--tekst); font-size: 19px; }
+.lijst-deel-velden { grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+.lijst-deel-velden label { color: var(--tekst-2); font-weight: 600; }
+.lijst-deel-velden input, .lijst-deel-velden select { padding: 10px 11px; font-size: 15px; border-color: rgba(10,16,32,.16); }
+.lijst-deel-knoppen { flex-direction: row; gap: 8px; }
+.lijst-deel-knoppen .knop { flex: 1; padding: 12px 10px; font-size: 14.5px; }
+@media (max-width: 480px) { .lijst-deel-velden { grid-template-columns: 1fr 1fr; } }
+.lijst-deel-velden > label { min-width: 0; }
+.lijst-deel-velden input, .lijst-deel-velden select { width: 100%; min-width: 0; box-sizing: border-box; }
+.footer a, .footer p { color: #BDB6A8; }
+/* Delen op de telefoon: alles onder elkaar over de volle breedte, zodat 'Mijn verjaardag' en de knoppen altijd heel passen. */
+@media (max-width: 600px) {
+  .lijst-deel-velden { grid-template-columns: 1fr; gap: 12px; }
+  .lijst-deel-knoppen { flex-direction: column; gap: 10px; }
+  .lijst-deel-knoppen .knop { width: 100%; justify-content: center; padding: 14px 16px; font-size: 16px; }
+}
+.lijst-deel-velden select { padding-right: 36px; text-overflow: ellipsis; }
+
+/* Gedeeld verlanglijstje: warme cadeaupagina voor wie de link opent */
+.lijst-kop { background: radial-gradient(120% 140% at 100% 0%, rgba(217,168,72,.2), transparent 55%), #0A1020; color: #F4ECDD; border-bottom: 1px solid rgba(217,168,72,.35); }
+.lijst-kop .binnen { padding-top: 26px; padding-bottom: 28px; }
+.lijst-kop .kicker { color: #D9A848; letter-spacing: .14em; font-size: 11.5px; margin-bottom: 10px; }
+.lijst-kop h1 { font: 500 clamp(30px, 8vw, 46px)/1.1 var(--f-kop); color: #F2CB74; margin: 0 0 12px; }
+.lijst-kop p { margin: 0 0 8px; color: #D9D2C4; font-size: 16px; line-height: 1.5; max-width: 560px; }
+.lijst-kop .lijst-gelegenheid { color: #fff; font: 600 18px/1.35 var(--f-ui); }
+.lijst-kop .lijst-vraag { color: #fff; font: 700 17px/1.35 var(--f-ui); margin-top: 12px; }
+.sectie-kop p { margin: 6px 0 0; color: var(--tekst-2); font-size: 14.5px; }
+.cadeaukaarten { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+@media (min-width: 760px) { .cadeaukaarten { grid-template-columns: repeat(3, 1fr); gap: 18px; } }
+@media (min-width: 1100px) { .cadeaukaarten { grid-template-columns: repeat(4, 1fr); } }
+.cadeaukaart { background: #fff; border: 1px solid rgba(10,16,32,.08); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 2px 10px rgba(10,16,32,.05); }
+.cadeaukaart .beeld { display: block; aspect-ratio: 1; background: #fff; overflow: hidden; }
+.cadeaukaart .beeld img { width: 100%; height: 100%; object-fit: contain; padding: 10px; box-sizing: border-box; }
+.cadeaukaart .beeld.sfeer img { object-fit: cover; padding: 0; }
+.cadeaukaart .info { padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 4px; flex: 1; }
+.cadeaukaart .shop { font: 700 11px/1 var(--f-ui); letter-spacing: .1em; text-transform: uppercase; color: var(--goud-donker); }
+.cadeaukaart h3 { font: 500 14.5px/1.3 var(--f-ui); margin: 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.cadeaukaart .prijs { font: 700 17px/1.2 var(--f-ui); color: var(--tekst); margin-bottom: 6px; }
+.cadeaukaart .geef { margin-top: auto; width: 100%; justify-content: center; padding: 11px 8px; font-size: 14px; }
+.lijst-zelf { margin-top: 30px; text-align: center; border-top: 1px solid var(--lijn); padding-top: 22px; color: var(--tekst-2); line-height: 1.5; }
+.lijst-zelf strong { display: block; color: var(--tekst); font: 600 18px/1.3 var(--f-ui); margin-bottom: 4px; }
+.lijst-zelf p { margin: 0 0 12px; color: var(--tekst-2); font-size: 15px; }
+.lijst-weg { color: var(--goud-donker); }
+.footer li a { color: #BDB6A8; }
+.footer li a:hover { color: #F2CB74; }
+.footer-onder a { color: #BDB6A8; }
+
+/* 2.1 Nieuwe indeling: knoppen (Dames · Heren · Kinderen, Jongen · Meisje, Leeftijd) met een kopje erboven. */
+.knop-groep { margin-bottom: 10px; }
+.knop-groep .chips-titel { font-size: .82rem; font-weight: 600; color: var(--grijs, #6b6b6b); margin: 0 0 6px; letter-spacing: .01em; }
+.knop-groep .chips { padding-top: 0; }
+.persoon-subs.home .subkaart { hyphens: auto; -webkit-hyphens: auto; }
+
+/* Kleurwissel (30-10-2026): één product per model, kleuren kiezen met pijltjes of fotootjes */
+.prodkaart .kleuren { display: inline-flex; align-items: center; gap: 3px; font: 500 12px/1.2 var(--f-ui); color: #5A6275; margin-top: 2px; }
+.prodkaart .kleuren i { width: 9px; height: 9px; border-radius: 50%; border: 1px solid rgba(20,26,42,.25); margin-right: -6px; }
+.prodkaart .kleuren i:nth-child(1) { background: #C9A86A; } .prodkaart .kleuren i:nth-child(2) { background: #C0C4CC; } .prodkaart .kleuren i:nth-child(3) { background: #1F2433; margin-right: 4px; }
+.kleurkeuze { margin: 10px 0 4px; min-width: 0; max-width: 100%; }
+/* Veel varianten (bijv. 31 hondjes): de rij met fotootjes schuift, de pagina wordt niet breder. */
+.product-info { min-width: 0; }
+.kleurkeuze p { margin: 0 0 8px; font: 500 14px/1.4 var(--f-ui); color: #141A2A; }
+.kleurkeuze p .klein { color: #5A6275; font-weight: 400; }
+.kleurstalen { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 6px; scrollbar-width: thin; }
+.kleurstalen button { flex: 0 0 52px; width: 52px; height: 52px; padding: 3px; border-radius: 10px; border: 1.5px solid rgba(20,26,42,.14); background: #fff; cursor: pointer; }
+.kleurstalen button img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.kleurstalen button[aria-pressed="true"] { border-color: var(--goud, #C9A23A); box-shadow: 0 0 0 2px rgba(201,162,58,.35); }
+.product-beeld.varianten .galerij-rij img { position: absolute; inset: 0; width: 100%; height: 100%; box-sizing: border-box; object-fit: contain; padding: 7%; background: #fff; }
+
+/* Maatkeuze (31-10-2026) */
+.maatkeuze { margin: 12px 0 4px; min-width: 0; }
+.maatkeuze p { margin: 0 0 8px; font: 500 14px/1.4 var(--f-ui); color: #141A2A; }
+.maatkeuze p.klein { margin: 6px 0 0; font-size: 12.5px; color: #5A6275; }
+.maten { display: flex; flex-wrap: wrap; gap: 6px; }
+.maten button, .maten span { min-width: 46px; height: 40px; padding: 0 10px; border-radius: 10px; border: 1.5px solid rgba(20,26,42,.16); background: #fff; font: 600 14px/37px var(--f-ui); color: #141A2A; text-align: center; }
+.maten button { cursor: pointer; }
+.maten button:hover { border-color: var(--goud, #C9A23A); }
+.maten button[aria-pressed="true"] { background: #141A2A; border-color: #141A2A; color: #fff; }
+.maten span { min-width: 0; height: auto; padding: 2px 8px; border: 0; border-radius: 6px; background: #EFE9DE; color: #4A4F5C; font: 500 13px/1.6 var(--f-ui); }
+
+/* Leesbaarheid (31-10-2026, GO Marius): goud als tekst op de lichte achtergrond iets donkerder; donkere balken blijven zoals ze waren. */
+main, .footer-licht { --goud: #8F6620; --goud-licht: #8F6620; }
+
+/* Banner met logo erin (kerst 2026): hele foto tonen, tekst en knoppen eronder. */
+.hero.hero-logo { display: block; min-height: 0; }
+.hero.hero-logo picture, .hero.hero-logo picture img { position: relative; inset: auto; height: auto; display: block; width: 100%; }
+.hero.hero-logo::after { display: none; }
+.hero.hero-logo .hero-inhoud { padding: 16px 0 20px; }
+.hero.hero-logo .kicker, .hero.hero-logo h1 { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.hero.hero-logo p { margin: 0 0 4px; }
+.hero.hero-logo .populair { margin-top: 10px; }
+@media (max-width: 759px) { .hero.hero-logo p { display: none; } .hero.hero-logo .populair { margin-top: 0; } }
+@media (min-width: 760px) { .hero.hero-logo .binnen { text-align: center; } .hero.hero-logo p { max-width: none; } .hero.hero-logo .populair { justify-content: center; } .hero.hero-logo .chips { flex-wrap: wrap; justify-content: center; } }
+
+/* Lange tekst op een categoriekaart: 3 regels, met 'Lees verder'. */
+.catkaart .lees-kort { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.catkaart .lees-open .lees-kort { display: block; -webkit-line-clamp: unset; overflow: visible; }
+.catkaart .lees-verder { display: inline-block; margin-top: 4px; font-weight: 700; font-size: 13px; color: var(--goud-donker, #8A6A1F); text-decoration: underline; cursor: pointer; }
+
+/* Golden Winter Luxury (Nova): ronde plaatjes met gouden rand. Op de brede kaarten het hele rondje tonen op marineblauw, zodat de gouden rand heel blijft. */
+.groep img[src*="-gw"], .catkaart .beeld img[src*="-gw"] { object-fit: contain; background: #011950; }
+.groep:has(img[src*="-gw"]), .catkaart .beeld:has(img[src*="-gw"]) { background: #011950; }
+
+/* Strakke categoriekaarten (31-10-2026, Marius: "alles netjes en strak, even groot"):
+   - elke kaart even hoog, plaatje even groot, titel op 2 regels, tekst op 2 regels
+   - de pijlknop altijd op dezelfde plek: rechtsonder
+   - plaatjes zonder gouden rand krijgen hetzelfde ronde kader op marineblauw, zodat alle platen gelijk ogen */
+.catkaarten { align-items: stretch; }
+.catkaart { display: flex; flex-direction: column; position: relative; height: 100%; }
+.catkaart .beeld { aspect-ratio: 1 / .86; background: #011950; display: grid; place-items: center; }
+.catkaart .beeld img:not([src*="-gw"]) { height: 94%; width: auto; aspect-ratio: 1; object-fit: cover; border-radius: 50%; box-shadow: 0 0 0 3px #D9A848, 0 0 0 5px rgba(217,168,72,.35); }
+.catkaart:hover .beeld img:not([src*="-gw"]) { transform: scale(1.03); }
+.catkaart .tekst { flex: 1; display: block; padding: 12px 14px 54px; }
+.catkaart h3 { font: 700 15.5px/1.25 var(--f-ui); min-height: 2.5em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin: 0 0 4px; }
+.catkaart .tekst p, .catkaart .lees-kort { margin: 0; font-size: 13px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.catkaart .lees-verder { display: none; }
+.catkaart .rond-pijl { position: absolute; right: 12px; bottom: 12px; width: 34px; height: 34px; }
+@media (min-width: 760px) { .catkaart h3 { font-size: 16px; } }
+@media (min-width: 1100px) { .catkaarten.alle-cats, .binnen > .sectie > .catkaarten { grid-template-columns: repeat(4, 1fr); } } /* 16 categorieën: 4 x 4, geen losse kaart onderaan */
+
+/* VONK groot bovenaan + Zoek op budget (01-11-2026) */
+.vonk-kaart.vonk-groot { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 18px; padding: 22px 24px; margin: 22px 0 6px; border: 1px solid rgba(217,168,72,.45); border-radius: 18px; text-decoration: none; }
+.vonk-kaart.vonk-groot h2 { font-size: 22px; margin: 0 0 6px; }
+.vonk-kaart.vonk-groot p { font-size: 15px; }
+.vonk-kaart.vonk-groot p strong { color: #E8C67A; }
+.vonk-kaart.vonk-groot .knop { white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; }
+.vonk-kaart.vonk-groot .knop svg { width: 16px; height: 16px; }
+@media (max-width: 759px) {
+  .vonk-kaart.vonk-groot { grid-template-columns: auto 1fr; padding: 18px; gap: 12px 14px; margin-top: 16px; }
+  .vonk-kaart.vonk-groot h2 { font-size: 19px; }
+  .vonk-kaart.vonk-groot p { font-size: 14px; }
+  .vonk-kaart.vonk-groot .knop { grid-column: 1 / -1; justify-content: center; }
+}
+.budget-rij { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+.budget-knop { display: flex; align-items: center; justify-content: center; min-height: 56px; border-radius: 14px; background: #011950; color: #F4ECDD; font-weight: 800; font-size: 16px; text-decoration: none; border: 1px solid rgba(217,168,72,.45); }
+.budget-knop:hover { background: #0F1830; color: #E8C67A; }
+@media (max-width: 759px) { .budget-rij { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 600px) { .persoon-subs.home.gelegenheden { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 1024px) { .persoon-subs.home.gelegenheden { grid-template-columns: repeat(8, 1fr); } .persoon-subs.home.gelegenheden .subkaart .rond { width: 104px; height: 104px; } }
+/* VONK 2.0 (01-11-2026) */
+.vonk-uitslag { position: relative; }
+.vonk-wijzig { display: inline-flex; align-items: center; gap: 4px; }
+.vonk-wijzig svg { width: 12px; height: 12px; opacity: .7; }
+.vonk-budget { display: flex; align-items: center; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+.vonk-budget > span { font-weight: 700; font-size: 14px; color: #8A6A2A; }
+.vonk-budget .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.vonk-toover { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 18px 0 14px; }
+.vonk-toover .vonk-noot { margin: 0; }
+.vonk-toover .knop { display: inline-flex; align-items: center; gap: 8px; }
+.vonk-toover .knop svg { width: 18px; height: 18px; }
+.keuze.keuze-over { background: transparent; border-style: dashed; }
+.vonk-fonkel { position: absolute; inset: -10px 0 auto 0; height: 220px; pointer-events: none; z-index: 2; }
+.vonk-fonkel i { position: absolute; width: 14px; height: 14px; background: radial-gradient(circle, #FFF6D8 0%, #F2CB74 40%, rgba(217,168,72,0) 70%); border-radius: 50%; opacity: 0; animation: vonkFonkel .9s ease-out forwards; }
+.vonk-fonkel i::before, .vonk-fonkel i::after { content: ""; position: absolute; left: 50%; top: 50%; width: 28px; height: 2px; margin: -1px 0 0 -14px; background: linear-gradient(90deg, transparent, #F2CB74, transparent); }
+.vonk-fonkel i::after { transform: rotate(90deg); }
+.vonk-fonkel i:nth-child(1) { left: 8%; top: 30%; animation-delay: 0s; }
+.vonk-fonkel i:nth-child(2) { left: 24%; top: 8%; animation-delay: .08s; }
+.vonk-fonkel i:nth-child(3) { left: 42%; top: 40%; animation-delay: .16s; }
+.vonk-fonkel i:nth-child(4) { left: 58%; top: 12%; animation-delay: .04s; }
+.vonk-fonkel i:nth-child(5) { left: 74%; top: 36%; animation-delay: .12s; }
+.vonk-fonkel i:nth-child(6) { left: 88%; top: 6%; animation-delay: .2s; }
+.vonk-fonkel i:nth-child(7) { left: 33%; top: 70%; animation-delay: .24s; }
+@keyframes vonkFonkel { 0% { opacity: 0; transform: scale(.2) rotate(0deg); } 40% { opacity: 1; transform: scale(1.2) rotate(45deg); } 100% { opacity: 0; transform: scale(.6) rotate(90deg); } }
+.vonk-resultaat { animation: vonkIn .5s ease-out .15s both; }
+@keyframes vonkIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .vonk-fonkel { display: none; } .vonk-resultaat { animation: none; } }
+/* VONK 2.1: 6 keuzes met 'waarom', icoon, interesses na de uitslag */
+.vonk-icoon { width: 88px; height: 88px; margin: 0 auto 18px; border-radius: 50%; display: grid; place-items: center; background: radial-gradient(circle at 35% 30%, #1B2742, #011950); border: 2px solid #D9A848; box-shadow: 0 6px 20px rgba(184,134,46,.25); color: #F2CB74; }
+.vonk-icoon svg { width: 44px; height: 44px; }
+.vonk-icoon img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.vonk-zes { position: relative; display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-top: 20px; animation: vonkIn .5s ease-out .15s both; }
+@media (min-width: 760px) { .vonk-zes { grid-template-columns: repeat(3, 1fr); gap: 16px; } }
+.vonk-keus { display: flex; flex-direction: column; }
+.vonk-keus .prodkaart { flex: 1; }
+.vonk-waarom { display: flex; gap: 6px; align-items: flex-start; margin: 8px 2px 0; font-size: 12.5px; line-height: 1.35; color: #6B5320; }
+.vonk-waarom svg { width: 14px; height: 14px; flex: none; color: #B8862E; margin-top: 1px; }
+.vonk-hobby { margin-top: 10px; }
+.vonk-hobby .chips { gap: 6px; }
+.vonk-toover { justify-content: center; margin: 22px 0 6px; }
+.vonk-meer { margin-top: 26px; }
+.vonk-meer .sectie-kop { align-items: baseline; }
+.vonk-hobby { flex-wrap: nowrap; }
+.vonk-hobby > span { white-space: nowrap; }
+.vonk-hobby .chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; padding-bottom: 2px; min-width: 0; }
+.vonk-hobby .chips::-webkit-scrollbar { display: none; }
+.vonk-hobby .chip { flex: none; }
+@media (max-width: 759px) { .vonk-hobby { flex-direction: column; align-items: flex-start; gap: 6px; } .vonk-hobby .chips { width: calc(100% + 16px); margin-right: -16px; } }
+.vonk-zes { margin-top: 16px; }
+@media (min-width: 1200px) { .vonk-zes { grid-template-columns: repeat(6, 1fr); gap: 14px; } .vonk-waarom { font-size: 12px; } }
+.vonk-toover { gap: 10px; flex-wrap: wrap; }
+.vonk-toover .knop-rand { display: inline-flex; align-items: center; gap: 8px; }
+.vonk-toover .knop-rand svg { width: 18px; height: 18px; }
+/* VONK fase 3: typen in gewone taal */
+.vonk-typ { margin: 4px 0 6px; }
+.vonk-typ label { display: block; font-weight: 700; font-size: 15px; margin-bottom: 8px; color: #141A2A; }
+.vonk-typ-rij { display: flex; gap: 8px; }
+.vonk-typ input { flex: 1; min-width: 0; height: 52px; border-radius: 14px; border: 1.5px solid rgba(184,134,46,.55); background: #fff; padding: 0 16px; font: inherit; font-size: 16px; color: #141A2A; }
+.vonk-typ input:focus { outline: none; border-color: #B8862E; box-shadow: 0 0 0 3px rgba(217,168,72,.25); }
+.vonk-typ .knop { height: 52px; display: inline-flex; align-items: center; gap: 6px; padding: 0 18px; white-space: nowrap; }
+.vonk-typ .knop svg { width: 18px; height: 18px; }
+.vonk-of { display: flex; align-items: center; gap: 12px; margin: 22px 0 6px; color: #8A7A5A; font-size: 13px; }
+.vonk-of::before, .vonk-of::after { content: ""; flex: 1; height: 1px; background: rgba(184,134,46,.3); }
+.vonk-begreep { margin: 4px 0 12px; font-size: 14px; color: #5A5040; }
+.vonk-begreep em { font-style: normal; font-weight: 600; color: #141A2A; }
+@media (max-width: 480px) { .vonk-typ .knop { padding: 0 14px; } }
+/* Echt VONK-plaatje (Nova, 01-11-2026) */
+.vonk-icoon { background: none; border: 0; box-shadow: 0 6px 20px rgba(184,134,46,.22); width: 96px; height: 96px; }
+.vonk-icoon img { width: 96px; height: 96px; display: block; }
+/* VONK-blok op de homepage met typveld */
+.vonk-kaart.vonk-home { display: grid; grid-template-columns: auto 1fr; grid-template-areas: "icoon tekst" "typ typ" "vragen vragen"; gap: 14px 16px; align-items: center; }
+.vonk-home-icoon { grid-area: icoon; width: 64px; height: 64px; border-radius: 50%; box-shadow: 0 4px 14px rgba(0,0,0,.25); }
+.vonk-home-tekst { grid-area: tekst; }
+.vonk-typ-home { grid-area: typ; margin: 0; }
+.vonk-typ-home input { border-color: rgba(217,168,72,.6); }
+.vonk-home-vragen { grid-area: vragen; justify-self: start; display: inline-flex; align-items: center; gap: 4px; color: #E8C67A; font-weight: 700; font-size: 14px; text-decoration: none; }
+.vonk-home-vragen svg { width: 14px; height: 14px; }
+.vonk-home-vragen:hover { text-decoration: underline; }
+@media (min-width: 900px) {
+  .vonk-kaart.vonk-home { grid-template-columns: auto minmax(0, 1fr) minmax(0, 1.3fr); grid-template-areas: "icoon tekst typ" "icoon tekst vragen"; }
+  .vonk-home-vragen { justify-self: end; }
+}
+@media (max-width: 759px) { .vonk-kaart.vonk-groot.vonk-home .knop { grid-column: auto; } .vonk-home-icoon { width: 52px; height: 52px; } }
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+@media (max-width: 480px) { .vonk-typ input { padding: 0 12px; } .vonk-typ input::placeholder { font-size: 14px; } }
+/* VONK-uitslag compact (01-11-2026): smalle balk met keuzes, 'Aanpassen'-paneel, cadeaus direct eronder */
+.vonk-pagina-uitslag { padding-top: 0; }
+.vonk-balk { position: sticky; top: var(--header-h, 64px); z-index: 30; display: flex; align-items: center; gap: 10px; margin: 0 -16px; padding: 10px 16px; background: rgba(247,242,233,.96); backdrop-filter: blur(6px); border-bottom: 1px solid rgba(184,134,46,.2); }
+.vonk-balk-labels { flex: 1; min-width: 0; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent); mask-image: linear-gradient(90deg, #000 88%, transparent); padding-right: 18px; }
+.vonk-balk-labels::-webkit-scrollbar { display: none; }
+.vlabel { flex: none; display: inline-flex; align-items: center; height: 32px; border-radius: 16px; background: #011950; color: #F4ECDD; font-size: 13px; font-weight: 600; white-space: nowrap; }
+.vlabel button { all: unset; cursor: pointer; padding: 0 12px; height: 32px; display: inline-flex; align-items: center; }
+.vlabel-weg { display: inline-grid; place-items: center; width: 26px; height: 32px; margin-left: -6px; color: #E8C67A; }
+.vlabel-weg svg { width: 13px; height: 13px; }
+.vonk-aanpassen { flex: none; display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border-radius: 17px; border: 1.5px solid #B8862E; background: #fff; color: #141A2A; font: inherit; font-size: 13.5px; font-weight: 700; cursor: pointer; }
+.vonk-aanpassen svg { width: 15px; height: 15px; }
+.vonk-titel { font-family: var(--f-kop); font-weight: 500; font-size: 22px; margin: 16px 0 4px; }
+@media (min-width: 760px) { .vonk-titel { font-size: 28px; } .vonk-balk { margin: 0; padding: 10px 0; } }
+.vonk-uitslag .vonk-begreep { margin: 2px 0 6px; font-size: 13.5px; }
+.vonk-zes { margin-top: 10px; }
+/* Het paneel ook op de computer (de gewone filterknop is daar verborgen) */
+.filterpaneel.vonk-paneel:not([hidden]) { display: block !important; }
+@media (min-width: 1024px) { .vonk-paneel .filter-blad { left: 50%; right: auto; width: 560px; transform: translate(-50%, 100%); border-radius: 18px 18px 0 0; } .vonk-paneel.open .filter-blad { transform: translate(-50%, 0); } }
+.vonk-paneel .vonk-typ { margin: 4px 0 2px; }
+.vonk-paneel .vonk-typ label { font-size: 14px; }
+.vonk-paneel-voet { position: sticky; bottom: 0; display: flex; gap: 10px; padding: 14px 0 6px; background: #fff; margin-top: 10px; }
+.vonk-paneel-voet .knop { flex: 1; justify-content: center; }
+.vonk-leeg { margin: 18px 0; padding: 22px 18px; border-radius: 16px; background: #fff; border: 1px solid rgba(184,134,46,.25); text-align: center; }
+.vonk-leeg h2 { font-family: var(--f-kop); font-weight: 500; font-size: 24px; margin: 0 0 8px; }
+.vonk-leeg p { margin: 0 0 10px; color: #5A5040; }
+.vonk-leeg .chips { justify-content: center; flex-wrap: wrap; }
+.vonk-leeg .chip small { opacity: .7; }
+.vonk-paneel .filter-blad { padding-bottom: 0; } .vonk-paneel-voet { padding-bottom: calc(14px + env(safe-area-inset-bottom)); box-shadow: 0 -8px 16px -10px rgba(0,0,0,.15); }
+.vonk-meer-tips { flex-wrap: wrap; gap: 6px; margin: 4px 0 4px; } .vonk-meer-tips .chip small { opacity: .7; }
+/* Eén zoekbalk (01-11-2026): VONK-blok is weer één grote knop */
+.vonk-kaart.vonk-home { grid-template-columns: auto 1fr; grid-template-areas: "icoon tekst" "knop knop"; text-decoration: none; }
+.vonk-home-knop { grid-area: knop; justify-self: stretch; justify-content: center; display: inline-flex; align-items: center; gap: 8px; }
+.vonk-home-knop svg { width: 18px; height: 18px; }
+@media (min-width: 900px) { .vonk-kaart.vonk-home { grid-template-columns: auto 1fr auto; grid-template-areas: "icoon tekst knop"; } .vonk-home-knop { justify-self: end; padding: 0 26px; } }
+.vonk-tip { display: flex; gap: 8px; align-items: flex-start; margin: 18px 0 0; font-size: 14px; color: #5A5040; }
+.vonk-tip svg { width: 16px; height: 16px; flex: none; margin-top: 2px; color: #B8862E; }
+.vonk-tip em { font-style: normal; font-weight: 600; color: #141A2A; }
+.vonk-kaart.vonk-groot.vonk-home .vonk-home-knop { grid-area: knop; grid-column: 1 / -1; min-height: 48px; }
+@media (min-width: 900px) { .vonk-kaart.vonk-groot.vonk-home .vonk-home-knop { grid-column: auto; padding: 0 28px; } }
+.vonk-kaart.vonk-groot.vonk-home { align-items: center; }
+
+/* Toppers van nu (01-11-2026): eigen kaart in de seizoensrij. Telefoon: plaatje rechts uitlijnen (producten rechts).
+   Computer: over de hele breedte, de drie seizoenskaarten eronder. */
+.actie.actie-breed img { object-position: right center; }
+.actie.actie-breed::before { background: linear-gradient(90deg, rgba(10,16,32,.95) 0%, rgba(10,16,32,.8) 50%, rgba(10,16,32,.2) 90%); }
+@media (min-width: 900px) {
+  .acties .actie.actie-breed { grid-column: 1 / -1; }
+  .actie.actie-breed, .actie.actie-breed .actie-tekst { min-height: 280px; }
+  .actie.actie-breed::before { background: linear-gradient(90deg, rgba(10,16,32,.92) 0%, rgba(10,16,32,.6) 35%, rgba(10,16,32,0) 50%); }
+}
+/* VONK 'nog persoonlijker' (01-11-2026): één rustige regel met een keuzelijstje, onder de knoppen. */
+.vonk-pers { display: flex; align-items: center; gap: 10px; margin: 12px 0 4px; padding: 10px 14px; border: 1px solid #E6D9BC; border-radius: 14px; background: #FFFBF2; }
+.vonk-pers > svg { width: 18px; height: 18px; color: #B8862E; flex: none; }
+.vonk-pers label { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; flex-wrap: wrap; }
+.vonk-pers label span { font: 600 14px/1.3 var(--f-ui); color: #141A2A; }
+.vonk-pers select { flex: 1; min-width: 150px; border: 1px solid #B8862E; border-radius: 10px; padding: 8px 32px 8px 12px; font: 700 14px/1.2 var(--f-ui); color: #141A2A; background: #fff url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'><path d='M1 1l5 5 5-5' fill='none' stroke='%23B8862E' stroke-width='2'/></svg>") no-repeat right 12px center; -webkit-appearance: none; appearance: none; }
+@media (max-width: 599px) {
+  .vonk-pagina > .vonk-icoon { width: 72px; height: 72px; margin-top: 10px; }
+  .vonk-pagina > .vonk-icoon img { width: 72px; height: 72px; }
+}
+/* VONK op de telefoon (2-11-2026): compacte kop zodat de eerste vraag meteen in beeld staat. */
+.vonk-pagina { scroll-margin-top: calc(var(--header-h) + 10px); }
+@media (max-width: 759px) {
+  .vonk-kop .kruimel { display: none; }
+  .vonk-kop .binnen { padding-top: 12px; padding-bottom: 12px; }
+  .vonk-kop h1 { font-size: 26px; margin-top: 0; }
+  .vonk-kop p { font-size: 14px; margin-top: 2px; line-height: 1.4; }
+  .vonk-pagina { padding-top: 14px; }
+  .vonk-pagina > .vonk-icoon { display: none; }
+  .vonk-pagina .vonk-stapjes { margin-bottom: 14px; }
+  .vonk-vraag h2 { font-size: 24px; margin-bottom: 12px; }
+  .vonk-vraag .keuze { padding: 14px 12px; }
+  .vonk-terug { margin-top: 14px; }
+}
+
+/* 02-11-2026 (Marius: 'staat niet netjes'): collecties zijn er 9, dus op de telefoon 3 x 3 in plaats van 4 + 4 + 1 (Belevenissen bleef alleen over). Woorden niet meer halverwege afbreken. */
+.persoon-subs.home.gelegenheden:has(> :nth-child(9):last-child) { grid-template-columns: repeat(3, 1fr); }
+.persoon-subs.home.gelegenheden:has(> :nth-child(9):last-child) .subkaart .rond { width: 84px; height: 84px; }
+@media (min-width: 1024px) { .persoon-subs.home.gelegenheden:has(> :nth-child(9):last-child) { grid-template-columns: repeat(9, 1fr); } .persoon-subs.home.gelegenheden:has(> :nth-child(9):last-child) .subkaart .rond { width: 96px; height: 96px; } }
+.persoon-subs.home .subkaart { hyphens: manual; -webkit-hyphens: manual; overflow-wrap: break-word; }
+/* 'Zoek in alle winkels' stond in donkere letters op het donkerblauwe vlak: onleesbaar. */
+.vonk-kaart.zoek-alle h2 { color: #F4ECDD; }
+@media (max-width: 380px) { .persoon-subs.home.gelegenheden:has(> :nth-child(9):last-child) .subkaart { font-size: 12px; } }
+
+/* 02-11-2026: tip in de ingebouwde browser van TikTok/Instagram/Facebook (daar is niemand ingelogd bij bol). */
+.inapp-tip { display: flex; gap: 10px; align-items: flex-start; margin: 12px 0 4px; padding: 12px 14px; border: 1px solid #e6cf95; border-radius: 12px; background: #fff8e6; color: #3a2f12; font-size: 14px; line-height: 1.4; }
+.inapp-tip > svg { flex: 0 0 18px; width: 18px; height: 18px; margin-top: 2px; color: #b8862b; }
+.inapp-tip p { margin: 0 0 8px; }
+.inapp-tip .knop { padding: 8px 14px; font-size: 14px; }
+.inapp-stap { display: block; font-size: 13px; color: #5a4a20; }
