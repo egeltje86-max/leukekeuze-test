@@ -1206,6 +1206,11 @@ Object.assign(window, { openDetail, sluitDetail, bewaarEigen, extraFoto, verwijd
 
 /* ================= INSTELLINGEN ================= */
 function toonInstellingen(){
+  if (NATIEF) {
+    $('#uitlegKnop').textContent = 'de volumeknoppen van je telefoon en een bluetooth-sluiterknopje maken ook een foto (op het zoekscherm).';
+    const v = $('#uitlegVersie'); v.textContent = 'Android-app: de route loopt door met het scherm uit en de telefoon in je zak. Je ziet dan een melding "Vondst houdt je route bij". Stem werkt alleen met het scherm aan.';
+    v.previousElementSibling.textContent = 'Over deze app';
+  }
   $('#keyInput').value = instel.key ? '••••••••' + instel.key.slice(-4) : '';
   $('#aiTeller').textContent = instel.aiTeller;
   $('#heelScherm').checked = instel.heelScherm;

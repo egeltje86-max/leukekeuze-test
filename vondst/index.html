@@ -14,7 +14,7 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <style>
 :root{
-  --bg:#14110d; --paneel:#1f1a14; --lijn:#3a3128; --tekst:#f4ede2; --zacht:#b9ab97;
+  --bg:#14110d; --paneel:#1f1a14; --lijn:#3a3128; --tekst:#f4ede2; --zacht:#d2c5b0;
   --goud:#f2b630; --goud2:#ffd36b; --groen:#3ecf6e; --oranje:#ff9f1c; --rood:#ff3b30;
   --nav:74px;
 }
@@ -49,7 +49,7 @@ input,textarea,select{font:inherit}
 @keyframes puls{50%{opacity:.35}}
 
 /* richtvenster */
-#richt{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);width:min(68vw,300px);aspect-ratio:1;z-index:1;pointer-events:none;
+#richt{position:absolute;left:50%;top:43%;transform:translate(-50%,-50%);width:min(68vw,300px);aspect-ratio:1;z-index:1;pointer-events:none;
   border-radius:22px;box-shadow:0 0 0 100vmax rgba(0,0,0,.38)}
 #richt i{position:absolute;width:38px;height:38px;border:4px solid var(--goud2);filter:drop-shadow(0 0 4px rgba(0,0,0,.7))}
 #richt i:nth-child(1){left:-2px;top:-2px;border-right:0;border-bottom:0;border-top-left-radius:22px}
@@ -59,8 +59,7 @@ input,textarea,select{font:inherit}
 #richt .kruis{position:absolute;left:50%;top:50%;width:18px;height:18px;transform:translate(-50%,-50%);opacity:.6}
 #richt .kruis:before,#richt .kruis:after{content:"";position:absolute;background:#fff;left:50%;top:50%;transform:translate(-50%,-50%)}
 #richt .kruis:before{width:18px;height:2px} #richt .kruis:after{width:2px;height:18px}
-#richt .hint{position:absolute;left:0;right:0;top:calc(100% + 10px);text-align:center;font-size:13px;font-weight:600;
-  color:rgba(255,255,255,.85);text-shadow:0 1px 3px #000;white-space:nowrap}
+#richt .hint{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(100% + 14px);text-align:center;font-size:14.5px;font-weight:700;color:#fff;white-space:nowrap;background:rgba(0,0,0,.5);padding:5px 14px;border-radius:999px;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
 #richt.klik i{border-color:#fff;transition:none}
 #richt i{transition:border-color .4s}
 
@@ -80,7 +79,7 @@ input,textarea,select{font:inherit}
 #laatste{display:none;width:100%;max-width:460px;background:rgba(12,10,8,.72);border:1.5px solid rgba(242,182,48,.35);border-radius:14px;
   -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);padding:6px 10px 6px 6px;gap:10px;align-items:center;text-align:left}
 #laatste img{width:46px;height:46px;object-fit:cover;border-radius:9px;flex:none}
-#laatste .t{font-weight:800;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#laatste .t{font-weight:800;font-size:15.5px;line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 #laatste .s{font-size:12.5px;color:var(--zacht)}
 #laatste .tx{flex:1;min-width:0}
 #laatste .pijl{color:var(--goud2);font-size:20px;flex:none}
@@ -106,6 +105,23 @@ input,textarea,select{font:inherit}
 #kleurKeuze.open{display:flex}
 #kleurKeuze button{width:46px;height:46px;border-radius:50%;border:3px solid rgba(255,255,255,.35)}
 #kleurKeuze button.aan{border-color:#fff;box-shadow:0 0 0 3px var(--goud)}
+
+
+/* ---------- afwerking ---------- */
+.uitleg{font-size:15px;line-height:1.55}
+.blok h3{margin-bottom:10px}
+.terug{gap:14px}
+.terug div{line-height:1.25}
+.kaartje .naam{line-height:1.25}
+.kaartje .sub{line-height:1.4;font-size:14.5px}
+.leaflet-control-attribution{font-size:10px !important;background:rgba(0,0,0,.45) !important;color:#ddd !important;padding:1px 6px !important;border-radius:6px 0 0 0}
+.leaflet-control-attribution a{color:#cfe3ff !important}
+#lagenPaneel,#routesPaneel{z-index:1100 !important}
+.rk-knoppen button{display:flex;align-items:center;justify-content:center;gap:5px;white-space:nowrap;font-size:14.5px;padding:0 8px}
+.rk-sub{font-size:14.5px;line-height:1.45}
+.lrij .nm small{font-size:13px;line-height:1.4}
+.dekking{font-size:14px;line-height:1.5}
+.veiligbalk{line-height:1.5;font-size:16px}
 
 /* ---------- LAGEN ---------- */
 #lagenPaneel{position:absolute;left:0;right:0;bottom:0;z-index:700;max-height:72%;overflow:auto;display:none;
@@ -177,8 +193,8 @@ input,textarea,select{font:inherit}
 .fotos figcaption{font-size:12px;color:var(--zacht);margin-top:4px}
 .blok{margin:0 12px 12px;background:linear-gradient(145deg,#231d16,#1a1611);border:1.5px solid var(--lijn);border-radius:16px;padding:14px;box-shadow:0 4px 14px rgba(0,0,0,.3)}
 .blok h3{margin:0 0 8px;font-size:15px;color:var(--goud2);text-transform:uppercase;letter-spacing:.5px}
-.blok p{margin:6px 0;line-height:1.45}
-.rij{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid #fff1;font-size:15px}
+.blok p{margin:8px 0;line-height:1.55;font-size:16.5px}
+.rij{display:flex;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px solid #fff1;font-size:16px;line-height:1.35}
 .rij:last-child{border:0} .rij span:first-child{color:var(--zacht)} .rij span:last-child{text-align:right;font-weight:600}
 .balk{height:10px;border-radius:5px;background:#000;overflow:hidden;margin-top:6px}
 .balk div{height:100%;background:var(--goud)}
@@ -342,7 +358,7 @@ nav button.aan svg{opacity:1;filter:saturate(1.1) drop-shadow(0 0 7px rgba(242,1
     <h3>Bediening</h3>
     <p class="uitleg"><b>Knop:</b> de grote gouden knop op het zoekscherm.<br>
     <b>Stem:</b> zet Stem aan en zeg <b>"vondst"</b>, <b>"foto"</b> of <b>"hebbes"</b>.<br>
-    <b>Bluetooth-knop:</b> een losse knop die als toetsenbord werkt (Enter/spatie) maakt ook een foto.</p>
+    <b>Bluetooth-knop:</b> <span id="uitlegKnop">een losse knop die als toetsenbord werkt (Enter/spatie) maakt ook een foto.</span></p>
     <div class="veld">
       <label><input type="checkbox" id="heelScherm"> Het hele camerabeeld is een knop (handig met handschoenen)</label>
     </div>
@@ -363,7 +379,7 @@ nav button.aan svg{opacity:1;filter:saturate(1.1) drop-shadow(0 0 7px rgba(242,1
 
   <div class="blok">
     <h3>Testversie</h3>
-    <p class="uitleg">Houd de app open tijdens het zoeken; het scherm blijft dan aan. Als je de telefoon op slot doet, stopt de route even. Dat lossen we op in de echte app.</p>
+    <p class="uitleg" id="uitlegVersie">Houd de app open tijdens het zoeken; het scherm blijft dan aan. Als je de telefoon op slot doet, stopt de route even. In de Android-app loopt de route wel door.</p>
   </div>
 </section>
 
