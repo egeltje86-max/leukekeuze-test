@@ -1,5 +1,308 @@
 {
-  "versie": 1,
-  "bijgewerkt": "2026-11-25",
-  "lagen": []
+ "versie": 1,
+ "bijgewerkt": "2026-11-25",
+ "lagen": [
+  {
+   "id": "verboden-nl-drenthe",
+   "naam": "Drenthe · archeologische rijksmonumenten",
+   "groep": "veiligheid",
+   "type": "geojson",
+   "url": "lagen/verboden/verboden-nl-drenthe.geojson",
+   "kleur": "#ff3b30",
+   "standaardAan": true,
+   "minZoom": 8,
+   "bron": "Rijksdienst voor het Cultureel Erfgoed",
+   "licentie": "CC BY 4.0",
+   "naamsvermelding": "Rijksdienst voor het Cultureel Erfgoed · bewerkt voor Vondst",
+   "uitzetbaar": false,
+   "bbox": [
+    6.2161,
+    52.7418,
+    6.9902,
+    53.1856
+   ]
+  },
+  {
+   "id": "verboden-nl-flevoland",
+   "naam": "Flevoland · archeologische rijksmonumenten",
+   "groep": "veiligheid",
+   "type": "geojson",
+   "url": "lagen/verboden/verboden-nl-flevoland.geojson",
+   "kleur": "#ff3b30",
+   "standaardAan": true,
+   "minZoom": 8,
+   "bron": "Rijksdienst voor het Cultureel Erfgoed",
+   "licentie": "CC BY 4.0",
+   "naamsvermelding": "Rijksdienst voor het Cultureel Erfgoed · bewerkt voor Vondst",
+   "uitzetbaar": false,
+   "bbox": [
+    5.1342,
+    52.3194,
+    5.8472,
+    52.7846
+   ]
+  },
+  {
+   "id": "verboden-nl-friesland",
+   "naam": "Fryslân · archeologische rijksmonumenten",
+   "groep": "veiligheid",
+   "type": "geojson",
+   "url": "lagen/verboden/verboden-nl-friesland.geojson",
+   "kleur": "#ff3b30",
+   "standaardAan": true,
+   "minZoom": 8,
+   "bron": "Rijksdienst voor het Cultureel Erfgoed",
+   "licentie": "CC BY 4.0",
+   "naamsvermelding": "Rijksdienst voor het Cultureel Erfgoed · bewerkt voor Vondst",
+   "uitzetbaar": false,
+   "bbox": [
+    5.2661,
+    52.97,
+    6.3206,
+    53.403
+   ]
+  },
+  {
+   "id": "verboden-nl-gelderland",
+   "naam": "Gelderland · archeologische rijksmonumenten",
+   "groep": "veiligheid",
+   "type": "geojson",
+   "url": "lagen/verboden/verboden-nl-gelderland.geojson",
+   "kleur": "#ff3b30",
+   "standaardAan": true,
+   "minZoom": 8,
+   "bron": "Rijksdienst voor het Cultureel Erfgoed",
+   "licentie": "CC BY 4.0",
+   "naamsvermelding": "Rijksdienst voor het Cultureel Erfgoed · bewerkt voor Vondst",
+   "uitzetbaar": false,
+   "bbox": [
+    5.1163,
+    51.7591,
+    6.6853,
+    52.4107
+   ]
+  },
+  {
+   "id": "verboden-nl-groningen",
+   "naam": "Groningen · archeologische rijksmonumenten",
+   "groep": "veiligheid",
+   "type": "geojson",
+   "url": "lagen/verboden/verboden-nl-groningen.geojson",
+   "kleur": "#ff3b30",
+   "standaardAan": true,
+   "minZoom": 8,
+   "bron": "Rijksdienst voor het Cultureel Erfgoed",
+   "licentie": "CC BY 4.0",
+   "naamsvermelding": "Rijksdienst voor het Cultureel Erfgoed · bewerkt voor Vondst",
+   "uitzetbaar": false,
+   "bbox": [
+    6.2516,
+    53.1151,
+    7.0158,
+    53.4169
+   ]
+  },
+  {
+   "id": "verboden-nl-limburg",
+   "naam": "Limburg · archeologische rijksmonumenten",
+   "groep": "veiligheid",
+   "type": "geojson",
+   "url": "lagen/verboden/verboden-nl-limburg.geojson",
+   "kleur": "#ff3b30",
+   "standaardAan": true,
+   "minZoom": 8,
+   "bron": "Rijksdienst voor het Cultureel Erfgoed",
+   "licentie": "CC BY 4.0",
+   "naamsvermelding": "Rijksdienst voor het Cultureel Erfgoed · bewerkt voor Vondst",
+   "uitzetbaar": false,
+   "bbox": [
+    5.6354,
+    50.7565,
+    6.1959,
+    51.7654
+   ]
+  },
+  {
+   "id": "verboden-nl-noord-brabant",
+   "naam": "Noord-Brabant · archeologische rijksmonumenten",
+   "groep": "veiligheid",
+   "type": "geojson",
+   "url": "lagen/verboden/verboden-nl-noord-brabant.geojson",
+   "kleur": "#ff3b30",
+   "standaardAan": true,
+   "minZoom": 8,
+   "bron": "Rijksdienst voor het Cultureel Erfgoed",
+   "licentie": "CC BY 4.0",
+   "naamsvermelding": "Rijksdienst voor het Cultureel Erfgoed · bewerkt voor Vondst",
+   "uitzetbaar": false,
+   "bbox": [
+    4.3388,
+    51.2749,
+    6.0267,
+    51.7973
+   ]
+  },
+  {
+   "id": "verboden-nl-noord-holland",
+   "naam": "Noord-Holland · archeologische rijksmonumenten",
+   "groep": "veiligheid",
+   "type": "geojson",
+   "url": "lagen/verboden/verboden-nl-noord-holland.geojson",
+   "kleur": "#ff3b30",
+   "standaardAan": true,
+   "minZoom": 8,
+   "bron": "Rijksdienst voor het Cultureel Erfgoed",
+   "licentie": "CC BY 4.0",
+   "naamsvermelding": "Rijksdienst voor het Cultureel Erfgoed · bewerkt voor Vondst",
+   "uitzetbaar": false,
+   "bbox": [
+    4.644,
+    52.1933,
+    5.2459,
+    53.0781
+   ]
+  },
+  {
+   "id": "verboden-nl-overijssel",
+   "naam": "Overijssel · archeologische rijksmonumenten",
+   "groep": "veiligheid",
+   "type": "geojson",
+   "url": "lagen/verboden/verboden-nl-overijssel.geojson",
+   "kleur": "#ff3b30",
+   "standaardAan": true,
+   "minZoom": 8,
+   "bron": "Rijksdienst voor het Cultureel Erfgoed",
+   "licentie": "CC BY 4.0",
+   "naamsvermelding": "Rijksdienst voor het Cultureel Erfgoed · bewerkt voor Vondst",
+   "uitzetbaar": false,
+   "bbox": [
+    5.9197,
+    52.1771,
+    7.0376,
+    52.8452
+   ]
+  },
+  {
+   "id": "verboden-nl-utrecht",
+   "naam": "Utrecht · archeologische rijksmonumenten",
+   "groep": "veiligheid",
+   "type": "geojson",
+   "url": "lagen/verboden/verboden-nl-utrecht.geojson",
+   "kleur": "#ff3b30",
+   "standaardAan": true,
+   "minZoom": 8,
+   "bron": "Rijksdienst voor het Cultureel Erfgoed",
+   "licentie": "CC BY 4.0",
+   "naamsvermelding": "Rijksdienst voor het Cultureel Erfgoed · bewerkt voor Vondst",
+   "uitzetbaar": false,
+   "bbox": [
+    4.8827,
+    51.9241,
+    5.6067,
+    52.2655
+   ]
+  },
+  {
+   "id": "verboden-nl-zeeland",
+   "naam": "Zeeland · archeologische rijksmonumenten",
+   "groep": "veiligheid",
+   "type": "geojson",
+   "url": "lagen/verboden/verboden-nl-zeeland.geojson",
+   "kleur": "#ff3b30",
+   "standaardAan": true,
+   "minZoom": 8,
+   "bron": "Rijksdienst voor het Cultureel Erfgoed",
+   "licentie": "CC BY 4.0",
+   "naamsvermelding": "Rijksdienst voor het Cultureel Erfgoed · bewerkt voor Vondst",
+   "uitzetbaar": false,
+   "bbox": [
+    3.3862,
+    51.2633,
+    4.1956,
+    51.7299
+   ]
+  },
+  {
+   "id": "verboden-nl-zuid-holland",
+   "naam": "Zuid-Holland · archeologische rijksmonumenten",
+   "groep": "veiligheid",
+   "type": "geojson",
+   "url": "lagen/verboden/verboden-nl-zuid-holland.geojson",
+   "kleur": "#ff3b30",
+   "standaardAan": true,
+   "minZoom": 8,
+   "bron": "Rijksdienst voor het Cultureel Erfgoed",
+   "licentie": "CC BY 4.0",
+   "naamsvermelding": "Rijksdienst voor het Cultureel Erfgoed · bewerkt voor Vondst",
+   "uitzetbaar": false,
+   "bbox": [
+    3.9406,
+    51.7867,
+    4.9974,
+    52.2018
+   ]
+  },
+  {
+   "id": "verboden-nl-grensgebied",
+   "naam": "grensgebied · archeologische rijksmonumenten",
+   "groep": "veiligheid",
+   "type": "geojson",
+   "url": "lagen/verboden/verboden-nl-grensgebied.geojson",
+   "kleur": "#ff3b30",
+   "standaardAan": true,
+   "minZoom": 8,
+   "bron": "Rijksdienst voor het Cultureel Erfgoed",
+   "licentie": "CC BY 4.0",
+   "naamsvermelding": "Rijksdienst voor het Cultureel Erfgoed · bewerkt voor Vondst",
+   "uitzetbaar": false,
+   "bbox": [
+    4.6543,
+    53.059,
+    4.6557,
+    53.0598
+   ]
+  },
+  {
+   "id": "verboden-be-wallonie",
+   "naam": "Wallonië · geklasseerde gebieden en zones",
+   "groep": "veiligheid",
+   "type": "geojson",
+   "url": "lagen/verboden/verboden-be-wallonie.geojson",
+   "kleur": "#ff3b30",
+   "standaardAan": true,
+   "minZoom": 8,
+   "bron": "Service public de Wallonie (SPW) · Patrimoine – Biens classés et zones de protection (2026-11-05)",
+   "licentie": "CC BY 4.0",
+   "naamsvermelding": "Service public de Wallonie (SPW) · Patrimoine – Biens classés et zones de protection (2026-11-05) · bewerkt voor Vondst",
+   "uitzetbaar": false,
+   "bbox": [
+    2.8787,
+    49.5083,
+    6.3855,
+    50.8121
+   ]
+  },
+  {
+   "id": "romeins-nl-utrecht",
+   "naam": "Romeinse tijd · Utrecht",
+   "groep": "periode",
+   "type": "geojson",
+   "url": "lagen/romeins/romeins-nl-utrecht.geojson",
+   "kleur": "#c39754",
+   "standaardAan": false,
+   "minZoom": 9,
+   "bron": "RomeinenNU / musea / Kadaster BAG via PDOK",
+   "licentie": "CC0 1.0 (BAG); feitelijke gegevens en eigen tekst",
+   "naamsvermelding": "Kadaster BAG via PDOK; historische bron per locatie",
+   "periode": "romeins",
+   "bbox": [
+    4.8845,
+    52.0585,
+    5.1684,
+    52.091
+   ]
+  }
+ ],
+ "proef": true,
+ "dekking": "Proefversie van Nova (25-11-2026). Rood: archeologische rijksmonumenten in heel Nederland (RCE) en geklasseerde gebieden in Wallonië (SPW). Nog niet: gemeentelijke verboden, Vlaanderen en Brussel. Geen rood betekent níet dat zoeken mag: check gemeente en grondeigenaar."
 }

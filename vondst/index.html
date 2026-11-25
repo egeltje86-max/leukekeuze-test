@@ -74,6 +74,9 @@ input,textarea,select{font:inherit}
 #knop:active{transform:scale(.93)}
 #knop.bezig{filter:grayscale(.55) brightness(.85)}
 #teller{font-size:13px;color:var(--zacht)}
+.knoprij{display:flex;align-items:center;justify-content:center;gap:26px;width:100%}
+#munitieKnop,.knopvuller{width:52px;height:52px;flex:none}
+#munitieKnop{border-radius:50%;background:rgba(179,20,14,.85);border:2px solid #ff8a80;font-size:22px;box-shadow:0 4px 12px rgba(0,0,0,.5)}
 #laatste{display:none;width:100%;max-width:460px;background:rgba(12,10,8,.72);border:1.5px solid rgba(242,182,48,.35);border-radius:14px;
   -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);padding:6px 10px 6px 6px;gap:10px;align-items:center;text-align:left}
 #laatste img{width:46px;height:46px;object-fit:cover;border-radius:9px;flex:none}
@@ -125,6 +128,8 @@ input,textarea,select{font:inherit}
   background:#b3140e;color:#fff;font-weight:700;padding:12px 14px;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.5);line-height:1.3}
 #nietZoeken small{display:block;font-weight:500;font-size:12.5px;opacity:.9}
 #nietZoeken.open{display:block}
+#nietZoeken.grijs{background:#4a4a4a}
+.dekking{margin:0 12px 8px;padding:10px 12px;border-radius:12px;background:#2a2218;border:1px solid #5a4a2a;font-size:13px;line-height:1.4;color:#e8dcc6}
 .lpop b{font-size:15px} .lpop .m{color:#555;font-size:12.5px;margin:2px 0 6px} .lpop .b{font-size:11.5px;color:#777;margin-top:6px}
 
 /* ---------- LIJST ---------- */
@@ -216,6 +221,9 @@ input,textarea,select{font:inherit}
 #gevaar p{font-size:18px;margin:0;line-height:1.4;max-width:520px}
 #gevaar a,#gevaar button{display:block;width:100%;max-width:420px;padding:18px;border-radius:16px;font-size:19px;font-weight:900;text-decoration:none}
 #gevaar a{background:#fff;color:#b3140e}
+.landkeuze{display:flex;gap:8px;width:100%;max-width:420px}
+#gevaar .landkeuze button{flex:1;padding:10px;font-size:15px;border-radius:12px;background:#0003;border:2px solid #fff6}
+#gevaar .landkeuze button.aan{background:#fff;color:#b3140e;border-color:#fff}
 #gevaar button{background:#0004;border:2px solid #fff}
 
 /* ---------- NAV ---------- */
@@ -250,7 +258,7 @@ nav button.aan svg{opacity:1;filter:saturate(1.1) drop-shadow(0 0 7px rgba(242,1
   </div>
   <div id="stemTekst"></div>
   <div class="onderbalk">
-    <button id="knop" aria-label="Vondst vastleggen">VONDST</button>
+    <div class="knoprij"><button id="munitieKnop" aria-label="Mogelijk munitie">⚠️</button><button id="knop" aria-label="Vondst vastleggen">VONDST</button><span class="knopvuller"></span></div>
     <div id="teller">Druk op de knop of zeg "vondst"</div>
     <div id="laatste"></div>
   </div>
@@ -305,7 +313,7 @@ nav button.aan svg{opacity:1;filter:saturate(1.1) drop-shadow(0 0 7px rgba(242,1
       <label for="modelSelect">AI-model</label>
       <select id="modelSelect"><option value="">Automatisch kiezen</option></select>
     </div>
-    <p class="uitleg">De sleutel blijft alleen op deze telefoon staan. Herkenning kost per foto een paar cent van je OpenAI-tegoed. Gebruikt: <b id="aiTeller">0</b> herkenningen.</p>
+    <p class="uitleg">De sleutel blijft alleen op deze telefoon staan. Voor herkenning gaan de foto's, het land, de datum en je notitie naar OpenAI, maar niet je precieze GPS-plek. Dat kost per foto een paar cent van je OpenAI-tegoed. Gebruikt: <b id="aiTeller">0</b> herkenningen.</p>
   </div>
 
   <div class="blok">
@@ -342,14 +350,15 @@ nav button.aan svg{opacity:1;filter:saturate(1.1) drop-shadow(0 0 7px rgba(242,1
 
 <!-- GEVAAR -->
 <div id="gevaar">
-  <div style="font-size:64px">⚠️</div>
-  <h1>Mogelijk gevaarlijke munitie</h1>
-  <p id="gevaarTekst"></p>
-  <p><b>Niet aanraken, niet verplaatsen, niet schoonmaken.</b> Markeer de plek, loop weg en bel de politie. Zij schakelen de EOD in.</p>
+  <div style="font-size:60px">⚠️</div>
+  <h1>Mogelijk munitie</h1>
+  <p><b>Raak het voorwerp niet aan. Verplaats het niet. Ga op afstand en waarschuw de juiste hulpdienst.</b> Volg de instructies van de politie op.</p>
+  <p id="gevaarTekst" style="font-size:15px"></p>
   <p id="gevaarPlek" style="font-size:15px"></p>
-  <a href="tel:0900-8844">Bel politie 0900-8844</a>
-  <a href="tel:112" style="background:#000;color:#fff">112 bij direct gevaar</a>
-  <button id="gevaarDicht">Ik heb het begrepen</button>
+  <div class="landkeuze"><button id="alarmLandNL" class="aan">🇳🇱 Nederland</button><button id="alarmLandBE">🇧🇪 België</button></div>
+  <a id="belNiet" href="tel:0900-8844">Bel politie 0900-8844</a>
+  <a id="belSpoed" href="tel:112" style="background:#000;color:#fff">112 bij direct gevaar</a>
+  <button id="gevaarDicht">Sluiten</button>
 </div>
 
 <div id="melding"></div>

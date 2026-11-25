@@ -231,7 +231,7 @@ var Route = window.Route = {
     if (vorige && !p[4] && afstand(vorige, p) < minStap) return;
     s.punten.push(p);
     if (vorige && isGat(vorige, p)) Kaart.verversRoutes(); else Kaart.routePunt(p);
-    if (s.punten.length % 5 === 0) DB.put('tracks', s);
+    DB.put('tracks', s);
     Route.toon();
   },
   pauze(){ if (Route.sessie) { Route.naPauze = true; Route.ruw = []; DB.put('tracks', Route.sessie); } },
@@ -533,7 +533,8 @@ const Herken = {
       const fotos = f.fotos.slice(-3);
       const beelden = [];
       for (const p of fotos) beelden.push(await blobNaarDataUrl(await verkleinFoto(p.blob, 1280, 0.85)));
-      const context = `Vondst gedaan op ${datumTekst(f.t)}` + (f.lat ? ` bij GPS ${f.lat.toFixed(5)}, ${f.lon.toFixed(5)} (Nederland/België)` : ' in Nederland') +
+      // Alleen wat nodig is: land en datum, geen precieze plek.
+      const context = `Vondst gedaan in ${landVan(f.lat, f.lon) === 'BE' ? 'België' : 'Nederland of België'} op ${new Date(f.t).toLocaleDateString('nl-NL')}` +
         `. Aantal foto's: ${fotos.length}. ` + fotos.map((p, i) => `Foto ${i + 1}: ${p.soort === 'veld' ? 'in het veld, mogelijk vuil' : 'schoongemaakt of thuis gefotografeerd'}.`).join(' ') +
         (f.diepte ? ` Diepte: ${f.diepte} cm.` : '') + (f.notitie ? ` Notitie van de zoeker: ${f.notitie}` : '');
       const inhoud = [{ type: 'text', text: context }, ...beelden.map(u => ({ type: 'image_url', image_url: { url: u, detail: 'high' } }))];
@@ -557,16 +558,19 @@ const Herken = {
       const json = JSON.parse(tekst.slice(tekst.indexOf('{'), tekst.lastIndexOf('}') + 1));
       json.model = model; json.tijd = Date.now();
       instel.aiTeller = instel.aiTeller + 1;
-      f.ai = json;
-      f.status = json.veiligheid === 'gevaarlijk' ? 'gevaar' : (+json.zekerheid >= 70 ? 'herkend' : 'onzeker');
-      f.fout = null;
-      await DB.put('finds', f);
-      Herken.na(f);
-      if (f.status === 'gevaar') toonGevaar(f);
+      const vers = await DB.get('finds', id);
+      if (!vers) return; // intussen verwijderd
+      vers.ai = json;
+      vers.status = json.veiligheid === 'gevaarlijk' ? 'gevaar' : (+json.zekerheid >= 70 ? 'herkend' : 'onzeker');
+      vers.fout = null;
+      await DB.put('finds', vers);
+      Herken.na(vers);
+      if (vers.status === 'gevaar') toonGevaar(vers);
       else { piep(660, .08); setTimeout(() => piep(990, .1), 110); }
     } catch (e) {
-      f.status = 'wacht'; f.fout = String(e.message || e);
-      await DB.put('finds', f); Herken.na(f);
+      const vers = await DB.get('finds', id); if (!vers) return;
+      vers.status = 'wacht'; vers.fout = String(e.message || e);
+      await DB.put('finds', vers); Herken.na(vers); f.fout = vers.fout;
       melding('Herkenning lukte niet: ' + f.fout, 4500);
     }
   },
@@ -579,19 +583,39 @@ const Herken = {
   },
   async allesWachtend(){
     const alle = await DB.all('finds');
-    alle.filter(f => f.status === 'wacht' || f.status === 'geenkey').forEach(f => Herken.wachtrij(f.id));
+    alle.filter(f => ['wacht', 'geenkey', 'bezig'].includes(f.status)).forEach(f => Herken.wachtrij(f.id));
   },
 };
 window.addEventListener('online', () => Herken.allesWachtend());
 
 /* ================= GEVAAR ================= */
-function toonGevaar(f){
-  $('#gevaarTekst').textContent = (f.ai && (f.ai.naam + '. ' + (f.ai.veiligheid_uitleg || ''))) || '';
-  $('#gevaarPlek').textContent = f.lat ? `Plek: ${f.lat.toFixed(6)}, ${f.lon.toFixed(6)} (± ${f.acc} m)` : '';
+// Grof: ligt een plek in België? (voor de juiste alarmnummers; handmatig te wisselen)
+function landVan(lat, lon){
+  if (lat == null) return 'NL';
+  if (lat < 50.75) return 'BE';
+  if (lat < 51.37 && lon < 5.7 && !(lat > 51.27 && lon > 3.35 && lon < 4.2)) return 'BE';
+  return 'NL';
+}
+function toonGevaar(f, handmatig){
+  const naam = f && f.ai ? f.ai.naam : '';
+  $('#gevaarTekst').textContent = handmatig ? 'Je hebt aangegeven dat dit munitie kan zijn.' : (naam ? 'De herkenning denkt aan: ' + naam + '.' : '');
+  const lat = f && f.lat != null ? f.lat : GPS.laatste && GPS.laatste.lat, lon = f && f.lon != null ? f.lon : GPS.laatste && GPS.laatste.lon;
+  $('#gevaarPlek').textContent = lat != null ? `Plek: ${lat.toFixed(6)}, ${lon.toFixed(6)}` : '';
+  kiesAlarmLand(landVan(lat, lon));
   $('#gevaar').classList.add('open');
   tril([400, 150, 400, 150, 600]);
   piep(520, .4);
 }
+function kiesAlarmLand(land){
+  const nl = land !== 'BE';
+  $('#alarmLandNL').classList.toggle('aan', nl); $('#alarmLandBE').classList.toggle('aan', !nl);
+  $('#belNiet').href = nl ? 'tel:0900-8844' : 'tel:101';
+  $('#belNiet').textContent = nl ? 'Bel politie 0900-8844' : 'Bel politie 101';
+}
+$('#alarmLandNL').onclick = () => kiesAlarmLand('NL');
+$('#alarmLandBE').onclick = () => kiesAlarmLand('BE');
+$('#munitieKnop').onclick = e => { e.stopPropagation(); toonGevaar(null, true); };
+window.toonGevaar = toonGevaar;
 $('#gevaarDicht').onclick = () => $('#gevaar').classList.remove('open');
 
 /* ================= KAART ================= */
@@ -609,8 +633,8 @@ var Kaart = window.Kaart = {
     map.on('dragstart', () => { Kaart.volgen = false; });
     Kaart.map = map;
     Kaart.verversRoutes(); Kaart.verversVondsten();
-    Lagen.opKaart(map);
     if (GPS.laatste) { map.setView([GPS.laatste.lat, GPS.laatste.lon], 19); Kaart.mijnPlek(GPS.laatste); }
+    Lagen.opKaart(map);
   },
   // Een zoekstrook van ongeveer 1 meter breed (zwaai van de detector)
   breedtePx(){
@@ -711,7 +735,7 @@ const PERIODES = {
 const GROEPEN = { 'veiligheid': 'Veiligheid', 'periode': 'Historische perioden', 'historische-kaart': 'Oude kaarten' };
 const jaar = j => j == null || j === '' ? '' : (+j < 0 ? (-j) + ' v.Chr.' : String(j));
 const Lagen = {
-  lijst: [], data: {}, kaartLagen: {}, map: null, gewaarschuwd: '', laatsteCheck: 0,
+  lijst: [], data: {}, kaartLagen: {}, map: null, gewaarschuwd: '', laatsteCheck: 0, dekking: '', bezigMet: {},
   aan(l){
     if (l.uitzetbaar === false) return true;
     const v = localStorage.getItem('v_laag_' + l.id);
@@ -723,22 +747,39 @@ const Lagen = {
       if (!r.ok) return;
       const j = await r.json();
       Lagen.lijst = (j.lagen || []).filter(l => l && l.id && l.url && l.type);
+      Lagen.dekking = j.dekking || '';
     } catch (e) { Lagen.lijst = []; }
-    // veiligheidslagen altijd vooraf laden, ook als de kaart nog niet open is geweest
-    for (const l of Lagen.lijst) if (l.type === 'geojson' && (l.groep === 'veiligheid' || Lagen.aan(l))) Lagen.haalData(l);
+    if (GPS.laatste) Lagen.check(GPS.laatste, true);
     Lagen.toonMenu();
+  },
+  // ligt [lon, lat] in het vak van een laag (met marge in graden)?
+  inVak(l, lon, lat, marge = 0){
+    const b = l.bbox; if (!b) return true;
+    return lon >= b[0] - marge && lon <= b[2] + marge && lat >= b[1] - marge && lat <= b[3] + marge;
+  },
+  vakInBeeld(l){
+    const b = l.bbox; if (!b || !Lagen.map) return true;
+    const z = Lagen.map.getBounds();
+    return !(b[2] < z.getWest() || b[0] > z.getEast() || b[3] < z.getSouth() || b[1] > z.getNorth());
   },
   async haalData(l){
     if (Lagen.data[l.id]) return Lagen.data[l.id];
-    try {
-      const r = await fetch(l.url);
-      if (!r.ok) throw new Error(r.status);
-      Lagen.data[l.id] = await r.json();
-    } catch (e) { melding('Laag "' + l.naam + '" kon niet geladen worden'); return null; }
-    if (Lagen.map) Lagen.bijwerken();
-    return Lagen.data[l.id];
+    if (Lagen.bezigMet[l.id]) return Lagen.bezigMet[l.id];
+    Lagen.bezigMet[l.id] = (async () => {
+      try {
+        const r = await fetch(l.url);
+        if (!r.ok) throw new Error(r.status);
+        const gj = await r.json();
+        for (const f of gj.features || []) f._bb = vakVan(f.geometry);
+        Lagen.data[l.id] = gj;
+      } catch (e) { melding('Laag "' + l.naam + '" kon niet geladen worden'); return null; }
+      finally { delete Lagen.bezigMet[l.id]; }
+      if (Lagen.map) Lagen.bijwerken();
+      return Lagen.data[l.id];
+    })();
+    return Lagen.bezigMet[l.id];
   },
-  opKaart(map){ Lagen.map = map; map.on('zoomend', Lagen.bijwerken); Lagen.bijwerken(); },
+  opKaart(map){ Lagen.map = map; Lagen.canvas = L.canvas({ padding: 0.3 }); map.on('zoomend moveend', Lagen.bijwerken); Lagen.bijwerken(); },
   maakLaag(l){
     if (l.type === 'xyz') return L.tileLayer(l.url, { maxZoom: 22, maxNativeZoom: l.maxNativeZoom || 19, opacity: l.doorzichtigheid ?? 0.75, attribution: l.naamsvermelding || '' });
     if (l.type === 'wms') return L.tileLayer.wms(l.url, { layers: l.wmsLagen || '', format: 'image/png', transparent: true, maxZoom: 22, opacity: l.doorzichtigheid ?? 0.75, attribution: l.naamsvermelding || '' });
@@ -748,16 +789,18 @@ const Lagen = {
       const kleur = l.kleur || '#f2b630';
       const verboden = l.groep === 'veiligheid';
       return L.geoJSON(gj, {
+        renderer: Lagen.canvas,
         attribution: l.naamsvermelding || '',
-        style: f => (f && f.geometry && /Point/.test(f.geometry.type)) ? { radius: 8, color: '#000', weight: 1.5, fillColor: kleur, fillOpacity: .95 } : ({ color: kleur, weight: verboden ? 2.5 : 3, opacity: .95, fillColor: kleur, fillOpacity: verboden ? .28 : .18, dashArray: verboden ? '6 5' : null }),
-        pointToLayer: (f, ll) => L.circleMarker(ll, { radius: 7, color: '#000', weight: 1.5, fillColor: kleur, fillOpacity: .95 }),
+        style: f => (f && f.geometry && /Point/.test(f.geometry.type)) ? { radius: 8, color: '#000', weight: 1.5, fillColor: kleur, fillOpacity: .95 } : ({ color: kleur, weight: verboden ? 2 : 3, opacity: .95, fillColor: kleur, fillOpacity: verboden ? .28 : .18, dashArray: verboden ? '6 5' : null }),
+        pointToLayer: (f, ll) => L.circleMarker(ll, { renderer: Lagen.canvas, radius: 8, color: '#000', weight: 1.5, fillColor: kleur, fillOpacity: .95 }),
         onEachFeature: (f, laag) => {
           const p = f.properties || {};
           const tijd = [jaar(p.van), jaar(p.tot)].filter(Boolean).join(' – ');
           const meta = [p.soort, PERIODES[p.periode] || p.periode, tijd].filter(Boolean).join(' · ');
           laag.bindPopup(`<div class="lpop"><b>${esc(p.naam || l.naam)}</b><div class="m">${esc(meta)}</div>${p.beschrijving ? esc(p.beschrijving) : ''}` +
             `${p.zekerheid ? `<div class="b">Zekerheid plek: ${esc(p.zekerheid)}${p.nauwkeurigheid_m ? ' (± ' + esc(p.nauwkeurigheid_m) + ' m)' : ''}</div>` : ''}` +
-            `<div class="b">Bron: ${p.bron_url ? `<a href="${esc(p.bron_url)}" target="_blank" rel="noopener">${esc(p.bron || 'link')}</a>` : esc(p.bron || l.bron || '')}</div></div>`);
+            `${p.bijgewerkt ? `<div class="b">Peildatum: ${esc(p.bijgewerkt)}</div>` : ''}` +
+            `<div class="b">Bron: ${p.bron_url ? `<a href="${esc(p.bron_url)}" target="_blank" rel="noopener">${esc(p.bron || 'link')}</a>` : esc(p.bron || l.bron || '')}${p.licentie || l.licentie ? ' · ' + esc(p.licentie || l.licentie) : ''}</div></div>`);
         },
       });
     }
@@ -767,16 +810,14 @@ const Lagen = {
     const map = Lagen.map; if (!map) return;
     const z = map.getZoom();
     for (const l of Lagen.lijst) {
-      const moet = Lagen.aan(l) && z >= (l.minZoom || 0);
+      const moet = Lagen.aan(l) && z >= (l.minZoom || 0) && Lagen.vakInBeeld(l);
       let k = Lagen.kaartLagen[l.id];
-      if (moet && !k) { k = Lagen.maakLaag(l); if (k) { Lagen.kaartLagen[l.id] = k; k.addTo(map); if (l.type !== 'geojson') k.bringToBack(), Kaart.lagen[Kaart.laag].bringToBack(); } }
+      if (moet && !k) { k = Lagen.maakLaag(l); if (k) { Lagen.kaartLagen[l.id] = k; k.addTo(map); if (l.type !== 'geojson') { k.bringToBack(); Kaart.lagen[Kaart.laag].bringToBack(); } } }
       else if (moet && k && !map.hasLayer(k)) k.addTo(map);
       else if (!moet && k && map.hasLayer(k)) map.removeLayer(k);
     }
-    // vondsten en route altijd bovenop
     Kaart.routeLaag && Kaart.routeLaag.eachLayer(x => x.bringToFront && x.bringToFront());
     Kaart.vondstLaag && Kaart.vondstLaag.eachLayer(x => x.bringToFront && x.bringToFront());
-    Lagen.toonMenu();
   },
   wissel(id){
     const l = Lagen.lijst.find(x => x.id === id); if (!l) return;
@@ -790,37 +831,64 @@ const Lagen = {
     const el = $('#lagenLijst'); if (!el) return;
     if (!Lagen.lijst.length) { el.innerHTML = '<div class="leeg">Er zijn nog geen historische lagen.<br>Zodra Nova de eerste levert, verschijnen ze hier.</div>'; return; }
     const z = Lagen.map ? Lagen.map.getZoom() : 99;
+    const veilig = Lagen.lijst.filter(l => l.groep === 'veiligheid');
+    const rest = Lagen.lijst.filter(l => l.groep !== 'veiligheid');
+    let html = Lagen.dekking ? `<div class="dekking">${esc(Lagen.dekking)}</div>` : '';
+    if (veilig.length) {
+      const gebieden = veilig.map(l => l.naam.split(' · ')[0]).filter(n => n !== 'grensgebied');
+      html += `<div class="lgroep">Veiligheid</div><div class="lrij aan vast"><span class="kl" style="background:#ff3b30"></span>
+        <span class="nm">Hier mag je niet zoeken<small>Staat altijd aan · ${esc(gebieden.join(', '))}</small></span><span class="schakel"></span></div>`;
+    }
     const groepen = {};
-    for (const l of Lagen.lijst) (groepen[l.groep || 'overig'] = groepen[l.groep || 'overig'] || []).push(l);
-    const volgorde = ['veiligheid', 'periode', 'historische-kaart', ...Object.keys(groepen)].filter((g, i, a) => groepen[g] && a.indexOf(g) === i);
-    el.innerHTML = volgorde.map(g => `<div class="lgroep">${esc(GROEPEN[g] || g)}</div>` + groepen[g].map(l => {
-      const aan = Lagen.aan(l), vast = l.uitzetbaar === false;
-      const sub = [l.periode && PERIODES[l.periode] !== l.naam && PERIODES[l.periode], vast ? 'staat altijd aan' : '', aan && l.minZoom && z < l.minZoom ? 'zoom verder in' : ''].filter(Boolean).join(' · ');
-      return `<button class="lrij ${aan ? 'aan' : ''} ${vast ? 'vast' : ''}" onclick="Lagen.wissel('${esc(l.id)}')">
+    for (const l of rest) (groepen[l.groep || 'overig'] = groepen[l.groep || 'overig'] || []).push(l);
+    const volgorde = ['periode', 'historische-kaart', ...Object.keys(groepen)].filter((g, i, a) => groepen[g] && a.indexOf(g) === i);
+    html += volgorde.map(g => `<div class="lgroep">${esc(GROEPEN[g] || g)}</div>` + groepen[g].map(l => {
+      const aan = Lagen.aan(l);
+      const sub = [l.periode && PERIODES[l.periode] !== l.naam && PERIODES[l.periode], aan && l.minZoom && z < l.minZoom ? 'zoom verder in' : ''].filter(Boolean).join(' · ');
+      return `<button class="lrij ${aan ? 'aan' : ''}" data-laag="${esc(l.id)}">
         <span class="kl" style="background:${esc(l.kleur || '#888')}"></span>
         <span class="nm">${esc(l.naam)}${sub ? `<small>${esc(sub)}</small>` : ''}</span><span class="schakel"></span></button>`;
     }).join('')).join('');
+    el.innerHTML = html;
+    el.querySelectorAll('button[data-laag]').forEach(b => b.onclick = () => Lagen.wissel(b.dataset.laag));
   },
-  // waarschuwing als je een 'niet zoeken'-gebied binnenloopt
-  check(fix){
-    if (Date.now() - Lagen.laatsteCheck < 4000) return;
+  // waarschuwing als je een 'niet zoeken'-gebied binnenloopt, en grijs als we voor deze plek geen gegevens hebben
+  async check(fix, direct){
+    if (!direct && Date.now() - Lagen.laatsteCheck < 4000) return;
     Lagen.laatsteCheck = Date.now();
+    const veilig = Lagen.lijst.filter(l => l.groep === 'veiligheid');
+    if (!veilig.length) return;
+    const dichtbij = veilig.filter(l => Lagen.inVak(l, fix.lon, fix.lat, 0.05));
+    for (const l of dichtbij) if (!Lagen.data[l.id]) await Lagen.haalData(l);
     let treffer = '';
-    for (const l of Lagen.lijst) {
-      if (l.groep !== 'veiligheid' || !Lagen.aan(l) || !Lagen.data[l.id]) continue;
-      for (const f of Lagen.data[l.id].features || []) {
+    for (const l of dichtbij) {
+      const gj = Lagen.data[l.id]; if (!gj) continue;
+      for (const f of gj.features || []) {
+        const b = f._bb;
+        if (b && (fix.lon < b[0] || fix.lon > b[2] || fix.lat < b[1] || fix.lat > b[3])) continue;
         if (inGebied([fix.lon, fix.lat], f.geometry)) { treffer = (f.properties && f.properties.naam) || l.naam; break; }
       }
       if (treffer) break;
     }
+    const geenGegevens = !veilig.some(l => Lagen.inVak(l, fix.lon, fix.lat, 0.03));
     const b = $('#nietZoeken');
+    b.classList.toggle('grijs', !treffer && geenGegevens);
     if (treffer) {
-      $('#nietZoekenNaam').textContent = treffer;
+      b.innerHTML = '⛔ Je bent in een gebied waar je <b>niet mag zoeken</b><small>' + esc(treffer) + '</small>';
       b.classList.add('open');
       if (Lagen.gewaarschuwd !== treffer) { Lagen.gewaarschuwd = treffer; tril([300, 120, 300]); piep(440, .3); melding('⛔ Hier mag je niet zoeken: ' + treffer, 5000); }
+    } else if (geenGegevens) {
+      b.innerHTML = 'Geen verbodsgegevens voor deze plek<small>Check zelf de regels van de gemeente en vraag de grondeigenaar.</small>';
+      b.classList.add('open'); Lagen.gewaarschuwd = '';
     } else { b.classList.remove('open'); Lagen.gewaarschuwd = ''; }
   },
 };
+function vakVan(g){
+  if (!g) return null;
+  let a = Infinity, b = Infinity, c = -Infinity, d = -Infinity;
+  (function loop(x){ if (typeof x[0] === 'number') { if (x[0] < a) a = x[0]; if (x[0] > c) c = x[0]; if (x[1] < b) b = x[1]; if (x[1] > d) d = x[1]; } else x.forEach(loop); })(g.coordinates || []);
+  return [a, b, c, d];
+}
 function inRing(pt, ring){
   let binnen = false;
   for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
@@ -873,6 +941,12 @@ $('#filters').onclick = e => {
 };
 
 /* ================= DETAIL ================= */
+function veiligBalk(a){
+  const munitie = /munitie|granaat|kogel|patroon|huls|ontsteker|mortier|fosfor/i.test([a.categorie, a.naam, a.merk_model].join(' '));
+  if (a.veiligheid === 'gevaarlijk') return `<div class="veiligbalk v-gevaarlijk">⚠️ Mogelijk gevaarlijk. Raak het niet aan, verplaats het niet. Ga op afstand en waarschuw de politie. <button class="groot" style="margin-top:8px;width:100%;background:#fff;color:#b3140e" onclick="toonGevaar(null, true)">Alarmnummers tonen</button><div style="font-weight:500;margin-top:6px">${esc(a.veiligheid_uitleg || '')}</div></div>`;
+  if (munitie || a.veiligheid === 'voorzichtig') return `<div class="veiligbalk v-voorzichtig">⚠️ ${munitie ? 'Dit lijkt munitie of een deel daarvan.' : 'Voorzichtig.'} De herkenning kan zich vergissen: twijfel je, raak het dan niet aan en bel de politie.<div style="font-weight:500;margin-top:6px">${esc(a.veiligheid_uitleg || '')}</div></div>`;
+  return `<div class="veiligbalk v-veilig">✓ Geen munitie herkend. ${esc(a.veiligheid_uitleg || '')}</div>`;
+}
 async function openDetail(id){
   const f = await DB.get('finds', id); if (!f) return;
   const d = $('#detail'); d.dataset.id = id;
@@ -883,7 +957,7 @@ async function openDetail(id){
   d.innerHTML = `
     <div class="terug"><button onclick="sluitDetail()">← Terug</button><div style="font-weight:800;font-size:18px">${esc(naam)}</div></div>
     <div class="fotos">${f.fotos.map((p, i) => `<figure><img src="${fotoUrl(p.blob, f.id + p.t)}" alt=""><figcaption>Foto ${i + 1} · ${p.soort === 'veld' ? 'in het veld' : 'thuis / schoon'} · ${esc(datumTekst(p.t))}</figcaption></figure>`).join('')}</div>
-    ${a.veiligheid ? `<div class="veiligbalk v-${a.veiligheid}">${a.veiligheid === 'gevaarlijk' ? '⚠️ GEVAARLIJK – niet aanraken, politie bellen (0900-8844).' : a.veiligheid === 'voorzichtig' ? '⚠️ Voorzichtig.' : '✓ Veilig.'} ${esc(a.veiligheid_uitleg || '')}</div>` : ''}
+    ${a.veiligheid ? veiligBalk(a) : ''}
     <div class="blok">
       <h3>Wat is het?</h3>
       <span class="label ${kl}">${tk}</span>
@@ -899,6 +973,7 @@ async function openDetail(id){
       <button class="groot kleur kgoud breed" onclick="extraFoto('${f.id}')">📷 Nieuwe foto toevoegen (schoongemaakt)</button>
       <button class="groot kleur kpaars" onclick="Herken.wachtrij('${f.id}')">🔄 Opnieuw herkennen</button>
       <button class="groot kleur kblauw" onclick="toonOpKaart('${f.id}')">🗺️ Op de kaart</button>
+      <button class="groot rood breed" onclick="toonGevaar(null, true)">⚠️ Dit kan munitie zijn</button>
       <button class="groot kleur kgroen breed" onclick="meldPan('${f.id}')">🏛️ ${f.panGemeld ? 'Gemeld bij PAN ✓ (opnieuw openen)' : 'Melden bij PAN (jouw keuze)'}</button>
     </div>
     <div class="blok">
@@ -1010,7 +1085,7 @@ $('#importBestand').onchange = async e => {
 $('#exportCsv').onclick = async () => {
   const finds = (await DB.all('finds')).sort((a, b) => a.t - b.t);
   const kol = ['datum', 'naam', 'categorie', 'periode', 'datering', 'materiaal', 'zekerheid', 'veiligheid', 'lat', 'lon', 'nauwkeurigheid_m', 'diepte_cm', 'notitie', 'pan_gemeld'];
-  const c = v => '"' + String(v ?? '').replace(/"/g, '""') + '"';
+  const c = v => { let t = String(v ?? ''); if (/^[=+\-@\t\r]/.test(t)) t = "'" + t; return '"' + t.replace(/"/g, '""') + '"'; };
   const rijen = finds.map(f => { const a = f.ai || {}; return [new Date(f.t).toLocaleString('nl-NL'), f.eigenNaam || a.naam, a.categorie, a.periode, a.datering, a.materiaal, a.zekerheid, a.veiligheid, f.lat, f.lon, f.acc, f.diepte, f.notitie, f.panGemeld ? 'ja' : ''].map(c).join(';'); });
   download('vondsten-' + vandaag() + '.csv', '﻿' + kol.join(';') + '\n' + rijen.join('\n'), 'text/csv');
 };
