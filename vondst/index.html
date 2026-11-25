@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#14110d">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Vondst – testversie</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+:root{
+  --bg:#14110d; --paneel:#1f1a14; --lijn:#3a3128; --tekst:#f4ede2; --zacht:#b9ab97;
+  --goud:#f2b630; --goud2:#ffd36b; --groen:#3ecf6e; --oranje:#ff9f1c; --rood:#ff3b30;
+  --nav:76px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--tekst);
+  font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;overscroll-behavior:none}
+button{font:inherit;color:inherit;border:0;cursor:pointer}
+input,textarea,select{font:inherit}
+.scherm{position:fixed;inset:0 0 calc(var(--nav) + env(safe-area-inset-bottom)) 0;display:none;overflow:auto}
+.scherm.actief{display:block}
+
+/* ---------- ZOEKEN ---------- */
+#zoeken{overflow:hidden;background:#000}
+#cam{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+#camUit{position:absolute;inset:0;display:none;align-items:center;justify-content:center;
+  text-align:center;padding:30px;color:var(--zacht);font-size:18px;flex-direction:column;gap:16px}
+#flits{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .25s}
+.bovenbalk{position:absolute;top:0;left:0;right:0;display:flex;gap:8px;padding:calc(10px + env(safe-area-inset-top)) 10px 10px;
+  background:linear-gradient(#000c,#0000)}
+.chip{flex:1;min-height:58px;border-radius:16px;background:#000a;border:2px solid #fff3;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:700;font-size:15px;line-height:1.15;padding:4px}
+.chip small{font-weight:500;font-size:12px;color:var(--zacht)}
+.chip.aan{border-color:var(--goud);background:#3a2a05cc}
+#gpsChip.goed{border-color:var(--groen)} #gpsChip.matig{border-color:var(--oranje)} #gpsChip.slecht{border-color:var(--rood)}
+.onderbalk{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;gap:10px;
+  padding:14px 14px 18px;background:linear-gradient(#0000,#000d 45%)}
+#knop{width:min(46vw,190px);height:min(46vw,190px);border-radius:50%;
+  background:radial-gradient(circle at 35% 30%,var(--goud2),var(--goud) 55%,#b57f0c);
+  color:#1a1206;font-size:26px;font-weight:900;letter-spacing:1px;
+  box-shadow:0 0 0 7px #0008,0 0 0 10px var(--goud),0 8px 30px #000;touch-action:manipulation}
+#knop:active{transform:scale(.95)}
+#knop.bezig{filter:grayscale(.6)}
+#teller{font-size:14px;color:var(--zacht)}
+#laatste{display:none;width:100%;max-width:520px;background:#000c;border:2px solid var(--lijn);border-radius:16px;
+  padding:8px;gap:10px;align-items:center}
+#laatste img{width:64px;height:64px;object-fit:cover;border-radius:10px;flex:none}
+#laatste .t{font-weight:800;font-size:16px}
+#laatste .s{font-size:13px;color:var(--zacht)}
+#stemTekst{position:absolute;top:calc(84px + env(safe-area-inset-top));left:0;right:0;text-align:center;
+  font-size:13px;color:var(--goud2);text-shadow:0 1px 3px #000;pointer-events:none}
+
+/* ---------- KAART ---------- */
+#kaartDiv{position:absolute;inset:0;background:#222}
+.kaartknoppen{position:absolute;right:10px;top:calc(10px + env(safe-area-inset-top));z-index:500;display:flex;flex-direction:column;gap:8px}
+.kaartknoppen button{width:58px;height:58px;border-radius:14px;background:#000c;border:2px solid #fff4;font-size:22px}
+.leaflet-popup-content{margin:10px;font-size:14px;color:#111}
+.leaflet-popup-content img{width:180px;height:140px;object-fit:cover;border-radius:8px;display:block;margin-bottom:6px}
+.popknop{display:block;width:100%;margin-top:6px;padding:9px;border-radius:8px;background:var(--goud);color:#111;font-weight:800}
+
+/* ---------- LIJST ---------- */
+.kop{padding:calc(16px + env(safe-area-inset-top)) 16px 8px;font-size:24px;font-weight:900}
+.filters{display:flex;gap:8px;padding:4px 16px 12px;overflow:auto}
+.filters button{padding:10px 14px;border-radius:999px;background:var(--paneel);border:2px solid var(--lijn);white-space:nowrap;font-weight:700}
+.filters button.aan{border-color:var(--goud);color:var(--goud2)}
+#lijst{padding:0 12px 20px;display:flex;flex-direction:column;gap:10px}
+.kaartje{display:flex;gap:12px;background:var(--paneel);border:2px solid var(--lijn);border-radius:16px;padding:10px;text-align:left;width:100%}
+.kaartje img{width:84px;height:84px;object-fit:cover;border-radius:12px;flex:none;background:#000}
+.kaartje .naam{font-weight:800;font-size:17px}
+.kaartje .sub{font-size:14px;color:var(--zacht);margin-top:2px}
+.kaartje.gevaar{border-color:var(--rood)}
+.label{display:inline-block;font-size:12px;font-weight:800;padding:3px 8px;border-radius:999px;margin-top:6px;margin-right:4px}
+.l-herkend{background:#173d24;color:#7ff0a4} .l-onzeker{background:#4a3505;color:#ffd36b}
+.l-gevaar{background:#5a0f0b;color:#ffb3ad} .l-wacht{background:#2a2a2a;color:#ccc} .l-pan{background:#10304a;color:#9fd2ff}
+.leeg{padding:40px 24px;text-align:center;color:var(--zacht)}
+
+/* ---------- DETAIL ---------- */
+#detail{position:fixed;inset:0;z-index:2000;background:var(--bg);overflow:auto;display:none;padding-bottom:30px}
+#detail.open{display:block}
+.terug{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:10px;padding:calc(10px + env(safe-area-inset-top)) 12px 10px;background:var(--bg);border-bottom:1px solid var(--lijn)}
+.terug button{min-width:58px;height:50px;border-radius:12px;background:var(--paneel);border:2px solid var(--lijn);font-size:18px;font-weight:800;padding:0 14px}
+.fotos{display:flex;gap:8px;overflow-x:auto;padding:12px;scroll-snap-type:x mandatory}
+.fotos figure{margin:0;flex:none;width:86vw;max-width:480px;scroll-snap-align:center}
+.fotos img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:14px;background:#000}
+.fotos figcaption{font-size:12px;color:var(--zacht);margin-top:4px}
+.blok{margin:0 12px 12px;background:var(--paneel);border:2px solid var(--lijn);border-radius:16px;padding:14px}
+.blok h3{margin:0 0 8px;font-size:15px;color:var(--goud2);text-transform:uppercase;letter-spacing:.5px}
+.blok p{margin:6px 0;line-height:1.45}
+.rij{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid #fff1;font-size:15px}
+.rij:last-child{border:0} .rij span:first-child{color:var(--zacht)} .rij span:last-child{text-align:right;font-weight:600}
+.balk{height:10px;border-radius:5px;background:#000;overflow:hidden;margin-top:6px}
+.balk div{height:100%;background:var(--goud)}
+.knoppen{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:0 12px 12px}
+.groot{min-height:60px;border-radius:14px;background:var(--paneel);border:2px solid var(--lijn);font-weight:800;font-size:16px;padding:8px}
+.groot.goud{background:var(--goud);color:#1a1206;border-color:var(--goud)}
+.groot.breed{grid-column:1/-1}
+.groot.rood{border-color:#7a2520;color:#ffb3ad}
+.veld{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.veld input,.veld textarea,.veld select{background:#000;border:2px solid var(--lijn);color:var(--tekst);border-radius:12px;padding:12px;font-size:16px}
+.veiligbalk{margin:0 12px 12px;border-radius:16px;padding:14px;font-weight:700;line-height:1.4}
+.v-veilig{background:#173d24;color:#c9f7d7} .v-voorzichtig{background:#4a3505;color:#ffe3a3} .v-gevaarlijk{background:#7a1410;color:#fff}
+
+/* ---------- INSTELLINGEN ---------- */
+#instellingen .blok{margin-top:8px}
+.uitleg{font-size:14px;color:var(--zacht);line-height:1.45}
+#keyStatus{font-size:14px;margin-top:6px}
+
+/* ---------- GEVAAR ---------- */
+#gevaar{position:fixed;inset:0;z-index:5000;background:#b3140e;color:#fff;display:none;flex-direction:column;
+  align-items:center;justify-content:center;text-align:center;padding:24px;gap:14px}
+#gevaar.open{display:flex}
+#gevaar h1{font-size:34px;margin:0;line-height:1.1}
+#gevaar p{font-size:18px;margin:0;line-height:1.4;max-width:520px}
+#gevaar a,#gevaar button{display:block;width:100%;max-width:420px;padding:18px;border-radius:16px;font-size:19px;font-weight:900;text-decoration:none}
+#gevaar a{background:#fff;color:#b3140e}
+#gevaar button{background:#0004;border:2px solid #fff}
+
+/* ---------- NAV ---------- */
+nav{position:fixed;left:0;right:0;bottom:0;height:calc(var(--nav) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);
+  display:flex;background:#0d0b08;border-top:1px solid var(--lijn);z-index:1500}
+nav button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;color:var(--zacht);font-size:13px;font-weight:700}
+nav button b{font-size:26px;line-height:1}
+nav button.aan{color:var(--goud2)}
+
+#melding{position:fixed;left:50%;top:calc(90px + env(safe-area-inset-top));transform:translateX(-50%);z-index:6000;
+  background:#000e;border:2px solid var(--goud);color:var(--tekst);padding:12px 18px;border-radius:14px;font-weight:700;
+  max-width:90vw;text-align:center;display:none}
+</style>
+</head>
+<body>
+
+<!-- ZOEKEN -->
+<section id="zoeken" class="scherm actief">
+  <video id="cam" playsinline muted autoplay></video>
+  <div id="camUit">
+    <div>De camera staat nog uit.</div>
+    <button class="groot goud" id="camAanKnop" style="padding:0 24px">Camera aanzetten</button>
+    <div class="uitleg">Geef toestemming voor camera en locatie als je telefoon erom vraagt.</div>
+  </div>
+  <div id="flits"></div>
+  <div class="bovenbalk">
+    <div class="chip" id="gpsChip">GPS<small id="gpsTekst">zoeken…</small></div>
+    <button class="chip" id="routeKnop">Route<small id="routeTekst">uit</small></button>
+    <button class="chip" id="stemKnop">Stem<small id="stemStatus">uit</small></button>
+  </div>
+  <div id="stemTekst"></div>
+  <div class="onderbalk">
+    <div id="laatste"></div>
+    <button id="knop" aria-label="Vondst vastleggen">VONDST</button>
+    <div id="teller">Druk op de knop of zeg "vondst"</div>
+  </div>
+</section>
+
+<!-- KAART -->
+<section id="kaart" class="scherm">
+  <div id="kaartDiv"></div>
+  <div class="kaartknoppen">
+    <button id="volgKnop" title="Naar mijn plek">◎</button>
+    <button id="laagKnop" title="Kaart / satelliet">🛰</button>
+  </div>
+</section>
+
+<!-- VONDSTEN -->
+<section id="vondsten" class="scherm">
+  <div class="kop">Mijn vondsten</div>
+  <div class="filters" id="filters">
+    <button data-f="alle" class="aan">Alle</button>
+    <button data-f="onzeker">Onzeker</button>
+    <button data-f="wacht">Wacht op AI</button>
+    <button data-f="gevaar">Gevaar</button>
+    <button data-f="pan">Gemeld bij PAN</button>
+  </div>
+  <div id="lijst"></div>
+</section>
+
+<!-- INSTELLINGEN -->
+<section id="instellingen" class="scherm">
+  <div class="kop">Instellingen</div>
+
+  <div class="blok">
+    <h3>AI-herkenning (OpenAI)</h3>
+    <div class="veld">
+      <label for="keyInput">Jouw OpenAI-sleutel</label>
+      <input id="keyInput" type="password" placeholder="sk-..." autocomplete="off">
+    </div>
+    <div class="knoppen" style="margin:0">
+      <button class="groot goud" id="keyOpslaan">Opslaan en testen</button>
+      <button class="groot" id="keyWis">Sleutel wissen</button>
+    </div>
+    <div id="keyStatus" class="uitleg"></div>
+    <div class="veld" style="margin-top:10px">
+      <label for="modelSelect">AI-model</label>
+      <select id="modelSelect"><option value="">Automatisch kiezen</option></select>
+    </div>
+    <p class="uitleg">De sleutel blijft alleen op deze telefoon staan. Herkenning kost per foto een paar cent van je OpenAI-tegoed. Gebruikt: <b id="aiTeller">0</b> herkenningen.</p>
+  </div>
+
+  <div class="blok">
+    <h3>Bediening</h3>
+    <p class="uitleg"><b>Knop:</b> de grote gouden knop op het zoekscherm.<br>
+    <b>Stem:</b> zet Stem aan en zeg <b>"vondst"</b>, <b>"foto"</b> of <b>"hebbes"</b>.<br>
+    <b>Bluetooth-knop:</b> een losse knop die als toetsenbord werkt (Enter/spatie) maakt ook een foto.</p>
+    <div class="veld">
+      <label><input type="checkbox" id="heelScherm"> Het hele camerabeeld is een knop (handig met handschoenen)</label>
+    </div>
+  </div>
+
+  <div class="blok">
+    <h3>Gegevens</h3>
+    <p class="uitleg">Alles staat alleen op deze telefoon. Maak af en toe een back-up.</p>
+    <div class="knoppen" style="margin:0">
+      <button class="groot" id="exportJson">Back-up maken</button>
+      <button class="groot" id="importKnop">Back-up terugzetten</button>
+      <button class="groot" id="exportCsv">Lijst (Excel)</button>
+      <button class="groot" id="exportGpx">Kaartbestand (GPX)</button>
+      <button class="groot rood breed" id="allesWissen">Alles wissen</button>
+    </div>
+    <input type="file" id="importBestand" accept=".json,application/json" hidden>
+  </div>
+
+  <div class="blok">
+    <h3>Testversie</h3>
+    <p class="uitleg">Houd de app open tijdens het zoeken; het scherm blijft dan aan. Als je de telefoon op slot doet, stopt de route even. Dat lossen we op in de echte app.</p>
+  </div>
+</section>
+
+<!-- DETAIL -->
+<div id="detail"></div>
+
+<!-- GEVAAR -->
+<div id="gevaar">
+  <div style="font-size:64px">⚠️</div>
+  <h1>Mogelijk gevaarlijke munitie</h1>
+  <p id="gevaarTekst"></p>
+  <p><b>Niet aanraken, niet verplaatsen, niet schoonmaken.</b> Markeer de plek, loop weg en bel de politie. Zij schakelen de EOD in.</p>
+  <p id="gevaarPlek" style="font-size:15px"></p>
+  <a href="tel:0900-8844">Bel politie 0900-8844</a>
+  <a href="tel:112" style="background:#000;color:#fff">112 bij direct gevaar</a>
+  <button id="gevaarDicht">Ik heb het begrepen</button>
+</div>
+
+<div id="melding"></div>
+
+<nav>
+  <button data-s="zoeken" class="aan"><b>📷</b>Zoeken</button>
+  <button data-s="kaart"><b>🗺️</b>Kaart</button>
+  <button data-s="vondsten"><b>🪙</b>Vondsten</button>
+  <button data-s="instellingen"><b>⚙️</b>Instellingen</button>
+</nav>
+
+<input type="file" id="extraFoto" accept="image/*" capture="environment" hidden>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
