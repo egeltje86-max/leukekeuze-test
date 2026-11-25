@@ -357,7 +357,7 @@ async function toonLaatste(item){
   const f = item.fotos[item.fotos.length - 1];
   const naam = item.eigenNaam || (item.ai && item.ai.naam) || (item.status === 'bezig' ? 'Herkennen…' : 'Opgeslagen');
   let sub = item.ai ? [item.ai.periode, item.ai.zekerheid != null ? item.ai.zekerheid + '% zeker' : ''].filter(Boolean).join(' · ')
-    : (item.status === 'geenkey' ? 'Zet je OpenAI-sleutel in Instellingen' : item.status === 'wacht' ? 'Wacht op herkenning…' : '');
+    : (item.status === 'geenkey' ? 'Zet je OpenAI-sleutel in Instellingen' : item.status === 'pro' ? 'Gratis herkenningen op · tik voor Pro' : item.status === 'wacht' ? 'Wacht op herkenning…' : '');
   l.innerHTML = `<img src="${fotoUrl(f.blob, item.id + f.t)}" alt=""><div class="tx"><div class="t">${esc(naam)}</div><div class="s">${esc(sub)}</div></div><span class="pijl">›</span>`;
   l.style.display = 'flex';
   l.onclick = () => openDetail(item.id);
@@ -528,6 +528,7 @@ const Herken = {
   async een(id){
     const f = await DB.get('finds', id); if (!f) return;
     if (!instel.key) { f.status = 'geenkey'; await DB.put('finds', f); Herken.na(f); return; }
+    if (!Pro.mag()) { f.status = 'pro'; await DB.put('finds', f); Herken.na(f); if (!Herken.proGetoond) { Herken.proGetoond = true; Pro.open(); } return; }
     if (!navigator.onLine) { f.status = 'wacht'; await DB.put('finds', f); Herken.na(f); return; }
     f.status = 'bezig'; await DB.put('finds', f); Herken.na(f);
     try {
@@ -560,6 +561,7 @@ const Herken = {
       const json = JSON.parse(tekst.slice(tekst.indexOf('{'), tekst.lastIndexOf('}') + 1));
       json.model = model; json.tijd = Date.now();
       instel.aiTeller = instel.aiTeller + 1;
+      Pro.tel();
       const vers = await DB.get('finds', id);
       if (!vers) return; // intussen verwijderd
       vers.ai = json;
@@ -585,7 +587,7 @@ const Herken = {
   },
   async allesWachtend(){
     const alle = await DB.all('finds');
-    alle.filter(f => ['wacht', 'geenkey', 'bezig'].includes(f.status)).forEach(f => Herken.wachtrij(f.id));
+    alle.filter(f => ['wacht', 'geenkey', 'bezig', 'pro'].includes(f.status)).forEach(f => Herken.wachtrij(f.id));
   },
 };
 window.addEventListener('online', () => Herken.allesWachtend());
@@ -1079,7 +1081,7 @@ $('#lagenDicht').onclick = () => $('#lagenPaneel').classList.remove('open');
 let filter = 'alle';
 const statusLabel = {
   herkend: ['l-herkend', 'Herkend'], onzeker: ['l-onzeker', 'Onzeker'], gevaar: ['l-gevaar', 'GEVAAR'],
-  wacht: ['l-wacht', 'Wacht op AI'], bezig: ['l-wacht', 'Bezig…'], geenkey: ['l-wacht', 'Geen AI-sleutel'],
+  wacht: ['l-wacht', 'Wacht op AI'], bezig: ['l-wacht', 'Bezig…'], geenkey: ['l-wacht', 'Geen AI-sleutel'], pro: ['l-onzeker', 'Herkennen met Pro'],
 };
 async function toonLijst(){
   let alle = (await DB.all('finds')).sort((a, b) => b.t - a.t);
@@ -1132,7 +1134,7 @@ async function openDetail(id){
       <h3>Wat is het?</h3>
       <span class="label ${kl}">${tk}</span>
       ${a.zekerheid != null ? `<div style="margin-top:8px;font-size:14px;color:var(--zacht)">Zekerheid ${a.zekerheid}%</div><div class="balk"><div style="width:${+a.zekerheid || 0}%"></div></div>` : ''}
-      ${a.beschrijving ? `<p>${esc(a.beschrijving)}</p>` : f.status === 'geenkey' ? '<p>Zet je OpenAI-sleutel in Instellingen, dan wordt deze vondst herkend.</p>' : f.fout ? `<p>Laatste poging mislukte: ${esc(f.fout)}</p>` : '<p>Nog niet herkend.</p>'}
+      ${a.beschrijving ? `<p>${esc(a.beschrijving)}</p>` : f.status === 'geenkey' ? '<p>Zet je OpenAI-sleutel in Instellingen, dan wordt deze vondst herkend.</p>' : f.status === 'pro' ? '<p>Je gratis herkenningen zijn op.</p><button class="groot goud" style="width:100%" onclick="Pro.open()">⭐ Herken met Vondst Pro</button>' : f.fout ? `<p>Laatste poging mislukte: ${esc(f.fout)}</p>` : '<p>Nog niet herkend.</p>'}
       ${rij('Categorie', a.categorie)}${rij('Periode', a.periode)}${rij('Datering', a.datering)}${rij('Materiaal', a.materiaal)}${rij('Merk / model', a.merk_model)}${rij('Zeldzaamheid', a.zeldzaamheid)}${rij('Waarde (grof)', a.waarde_indicatie)}
     </div>
     ${a.herkenningstekens ? `<div class="blok"><h3>Waaraan herkend</h3><p>${esc(a.herkenningstekens)}</p></div>` : ''}
@@ -1206,6 +1208,7 @@ Object.assign(window, { openDetail, sluitDetail, bewaarEigen, extraFoto, verwijd
 
 /* ================= INSTELLINGEN ================= */
 function toonInstellingen(){
+  Pro.toonBlok();
   if (NATIEF) {
     $('#uitlegKnop').textContent = 'de volumeknoppen van je telefoon en een bluetooth-sluiterknopje maken ook een foto (op het zoekscherm).';
     const v = $('#uitlegVersie'); v.textContent = 'Android-app: de route loopt door met het scherm uit en de telefoon in je zak. Je ziet dan een melding "Vondst houdt je route bij". Stem werkt alleen met het scherm aan.';
@@ -1287,6 +1290,7 @@ $('#allesWissen').onclick = async () => {
 /* ================= TERUGKNOP ================= */
 // Eén stap terug: eerst open schermpjes sluiten, dan naar het zoekscherm. Op het zoekscherm gaat de app naar de achtergrond (route loopt door).
 function terug(){
+  if ($('#pro').classList.contains('open')) { Pro.dicht(); return true; }
   if ($('#uitleg').classList.contains('open')) { Uitleg.dicht(); return true; }
   if ($('#gevaar').classList.contains('open')) { $('#gevaar').classList.remove('open'); return true; }
   if ($('#detail').classList.contains('open')) { sluitDetail(); return true; }
@@ -1296,7 +1300,7 @@ function terug(){
   if (huidigScherm !== 'zoeken') { kiesScherm('zoeken'); return true; }
   return false;
 }
-const opBasis = () => huidigScherm === 'zoeken' && !['#uitleg', '#gevaar', '#detail', '#lagenPaneel', '#routesPaneel', '#kleurKeuze'].some(x => $(x).classList.contains('open'));
+const opBasis = () => huidigScherm === 'zoeken' && !['#pro', '#uitleg', '#gevaar', '#detail', '#lagenPaneel', '#routesPaneel', '#kleurKeuze'].some(x => $(x).classList.contains('open'));
 if (NATIEF) {
   const App = plugin('App');
   App.addListener('backButton', () => { if (!terug()) App.minimizeApp(); });
@@ -1307,6 +1311,51 @@ if (NATIEF) {
   window.addEventListener('popstate', () => { terug(); setTimeout(bewaak, 0); });
   setInterval(bewaak, 500);
 }
+
+/* ================= VONDST PRO (proefweergave, nog zonder echte betaling) ================= */
+const GRATIS = 10;
+const Pro = {
+  get klant(){ return localStorage.getItem('v_klantweergave') === '1'; },
+  set klant(v){ localStorage.setItem('v_klantweergave', v ? '1' : '0'); },
+  get actief(){ return localStorage.getItem('v_pro') === '1'; },
+  set actief(v){ localStorage.setItem('v_pro', v ? '1' : '0'); },
+  get gebruikt(){ return +(localStorage.getItem('v_gratis_gebruikt') || 0); },
+  set gebruikt(v){ localStorage.setItem('v_gratis_gebruikt', String(v)); },
+  // Mag deze herkenning? Alleen in klantweergave wordt er geteld.
+  mag(){ return !Pro.klant || Pro.actief || Pro.gebruikt < GRATIS; },
+  tel(){ if (Pro.klant && !Pro.actief) Pro.gebruikt = Pro.gebruikt + 1; },
+  over(){ return Math.max(0, GRATIS - Pro.gebruikt); },
+  plan: 'jaar',
+  open(){ $('#pro').classList.add('open'); },
+  dicht(){ $('#pro').classList.remove('open'); },
+  toonBlok(){
+    const b = $('#proBlok'); if (!b) return;
+    if (!Pro.klant) {
+      b.innerHTML = `<h3>Vondst Pro <span class="pro-badge">voorbeeld</span></h3>
+        <p class="uitleg">Jij gebruikt nu je eigen OpenAI-sleutel, dus voor jou is herkennen onbeperkt. Wil je zien hoe een klant de app ziet: gratis versie met ${GRATIS} herkenningen, daarna Vondst Pro?</p>
+        <div class="knoppen" style="margin:0"><button class="groot goud breed" onclick="Pro.zetKlant(true)">👀 Bekijk als klant</button><button class="groot breed" onclick="Pro.open()">Toon het Pro-scherm</button></div>`;
+      return;
+    }
+    const over = Pro.over();
+    b.innerHTML = Pro.actief
+      ? `<h3>Vondst Pro <span class="pro-badge">actief</span></h3><p class="uitleg">Onbeperkt herkennen staat aan (proef: zonder echte betaling).</p>
+         <div class="knoppen" style="margin:0"><button class="groot breed" onclick="Pro.zetPro(false)">Pro uitzetten (test)</button><button class="groot breed" onclick="Pro.zetKlant(false)">Terug naar mijn eigen weergave</button></div>`
+      : `<h3>Gratis versie</h3><p class="uitleg">Nog <b>${over} van ${GRATIS}</b> gratis herkenningen over.</p>
+         <div class="pro-teller"><div style="width:${over / GRATIS * 100}%"></div></div>
+         <div class="knoppen" style="margin:0"><button class="groot goud breed" onclick="Pro.open()">⭐ Bekijk Vondst Pro</button>
+         <button class="groot" onclick="Pro.gebruikt = 0; Pro.toonBlok()">Teller op 0 (test)</button><button class="groot" onclick="Pro.zetKlant(false)">Eigen weergave</button></div>`;
+  },
+  zetKlant(v){ Pro.klant = v; Pro.toonBlok(); melding(v ? 'Je ziet de app nu zoals een klant' : 'Terug naar je eigen weergave'); },
+  zetPro(v){ Pro.actief = v; Pro.toonBlok(); },
+};
+window.Pro = Pro;
+$('#proDicht').onclick = () => Pro.dicht();
+$$('.pro-optie').forEach(b => b.onclick = () => { Pro.plan = b.dataset.plan; $$('.pro-optie').forEach(x => x.classList.toggle('gekozen', x === b)); });
+$('#proStart').onclick = () => {
+  Pro.dicht();
+  if (Pro.klant) { Pro.actief = true; Pro.toonBlok(); melding('Proefversie: Vondst Pro staat aan. Echt betalen komt via Google Play.', 4500); Herken.allesWachtend(); }
+  else melding('Dit is een voorbeeld. Echt betalen komt via Google Play.', 4000);
+};
 
 /* ================= UITLEG ================= */
 const Uitleg = {

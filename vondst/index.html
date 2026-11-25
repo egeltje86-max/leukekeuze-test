@@ -145,6 +145,34 @@ input,textarea,select{font:inherit}
   background:rgba(31,95,196,.9);color:#fff;font-weight:700;font-size:15px;padding:8px 16px;border-radius:999px;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.5)}
 #stemHint.open{display:block}
 
+/* ---------- PRO ---------- */
+#pro{position:fixed;inset:0;z-index:7500;display:none;overflow:auto;
+  background:radial-gradient(circle at 50% 0%,#3a2a0c,#120f0a 55%);padding:calc(16px + env(safe-area-inset-top)) 18px calc(20px + env(safe-area-inset-bottom))}
+#pro.open{display:block}
+.pro-dicht{position:absolute;right:14px;top:calc(12px + env(safe-area-inset-top));width:44px;height:44px;border-radius:50%;background:#0006;border:1px solid #fff3;font-size:18px}
+.pro-inhoud{max-width:460px;margin:0 auto;display:flex;flex-direction:column;align-items:center;text-align:center;gap:12px;padding-top:18px}
+.pro-ico{font-size:64px;filter:drop-shadow(0 8px 18px rgba(242,182,48,.35))}
+#pro h2{margin:0;font-size:32px}
+#pro h2 span{color:#1a1206;background:linear-gradient(160deg,#ffe08a,#e2a21a);border-radius:10px;padding:0 10px;margin-left:4px}
+.pro-onder{margin:0;font-size:18px;color:var(--goud2)}
+.pro-lijst{list-style:none;padding:0;margin:6px 0;text-align:left;display:flex;flex-direction:column;gap:10px;font-size:16px;line-height:1.45;width:100%}
+.pro-lijst li{padding-left:30px;position:relative}
+.pro-lijst li:before{content:"✓";position:absolute;left:4px;top:0;color:var(--groen);font-weight:900}
+.pro-optie{width:100%;position:relative;text-align:left;display:flex;flex-direction:column;gap:2px;padding:16px;border-radius:16px;background:#221b13;border:2px solid var(--lijn)}
+.pro-optie.gekozen{border-color:var(--goud);background:#2f2410;box-shadow:0 0 0 3px rgba(242,182,48,.18)}
+.pro-tag{position:absolute;top:-11px;left:14px;background:var(--goud);color:#1a1206;font-size:12px;font-weight:900;padding:3px 10px;border-radius:999px}
+.pro-naam{font-size:15px;color:var(--zacht);font-weight:700}
+.pro-prijs{font-size:24px;font-weight:900}
+.pro-prijs s{font-size:16px;color:var(--zacht);font-weight:600;margin-right:4px}
+.pro-prijs small{font-size:14px;color:var(--zacht);font-weight:600}
+.pro-per{font-size:13.5px;color:var(--zacht)}
+.pro-start{width:100%;min-height:62px;font-size:19px;margin-top:6px}
+.pro-klein{font-size:13px;color:var(--zacht);margin:0}
+.pro-blok h3{display:flex;justify-content:space-between;align-items:center}
+.pro-badge{background:linear-gradient(160deg,#ffe08a,#e2a21a);color:#1a1206;border-radius:8px;padding:2px 8px;font-size:12px}
+.pro-teller{height:10px;border-radius:5px;background:#000;overflow:hidden;margin:8px 0}
+.pro-teller div{height:100%;background:var(--goud)}
+
 /* ---------- LAGEN ---------- */
 #lagenPaneel{position:absolute;left:0;right:0;bottom:0;z-index:700;max-height:72%;overflow:auto;display:none;
   background:linear-gradient(#1f1a14,#14110d);border-top:2px solid rgba(242,182,48,.45);border-radius:20px 20px 0 0;
@@ -359,6 +387,7 @@ nav button.aan svg{opacity:1;filter:saturate(1.1) drop-shadow(0 0 7px rgba(242,1
 <section id="instellingen" class="scherm">
   <div class="kop">Instellingen</div>
   <div class="blok"><button class="groot goud" style="width:100%" onclick="Uitleg.open()">📖 Uitleg: zo werkt de app</button></div>
+  <div class="blok pro-blok" id="proBlok"></div>
 
   <div class="blok">
     <h3>AI-herkenning (OpenAI)</h3>
@@ -427,6 +456,34 @@ nav button.aan svg{opacity:1;filter:saturate(1.1) drop-shadow(0 0 7px rgba(242,1
   <div class="u-dia" id="uDia"></div>
   <div class="u-stippen" id="uStippen"></div>
   <div class="u-knoppen"><button id="uOverslaan">Overslaan</button><button id="uVolgende" class="goud">Volgende</button></div>
+</div>
+<div id="pro" role="dialog" aria-modal="true">
+  <button class="pro-dicht" id="proDicht" aria-label="Sluiten">✕</button>
+  <div class="pro-inhoud">
+    <div class="pro-ico">🪙</div>
+    <h2>Vondst <span>Pro</span></h2>
+    <p class="pro-onder">Weet direct wat je gevonden hebt</p>
+    <ul class="pro-lijst">
+      <li><b>Onbeperkt herkennen</b>: munten, knopen, gespen, munitie en meer</li>
+      <li><b>Hoe oud en wat waard</b>: periode, datering, materiaal en zeldzaamheid</li>
+      <li><b>Kent Nederlandse vondsten</b>: duiten, stuivers, loodjes en uniformknopen</li>
+      <li><b>Vieze vondst?</b> Herken hem opnieuw met een schone foto</li>
+      <li>Altijd gratis: vastleggen, route, kaart en de veiligheidswaarschuwing</li>
+    </ul>
+    <button class="pro-optie gekozen" data-plan="jaar">
+      <span class="pro-tag">Voordeligst · introductieprijs</span>
+      <span class="pro-naam">Jaar</span>
+      <span class="pro-prijs"><s>€29,99</s> €19,99 <small>eerste jaar</small></span>
+      <span class="pro-per">Dat is €1,67 per maand</span>
+    </button>
+    <button class="pro-optie" data-plan="maand">
+      <span class="pro-naam">Maand</span>
+      <span class="pro-prijs">€3,99 <small>per maand</small></span>
+      <span class="pro-per">Maandelijks opzegbaar</span>
+    </button>
+    <button class="groot goud pro-start" id="proStart">Start Vondst Pro</button>
+    <p class="pro-klein">Opzeggen kan altijd via Google Play. Je vondsten blijven altijd van jou.</p>
+  </div>
 </div>
 <div id="melding"></div>
 
