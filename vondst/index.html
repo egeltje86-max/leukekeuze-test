@@ -130,6 +130,15 @@ input,textarea,select{font:inherit}
 .groot.goud{background:var(--goud);color:#1a1206;border-color:var(--goud)}
 .groot.breed{grid-column:1/-1}
 .groot.rood{border-color:#7a2520;color:#ffb3ad}
+/* 25-11-2026 (Marius: 'maak hier kleuren van'): elke knop bij Gegevens een eigen kleur met een icoontje */
+.groot.kleur{display:flex;align-items:center;justify-content:center;gap:10px;color:#fff;border:0;text-shadow:0 1px 2px rgba(0,0,0,.35);box-shadow:0 4px 14px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.25)}
+.groot.kleur svg{flex:none}
+.groot.kleur:active{transform:translateY(1px);filter:brightness(.92)}
+.groot.kblauw{background:linear-gradient(160deg,#4a9dff,#1f5fc4)}
+.groot.kpaars{background:linear-gradient(160deg,#a774ff,#6236c9)}
+.groot.kgroen{background:linear-gradient(160deg,#35c26f,#13803f)}
+.groot.koranje{background:linear-gradient(160deg,#ffb23e,#e0700b);color:#241300;text-shadow:none}
+.groot.krood{background:linear-gradient(160deg,#ff5a4f,#b3221a)}
 .veld{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
 .veld input,.veld textarea,.veld select{background:#000;border:2px solid var(--lijn);color:var(--tekst);border-radius:12px;padding:12px;font-size:16px}
 .veiligbalk{margin:0 12px 12px;border-radius:16px;padding:14px;font-weight:700;line-height:1.4}
@@ -246,11 +255,11 @@ nav button.aan svg{opacity:1;filter:saturate(1.1) drop-shadow(0 0 7px rgba(242,1
     <h3>Gegevens</h3>
     <p class="uitleg">Alles staat alleen op deze telefoon. Maak af en toe een back-up.</p>
     <div class="knoppen" style="margin:0">
-      <button class="groot" id="exportJson">Back-up maken</button>
-      <button class="groot" id="importKnop">Back-up terugzetten</button>
-      <button class="groot" id="exportCsv">Lijst (Excel)</button>
-      <button class="groot" id="exportGpx">Kaartbestand (GPX)</button>
-      <button class="groot rood breed" id="allesWissen">Alles wissen</button>
+      <button class="groot kleur kblauw" id="exportJson"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 17v3h16v-3"/></svg><span>Back-up maken</span></button>
+      <button class="groot kleur kpaars" id="importKnop"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15V3"/><path d="m7 8 5-5 5 5"/><path d="M4 17v3h16v-3"/></svg><span>Back-up terugzetten</span></button>
+      <button class="groot kleur kgroen" id="exportCsv"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16M10 3v18"/></svg><span>Lijst (Excel)</span></button>
+      <button class="groot kleur koranje" id="exportGpx"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2z"/><path d="M9 4v14M15 6v14"/></svg><span>Kaartbestand (GPX)</span></button>
+      <button class="groot kleur krood breed" id="allesWissen"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 7h16"/><path d="M9 7V4h6v3"/><path d="M6 7l1 13h10l1-13"/></svg><span>Alles wissen</span></button>
     </div>
     <input type="file" id="importBestand" accept=".json,application/json" hidden>
   </div>
