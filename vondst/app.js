@@ -152,7 +152,20 @@ async function verfijnPlek(id, start){
 }
 
 /* ================= ROUTE ================= */
-const Route = {
+// Is er tussen twee routepunten niets gemeten? (scherm uit, app weg, of een grote sprong in de tijd)
+function isGat(a, b){
+  if (b[4] === 1) return afstand(a, b) > 8;
+  return (b[3] - a[3]) > 25000 && afstand(a, b) > 20;
+}
+function segmenten(punten){
+  const delen = [[]], gaten = [];
+  punten.forEach((p, i) => {
+    if (i && isGat(punten[i - 1], p)) { gaten.push([punten[i - 1], p]); delen.push([]); }
+    delen[delen.length - 1].push(p);
+  });
+  return { delen, gaten };
+}
+var Route = window.Route = {
   sessie: null, wakeLock: null,
   async aan(){
     Route.sessie = { id: nieuwId(), start: Date.now(), eind: null, punten: [] };
@@ -170,18 +183,27 @@ const Route = {
     Route.toon(); Kaart.verversRoutes();
     melding('Route gestopt en bewaard');
   },
+  ruw: [], naPauze: false,
   punt(fix){
     const s = Route.sessie; if (!s) return;
-    if (fix.acc > 25) return; // te onnauwkeurig voor de route
-    const p = [fix.lat, fix.lon, Math.round(fix.acc), fix.t];
+    if (fix.acc > 60) return; // alleen echt onbruikbare metingen weggooien
+    // Uitmiddelen: metingen van de laatste 8 seconden, gewogen naar nauwkeurigheid (goed onder bomen)
+    Route.ruw.push(fix);
+    Route.ruw = Route.ruw.filter(f => fix.t - f.t <= 8000);
+    let sw = 0, la = 0, lo = 0, minAcc = Infinity;
+    for (const f of Route.ruw) { const w = 1 / (f.acc * f.acc); sw += w; la += f.lat * w; lo += f.lon * w; minAcc = Math.min(minAcc, f.acc); }
+    const p = [la / sw, lo / sw, Math.round(minAcc), fix.t];
+    if (Route.naPauze) { p[4] = 1; Route.naPauze = false; } // markeer: hiervoor ontbreekt een stuk
     const vorige = s.punten[s.punten.length - 1];
-    if (vorige && afstand(vorige, p) < Math.max(1.2, fix.acc * 0.25)) return;
+    const minStap = minAcc <= 15 ? Math.max(1.2, minAcc * 0.25) : minAcc * 0.35;
+    if (vorige && !p[4] && afstand(vorige, p) < minStap) return;
     s.punten.push(p);
-    Kaart.routePunt(p);
+    if (vorige && isGat(vorige, p)) Kaart.verversRoutes(); else Kaart.routePunt(p);
     if (s.punten.length % 5 === 0) DB.put('tracks', s);
     Route.toon();
   },
-  lengte(s){ let m = 0; for (let i = 1; i < s.punten.length; i++) m += afstand(s.punten[i - 1], s.punten[i]); return m; },
+  pauze(){ if (Route.sessie) { Route.naPauze = true; Route.ruw = []; DB.put('tracks', Route.sessie); } },
+  lengte(s){ let m = 0; for (let i = 1; i < s.punten.length; i++) if (!isGat(s.punten[i - 1], s.punten[i])) m += afstand(s.punten[i - 1], s.punten[i]); return m; },
   toon(){
     const k = $('#routeKnop'), s = Route.sessie;
     k.classList.toggle('aan', !!s);
@@ -203,7 +225,7 @@ async function houdSchermAan(){
 }
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') { houdSchermAan(); if (huidigScherm === 'zoeken') startCamera(); if (Stem.gewenst) Stem.start(); }
-  else { stopCamera(); Stem.pauze(); }
+  else { stopCamera(); Stem.pauze(); Route.pauze(); }
 });
 
 /* ================= CAMERA ================= */
@@ -533,20 +555,26 @@ var Kaart = window.Kaart = {
   },
   dikte(){
     const w = Kaart.breedtePx();
-    Kaart.routeLaag && Kaart.routeLaag.eachLayer(l => l.setStyle && l.setStyle({ weight: w }));
+    Kaart.routeLaag && Kaart.routeLaag.eachLayer(l => l.setStyle && !l.options.gat && l.setStyle({ weight: w }));
   },
   async verversRoutes(){
     if (!Kaart.map) return;
-    Kaart.routeLaag.clearLayers();
+    Kaart.routeLaag.clearLayers(); Kaart.actieveLijn = null;
     const tracks = await DB.all('tracks');
     const w = Kaart.breedtePx();
-    for (const t of tracks) {
-      if (t.punten.length < 2 && !(Route.sessie && t.id === Route.sessie.id)) continue;
-      const actief = Route.sessie && t.id === Route.sessie.id;
-      const lijn = L.polyline((actief ? Route.sessie : t).punten.map(p => [p[0], p[1]]), {
-        color: actief ? routeKleur() : oudeRouteKleur(), opacity: actief ? 0.6 : 0.35, weight: w, lineCap: 'round', lineJoin: 'round',
-      }).addTo(Kaart.routeLaag);
-      if (actief) Kaart.actieveLijn = lijn;
+    for (const t0 of tracks) {
+      const actief = Route.sessie && t0.id === Route.sessie.id;
+      const t = actief ? Route.sessie : t0;
+      if (t.punten.length < 2 && !actief) continue;
+      const kleur = actief ? routeKleur() : oudeRouteKleur();
+      const { delen, gaten } = segmenten(t.punten);
+      for (const [a, b] of gaten) {
+        L.polyline([[a[0], a[1]], [b[0], b[1]]], { color: kleur, opacity: .9, weight: 3, dashArray: '2 9', lineCap: 'round', gat: true, interactive: false }).addTo(Kaart.routeLaag);
+      }
+      delen.forEach((d, i) => {
+        const lijn = L.polyline(d.map(p => [p[0], p[1]]), { color: kleur, opacity: actief ? 0.6 : 0.35, weight: w, lineCap: 'round', lineJoin: 'round' }).addTo(Kaart.routeLaag);
+        if (actief && i === delen.length - 1) Kaart.actieveLijn = lijn;
+      });
     }
   },
   routePunt(p){ if (Kaart.actieveLijn) Kaart.actieveLijn.addLatLng([p[0], p[1]]); else Kaart.verversRoutes(); },
@@ -925,7 +953,7 @@ $('#exportGpx').onclick = async () => {
   const x = s => esc(s);
   let g = '<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Vondst" xmlns="http://www.topografix.com/GPX/1/1">\n';
   for (const f of finds) if (f.lat != null) g += `<wpt lat="${f.lat}" lon="${f.lon}"><time>${new Date(f.t).toISOString()}</time><name>${x(f.eigenNaam || (f.ai && f.ai.naam) || 'Vondst')}</name><desc>${x((f.ai && f.ai.beschrijving) || '')}</desc></wpt>\n`;
-  for (const t of tracks) if (t.punten.length > 1) g += `<trk><name>Route ${x(datumTekst(t.start))}</name><trkseg>${t.punten.map(p => `<trkpt lat="${p[0]}" lon="${p[1]}"><time>${new Date(p[3]).toISOString()}</time></trkpt>`).join('')}</trkseg></trk>\n`;
+  for (const t of tracks) if (t.punten.length > 1) g += `<trk><name>Route ${x(datumTekst(t.start))}</name>${segmenten(t.punten).delen.filter(d => d.length > 1).map(d => `<trkseg>${d.map(p => `<trkpt lat="${p[0]}" lon="${p[1]}"><time>${new Date(p[3]).toISOString()}</time></trkpt>`).join('')}</trkseg>`).join('')}</trk>\n`;
   download('vondsten-' + vandaag() + '.gpx', g + '</gpx>', 'application/gpx+xml');
 };
 $('#allesWissen').onclick = async () => {

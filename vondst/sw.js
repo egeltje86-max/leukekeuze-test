@@ -1,5 +1,5 @@
 // Eenvoudige offline-cache: eigen bestanden eerst van internet (zodat updates aankomen), anders uit de cache.
-const CACHE = 'vondst-v8';
+const CACHE = 'vondst-v9';
 const BESTANDEN = ['./', 'index.html', 'app.js', 'manifest.webmanifest', 'icon-192.png',
   'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(CACHE).then(c => c.addAll(BESTANDEN)).catch(() => {})); self.skipWaiting(); });
