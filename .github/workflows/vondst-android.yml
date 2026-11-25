@@ -37,7 +37,15 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
-          cache: gradle
+
+      - name: Gradle-cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ hashFiles('vondst-android/package.json', 'vondst-android/scripts/voorbereiden.js') }}
+          restore-keys: gradle-
 
       - name: Pakketten installeren
         working-directory: vondst-android
