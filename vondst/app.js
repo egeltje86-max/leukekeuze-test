@@ -202,8 +202,8 @@ async function houdSchermAan(){
   } catch (e) {}
 }
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') { houdSchermAan(); if (huidigScherm === 'zoeken') startCamera(); }
-  else stopCamera();
+  if (document.visibilityState === 'visible') { houdSchermAan(); if (huidigScherm === 'zoeken') startCamera(); if (Stem.gewenst) Stem.start(); }
+  else { stopCamera(); Stem.pauze(); }
 });
 
 /* ================= CAMERA ================= */
@@ -310,13 +310,18 @@ async function toonLaatste(item){
 
 /* ================= STEM ================= */
 const Stem = {
-  rec: null, aan: false, laatsteKeer: 0,
-  start(){
+  rec: null, aan: false, loopt: false, laatsteKeer: 0, laatsteStart: 0,
+  get gewenst(){ return localStorage.getItem('v_stem') === '1'; },
+  set gewenst(v){ localStorage.setItem('v_stem', v ? '1' : '0'); },
+  start(handmatig){
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SR) { melding('Spraak werkt niet in deze browser. Gebruik Chrome.'); return; }
-    Stem.aan = true; $('#stemKnop').classList.add('aan'); $('#stemStatus').textContent = 'luistert';
+    if (!SR) { if (handmatig) melding('Spraak werkt niet in deze browser. Gebruik Chrome.'); return; }
+    Stem.gewenst = true; Stem.aan = true;
+    $('#stemKnop').classList.add('aan'); $('#stemStatus').textContent = 'luistert';
+    if (Stem.rec) { Stem.herstart(); return; }
     const r = new SR();
     r.lang = 'nl-NL'; r.continuous = true; r.interimResults = true; r.maxAlternatives = 3;
+    r.onstart = () => { Stem.loopt = true; Stem.wachtOpTik(false); };
     r.onresult = e => {
       for (let i = e.resultIndex; i < e.results.length; i++) {
         for (let j = 0; j < e.results[i].length; j++) {
@@ -330,17 +335,42 @@ const Stem = {
         }
       }
     };
-    r.onerror = e => { if (e.error === 'not-allowed') { Stem.stop(); melding('Geen toestemming voor de microfoon'); } };
-    r.onend = () => { if (Stem.aan) setTimeout(() => { try { r.start(); } catch (e) {} }, 250); };
+    r.onerror = e => {
+      if (e.error === 'not-allowed' || e.error === 'service-not-allowed') {
+        // Mag (nog) niet zonder tik: wacht op de eerste tik ergens op het scherm.
+        Stem.loopt = false; Stem.wachtOpTik(true);
+      }
+    };
+    r.onend = () => { Stem.loopt = false; if (Stem.aan && document.visibilityState === 'visible') setTimeout(Stem.herstart, 300); };
     Stem.rec = r;
-    try { r.start(); } catch (e) {}
+    Stem.herstart();
+  },
+  herstart(){
+    if (!Stem.rec || !Stem.aan || Stem.loopt || document.visibilityState !== 'visible') return;
+    Stem.laatsteStart = Date.now();
+    try { Stem.rec.start(); } catch (e) {}
+  },
+  pauze(){ // app weggeklikt: microfoon los, maar de stem blijft 'gewenst'
+    Stem.loopt = false;
+    try { Stem.rec && Stem.rec.abort(); } catch (e) {}
   },
   stop(){
-    Stem.aan = false; $('#stemKnop').classList.remove('aan'); $('#stemStatus').textContent = 'uit'; $('#stemTekst').textContent = '';
-    try { Stem.rec && Stem.rec.stop(); } catch (e) {}
+    Stem.gewenst = false; Stem.aan = false; Stem.loopt = false; Stem.wachtOpTik(false);
+    $('#stemKnop').classList.remove('aan'); $('#stemStatus').textContent = 'uit'; $('#stemTekst').textContent = '';
+    try { Stem.rec && Stem.rec.abort(); } catch (e) {}
     Stem.rec = null;
   },
+  wachtOpTik(ja){
+    $('#stemStatus').textContent = ja ? 'tik scherm' : (Stem.aan ? 'luistert' : 'uit');
+    if (ja && !Stem.tikLuisteraar) {
+      Stem.tikLuisteraar = () => { Stem.wachtOpTik(false); Stem.herstart(); };
+      document.addEventListener('pointerdown', Stem.tikLuisteraar, { once: true, capture: true });
+    }
+    if (!ja && Stem.tikLuisteraar) { document.removeEventListener('pointerdown', Stem.tikLuisteraar, { capture: true }); Stem.tikLuisteraar = null; }
+  },
 };
+// Waakhond: soms stopt Chrome het luisteren zonder melding; dan starten we hem opnieuw.
+setInterval(() => { if (Stem.aan && !Stem.loopt && document.visibilityState === 'visible' && Date.now() - Stem.laatsteStart > 3000) Stem.herstart(); }, 3000);
 
 /* ================= AI-HERKENNING ================= */
 const PROMPT = `Je bent een ervaren Nederlandse vondstdeskundige: archeoloog, numismaat en munitiekenner tegelijk. Je helpt metaaldetectorzoekers in Nederland en Vlaanderen hun vondsten te herkennen. Vondsten zijn vaak vuil, gecorrodeerd, verbogen of maar een deel van het oorspronkelijke voorwerp. Herken dan het oorspronkelijke voorwerp aan het stuk dat er nog is (vorm, groeven, rand, gaatjes, opschrift, versiering).
@@ -906,7 +936,7 @@ $('#zoeken').addEventListener('click', e => {
 });
 $('#camAanKnop').onclick = e => { e.stopPropagation(); startCamera(); };
 $('#routeKnop').onclick = e => { e.stopPropagation(); Route.sessie ? (confirm('Route stoppen?') && Route.uit()) : Route.aan(); };
-$('#stemKnop').onclick = e => { e.stopPropagation(); Stem.aan ? Stem.stop() : Stem.start(); };
+$('#stemKnop').onclick = e => { e.stopPropagation(); Stem.aan ? Stem.stop() : Stem.start(true); };
 document.addEventListener('keydown', e => {
   if (e.target.matches('input, textarea, select')) return;
   if (huidigScherm !== 'zoeken') return;
@@ -930,5 +960,6 @@ document.addEventListener('keydown', e => {
   if (!instel.key) setTimeout(() => melding('Tip: zet je OpenAI-sleutel in Instellingen voor herkenning', 4000), 1500);
   Herken.allesWachtend();
   Lagen.laad();
+  if (Stem.gewenst) Stem.start(); // stem stond aan: meteen weer luisteren
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 })();
