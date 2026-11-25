@@ -226,13 +226,22 @@ function stopCamera(){
   if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
 }
 function pakFrame(){
+  // Neemt het camerabeeld en snijdt het bij tot het richtvenster (met wat ruimte eromheen).
   const v = $('#cam');
   return new Promise(ok => {
     if (!stream || !v.videoWidth) return ok(null);
+    const vw = v.videoWidth, vh = v.videoHeight;
+    const vr = v.getBoundingClientRect(), rr = $('#richt').getBoundingClientRect();
+    const schaal = Math.max(vr.width / vw, vr.height / vh); // object-fit: cover
+    const offX = (vr.width - vw * schaal) / 2, offY = (vr.height - vh * schaal) / 2;
+    const marge = rr.width * 0.18;
+    let sx = (rr.left - vr.left - marge - offX) / schaal, sy = (rr.top - vr.top - marge - offY) / schaal;
+    let sw = (rr.width + 2 * marge) / schaal, sh = (rr.height + 2 * marge) / schaal;
+    sx = Math.max(0, sx); sy = Math.max(0, sy); sw = Math.min(vw - sx, sw); sh = Math.min(vh - sy, sh);
     const c = document.createElement('canvas');
-    c.width = v.videoWidth; c.height = v.videoHeight;
-    c.getContext('2d').drawImage(v, 0, 0);
-    c.toBlob(b => ok(b), 'image/jpeg', 0.9);
+    if (!(sw > 50 && sh > 50)) { c.width = vw; c.height = vh; c.getContext('2d').drawImage(v, 0, 0); }
+    else { c.width = Math.round(sw); c.height = Math.round(sh); c.getContext('2d').drawImage(v, sx, sy, sw, sh, 0, 0, c.width, c.height); }
+    c.toBlob(b => ok(b), 'image/jpeg', 0.92);
   });
 }
 
@@ -250,6 +259,7 @@ async function vondst(bron){
       if (!blob) return;
     }
     const f = $('#flits'); f.style.opacity = '.85'; setTimeout(() => f.style.opacity = '0', 120);
+    const r = $('#richt'); r.classList.add('klik'); setTimeout(() => r.classList.remove('klik'), 350);
     tril(70); piep(1100);
     blob = await verkleinFoto(blob, 1800, 0.88);
     const pos = GPS.laatste;
@@ -291,7 +301,7 @@ async function toonLaatste(item){
   const naam = item.eigenNaam || (item.ai && item.ai.naam) || (item.status === 'bezig' ? 'Herkennen…' : 'Opgeslagen');
   let sub = item.ai ? [item.ai.periode, item.ai.zekerheid != null ? item.ai.zekerheid + '% zeker' : ''].filter(Boolean).join(' · ')
     : (item.status === 'geenkey' ? 'Zet je OpenAI-sleutel in Instellingen' : item.status === 'wacht' ? 'Wacht op herkenning…' : '');
-  l.innerHTML = `<img src="${fotoUrl(f.blob, item.id + f.t)}" alt=""><div><div class="t">${esc(naam)}</div><div class="s">${esc(sub)}</div></div>`;
+  l.innerHTML = `<img src="${fotoUrl(f.blob, item.id + f.t)}" alt=""><div class="tx"><div class="t">${esc(naam)}</div><div class="s">${esc(sub)}</div></div><span class="pijl">›</span>`;
   l.style.display = 'flex';
   l.onclick = () => openDetail(item.id);
   l.dataset.id = item.id;
@@ -750,7 +760,7 @@ $$('nav button').forEach(b => b.onclick = () => kiesScherm(b.dataset.s));
 $('#knop').addEventListener('click', e => { e.stopPropagation(); vondst('knop'); });
 $('#zoeken').addEventListener('click', e => {
   if (!instel.heelScherm) return;
-  if (e.target.closest('.bovenbalk') || e.target.closest('#laatste') || e.target.closest('#camUit')) return;
+  if (e.target.closest('.bovenbalk') || e.target.closest('#laatste') || e.target.closest('#camUit') || e.target.closest('nav')) return;
   vondst('scherm');
 });
 $('#camAanKnop').onclick = e => { e.stopPropagation(); startCamera(); };

@@ -16,7 +16,7 @@
 :root{
   --bg:#14110d; --paneel:#1f1a14; --lijn:#3a3128; --tekst:#f4ede2; --zacht:#b9ab97;
   --goud:#f2b630; --goud2:#ffd36b; --groen:#3ecf6e; --oranje:#ff9f1c; --rood:#ff3b30;
-  --nav:76px;
+  --nav:68px;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--tekst);
@@ -29,31 +29,59 @@ input,textarea,select{font:inherit}
 /* ---------- ZOEKEN ---------- */
 #zoeken{overflow:hidden;background:#000}
 #cam{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
-#camUit{position:absolute;inset:0;display:none;align-items:center;justify-content:center;
-  text-align:center;padding:30px;color:var(--zacht);font-size:18px;flex-direction:column;gap:16px}
-#flits{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .25s}
-.bovenbalk{position:absolute;top:0;left:0;right:0;display:flex;gap:8px;padding:calc(10px + env(safe-area-inset-top)) 10px 10px;
-  background:linear-gradient(#000c,#0000)}
-.chip{flex:1;min-height:58px;border-radius:16px;background:#000a;border:2px solid #fff3;
-  display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:700;font-size:15px;line-height:1.15;padding:4px}
+#camUit{position:absolute;inset:0;display:none;align-items:center;justify-content:center;z-index:3;
+  text-align:center;padding:30px;color:var(--zacht);font-size:18px;flex-direction:column;gap:16px;background:var(--bg)}
+#flits{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;transition:opacity .25s;z-index:4}
+.bovenbalk{position:absolute;top:0;left:0;right:0;z-index:2;display:flex;gap:8px;padding:calc(10px + env(safe-area-inset-top)) 12px 26px;
+  background:linear-gradient(#000d,#0000)}
+.chip{flex:1;min-height:54px;border-radius:14px;background:rgba(12,10,8,.62);border:1.5px solid rgba(255,255,255,.14);
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+  display:flex;align-items:center;justify-content:center;gap:8px;font-weight:700;font-size:14px;line-height:1.15;padding:6px 8px}
+.chip .stip{width:10px;height:10px;border-radius:50%;background:#666;flex:none;box-shadow:0 0 0 3px rgba(255,255,255,.06)}
+.chip .tk{display:flex;flex-direction:column;align-items:flex-start}
 .chip small{font-weight:500;font-size:12px;color:var(--zacht)}
-.chip.aan{border-color:var(--goud);background:#3a2a05cc}
-#gpsChip.goed{border-color:var(--groen)} #gpsChip.matig{border-color:var(--oranje)} #gpsChip.slecht{border-color:var(--rood)}
-.onderbalk{position:absolute;left:0;right:0;bottom:0;display:flex;flex-direction:column;align-items:center;gap:10px;
-  padding:14px 14px 18px;background:linear-gradient(#0000,#000d 45%)}
-#knop{width:min(46vw,190px);height:min(46vw,190px);border-radius:50%;
-  background:radial-gradient(circle at 35% 30%,var(--goud2),var(--goud) 55%,#b57f0c);
-  color:#1a1206;font-size:26px;font-weight:900;letter-spacing:1px;
-  box-shadow:0 0 0 7px #0008,0 0 0 10px var(--goud),0 8px 30px #000;touch-action:manipulation}
-#knop:active{transform:scale(.95)}
-#knop.bezig{filter:grayscale(.6)}
-#teller{font-size:14px;color:var(--zacht)}
-#laatste{display:none;width:100%;max-width:520px;background:#000c;border:2px solid var(--lijn);border-radius:16px;
-  padding:8px;gap:10px;align-items:center}
-#laatste img{width:64px;height:64px;object-fit:cover;border-radius:10px;flex:none}
-#laatste .t{font-weight:800;font-size:16px}
-#laatste .s{font-size:13px;color:var(--zacht)}
-#stemTekst{position:absolute;top:calc(84px + env(safe-area-inset-top));left:0;right:0;text-align:center;
+.chip.aan{border-color:rgba(242,182,48,.75);background:rgba(58,42,5,.7)}
+.chip.aan .stip{background:var(--goud);box-shadow:0 0 10px var(--goud)}
+#gpsChip.goed .stip{background:var(--groen);box-shadow:0 0 10px var(--groen)}
+#gpsChip.matig .stip{background:var(--oranje);box-shadow:0 0 10px var(--oranje)}
+#gpsChip.slecht .stip{background:var(--rood);box-shadow:0 0 10px var(--rood)}
+#stemKnop.aan .stip{animation:puls 1.4s infinite}
+@keyframes puls{50%{opacity:.35}}
+
+/* richtvenster */
+#richt{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);width:min(68vw,300px);aspect-ratio:1;z-index:1;pointer-events:none;
+  border-radius:22px;box-shadow:0 0 0 100vmax rgba(0,0,0,.38)}
+#richt i{position:absolute;width:38px;height:38px;border:4px solid var(--goud2);filter:drop-shadow(0 0 4px rgba(0,0,0,.7))}
+#richt i:nth-child(1){left:-2px;top:-2px;border-right:0;border-bottom:0;border-top-left-radius:22px}
+#richt i:nth-child(2){right:-2px;top:-2px;border-left:0;border-bottom:0;border-top-right-radius:22px}
+#richt i:nth-child(3){left:-2px;bottom:-2px;border-right:0;border-top:0;border-bottom-left-radius:22px}
+#richt i:nth-child(4){right:-2px;bottom:-2px;border-left:0;border-top:0;border-bottom-right-radius:22px}
+#richt .kruis{position:absolute;left:50%;top:50%;width:18px;height:18px;transform:translate(-50%,-50%);opacity:.6}
+#richt .kruis:before,#richt .kruis:after{content:"";position:absolute;background:#fff;left:50%;top:50%;transform:translate(-50%,-50%)}
+#richt .kruis:before{width:18px;height:2px} #richt .kruis:after{width:2px;height:18px}
+#richt .hint{position:absolute;left:0;right:0;top:calc(100% + 10px);text-align:center;font-size:13px;font-weight:600;
+  color:rgba(255,255,255,.85);text-shadow:0 1px 3px #000;white-space:nowrap}
+#richt.klik i{border-color:#fff;transition:none}
+#richt i{transition:border-color .4s}
+
+.onderbalk{position:absolute;left:0;right:0;bottom:0;z-index:2;display:flex;flex-direction:column;align-items:center;gap:10px;
+  padding:30px 14px 12px;background:linear-gradient(#0000,#000c 40%)}
+#knop{width:min(30vw,124px);height:min(30vw,124px);border-radius:50%;position:relative;
+  background:radial-gradient(circle at 35% 28%,#ffe9a8,var(--goud2) 22%,var(--goud) 58%,#a87208);
+  color:#1a1206;font-size:17px;font-weight:900;letter-spacing:1.5px;
+  box-shadow:0 0 0 5px rgba(0,0,0,.55),0 0 0 7.5px var(--goud),0 10px 28px rgba(0,0,0,.8),inset 0 -6px 12px rgba(120,70,0,.45),inset 0 4px 8px rgba(255,255,255,.35);
+  touch-action:manipulation;transition:transform .08s}
+#knop:active{transform:scale(.93)}
+#knop.bezig{filter:grayscale(.55) brightness(.85)}
+#teller{font-size:13px;color:var(--zacht)}
+#laatste{display:none;width:100%;max-width:460px;background:rgba(12,10,8,.72);border:1.5px solid rgba(242,182,48,.35);border-radius:14px;
+  -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);padding:6px 10px 6px 6px;gap:10px;align-items:center;text-align:left}
+#laatste img{width:46px;height:46px;object-fit:cover;border-radius:9px;flex:none}
+#laatste .t{font-weight:800;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#laatste .s{font-size:12.5px;color:var(--zacht)}
+#laatste .tx{flex:1;min-width:0}
+#laatste .pijl{color:var(--goud2);font-size:20px;flex:none}
+#stemTekst{position:absolute;top:calc(80px + env(safe-area-inset-top));left:0;right:0;z-index:2;text-align:center;
   font-size:13px;color:var(--goud2);text-shadow:0 1px 3px #000;pointer-events:none}
 
 /* ---------- KAART ---------- */
@@ -65,12 +93,13 @@ input,textarea,select{font:inherit}
 .popknop{display:block;width:100%;margin-top:6px;padding:9px;border-radius:8px;background:var(--goud);color:#111;font-weight:800}
 
 /* ---------- LIJST ---------- */
-.kop{padding:calc(16px + env(safe-area-inset-top)) 16px 8px;font-size:24px;font-weight:900}
+.kop{padding:calc(18px + env(safe-area-inset-top)) 16px 8px;font-size:26px;font-weight:900;letter-spacing:.3px}
+.kop:after{content:"";display:block;width:44px;height:3px;border-radius:2px;background:var(--goud);margin-top:8px}
 .filters{display:flex;gap:8px;padding:4px 16px 12px;overflow:auto}
 .filters button{padding:10px 14px;border-radius:999px;background:var(--paneel);border:2px solid var(--lijn);white-space:nowrap;font-weight:700}
 .filters button.aan{border-color:var(--goud);color:var(--goud2)}
 #lijst{padding:0 12px 20px;display:flex;flex-direction:column;gap:10px}
-.kaartje{display:flex;gap:12px;background:var(--paneel);border:2px solid var(--lijn);border-radius:16px;padding:10px;text-align:left;width:100%}
+.kaartje{display:flex;gap:12px;background:linear-gradient(145deg,#231d16,#1a1611);border:1.5px solid var(--lijn);border-radius:16px;padding:10px;text-align:left;width:100%;box-shadow:0 4px 14px rgba(0,0,0,.35)}
 .kaartje img{width:84px;height:84px;object-fit:cover;border-radius:12px;flex:none;background:#000}
 .kaartje .naam{font-weight:800;font-size:17px}
 .kaartje .sub{font-size:14px;color:var(--zacht);margin-top:2px}
@@ -89,7 +118,7 @@ input,textarea,select{font:inherit}
 .fotos figure{margin:0;flex:none;width:86vw;max-width:480px;scroll-snap-align:center}
 .fotos img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:14px;background:#000}
 .fotos figcaption{font-size:12px;color:var(--zacht);margin-top:4px}
-.blok{margin:0 12px 12px;background:var(--paneel);border:2px solid var(--lijn);border-radius:16px;padding:14px}
+.blok{margin:0 12px 12px;background:linear-gradient(145deg,#231d16,#1a1611);border:1.5px solid var(--lijn);border-radius:16px;padding:14px;box-shadow:0 4px 14px rgba(0,0,0,.3)}
 .blok h3{margin:0 0 8px;font-size:15px;color:var(--goud2);text-transform:uppercase;letter-spacing:.5px}
 .blok p{margin:6px 0;line-height:1.45}
 .rij{display:flex;justify-content:space-between;gap:12px;padding:6px 0;border-bottom:1px solid #fff1;font-size:15px}
@@ -123,10 +152,11 @@ input,textarea,select{font:inherit}
 
 /* ---------- NAV ---------- */
 nav{position:fixed;left:0;right:0;bottom:0;height:calc(var(--nav) + env(safe-area-inset-bottom));padding-bottom:env(safe-area-inset-bottom);
-  display:flex;background:#0d0b08;border-top:1px solid var(--lijn);z-index:1500}
+  display:flex;background:linear-gradient(#15120e,#0b0907);border-top:1px solid rgba(242,182,48,.22);z-index:1500}
 nav button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:none;color:var(--zacht);font-size:13px;font-weight:700}
-nav button b{font-size:26px;line-height:1}
+nav button svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round}
 nav button.aan{color:var(--goud2)}
+nav button.aan svg{filter:drop-shadow(0 0 6px rgba(242,182,48,.5))}
 
 #melding{position:fixed;left:50%;top:calc(90px + env(safe-area-inset-top));transform:translateX(-50%);z-index:6000;
   background:#000e;border:2px solid var(--goud);color:var(--tekst);padding:12px 18px;border-radius:14px;font-weight:700;
@@ -143,17 +173,18 @@ nav button.aan{color:var(--goud2)}
     <button class="groot goud" id="camAanKnop" style="padding:0 24px">Camera aanzetten</button>
     <div class="uitleg">Geef toestemming voor camera en locatie als je telefoon erom vraagt.</div>
   </div>
+  <div id="richt"><i></i><i></i><i></i><i></i><span class="kruis"></span><span class="hint">Leg de vondst in het vak</span></div>
   <div id="flits"></div>
   <div class="bovenbalk">
-    <div class="chip" id="gpsChip">GPS<small id="gpsTekst">zoeken…</small></div>
-    <button class="chip" id="routeKnop">Route<small id="routeTekst">uit</small></button>
-    <button class="chip" id="stemKnop">Stem<small id="stemStatus">uit</small></button>
+    <div class="chip" id="gpsChip"><span class="stip"></span><span class="tk">GPS<small id="gpsTekst">zoeken…</small></span></div>
+    <button class="chip" id="routeKnop"><span class="stip"></span><span class="tk">Route<small id="routeTekst">uit</small></span></button>
+    <button class="chip" id="stemKnop"><span class="stip"></span><span class="tk">Stem<small id="stemStatus">uit</small></span></button>
   </div>
   <div id="stemTekst"></div>
   <div class="onderbalk">
-    <div id="laatste"></div>
     <button id="knop" aria-label="Vondst vastleggen">VONDST</button>
     <div id="teller">Druk op de knop of zeg "vondst"</div>
+    <div id="laatste"></div>
   </div>
 </section>
 
@@ -248,10 +279,10 @@ nav button.aan{color:var(--goud2)}
 <div id="melding"></div>
 
 <nav>
-  <button data-s="zoeken" class="aan"><b>📷</b>Zoeken</button>
-  <button data-s="kaart"><b>🗺️</b>Kaart</button>
-  <button data-s="vondsten"><b>🪙</b>Vondsten</button>
-  <button data-s="instellingen"><b>⚙️</b>Instellingen</button>
+  <button data-s="zoeken" class="aan"><svg viewBox="0 0 24 24"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.6"/></svg>Zoeken</button>
+  <button data-s="kaart"><svg viewBox="0 0 24 24"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg>Kaart</button>
+  <button data-s="vondsten"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4.5"/></svg>Vondsten</button>
+  <button data-s="instellingen"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/></svg>Instellingen</button>
 </nav>
 
 <input type="file" id="extraFoto" accept="image/*" capture="environment" hidden>
