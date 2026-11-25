@@ -79,7 +79,7 @@ jobs:
           cp -r model-nl android/app/src/main/assets/model-nl
           du -sh android/app/src/main/assets/model-nl
           echo "Woorden in het model:"
-          for w in hebbes vondst hebbe heb hebbers; do if grep -qx "$w" <(cut -d' ' -f1 model-nl/graph/words.txt 2>/dev/null); then echo "  $w: ja"; else echo "  $w: NEE"; fi; done
+          for w in hebbes vondst gevonden foto hebbe; do n=$(grep -a -o -w "$w" model-nl/graph/Gr.fst | wc -l); echo "  $w: $n keer in Gr.fst"; done
           ls model-nl model-nl/graph | head -30
 
       - name: App-icoon maken

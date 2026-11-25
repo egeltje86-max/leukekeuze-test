@@ -33,7 +33,7 @@ public class StemService extends Service implements RecognitionListener {
     static volatile boolean laden = false;
     static volatile String fout = "";
     private static final String KANAAL = "vondst_stem";
-    private static final String WOORDEN = "[\"hebbes\", \"vondst\", \"[unk]\"]";
+    private static final String WOORDEN = "[\"hebbes\", \"vondst\", \"gevonden\", \"[unk]\"]";
     private Model model;
     private SpeechService spraak;
     private long laatste = 0;
@@ -108,6 +108,7 @@ public class StemService extends Service implements RecognitionListener {
         String t = json.toLowerCase();
         if (t.contains("hebbes")) return "hebbes";
         if (t.contains("vondst")) return "vondst";
+        if (t.contains("gevonden")) return "gevonden";
         return null;
     }
 
