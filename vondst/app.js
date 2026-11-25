@@ -1104,6 +1104,28 @@ $('#allesWissen').onclick = async () => {
   Kaart.verversRoutes(); Kaart.verversVondsten(); toonLijst(); melding('Alles gewist');
 };
 
+/* ================= TERUGKNOP ================= */
+// Eén stap terug: eerst open schermpjes sluiten, dan naar het zoekscherm. Op het zoekscherm gaat de app naar de achtergrond (route loopt door).
+function terug(){
+  if ($('#gevaar').classList.contains('open')) { $('#gevaar').classList.remove('open'); return true; }
+  if ($('#detail').classList.contains('open')) { sluitDetail(); return true; }
+  if ($('#lagenPaneel').classList.contains('open')) { $('#lagenPaneel').classList.remove('open'); return true; }
+  if ($('#kleurKeuze').classList.contains('open')) { $('#kleurKeuze').classList.remove('open'); return true; }
+  if (huidigScherm !== 'zoeken') { kiesScherm('zoeken'); return true; }
+  return false;
+}
+const opBasis = () => huidigScherm === 'zoeken' && !['#gevaar', '#detail', '#lagenPaneel', '#kleurKeuze'].some(x => $(x).classList.contains('open'));
+if (NATIEF) {
+  const App = plugin('App');
+  App.addListener('backButton', () => { if (!terug()) App.minimizeApp(); });
+} else {
+  // In de browser: de terugknop van de telefoon gaat ook eerst terug binnen de app
+  history.replaceState({ basis: 1 }, '');
+  const bewaak = () => { if (!opBasis() && !(history.state && history.state.diep)) history.pushState({ diep: 1 }, ''); };
+  window.addEventListener('popstate', () => { terug(); setTimeout(bewaak, 0); });
+  setInterval(bewaak, 500);
+}
+
 /* ================= NAVIGATIE ================= */
 let huidigScherm = 'zoeken';
 function kiesScherm(s){
