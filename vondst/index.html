@@ -130,6 +130,29 @@ input,textarea,select{font:inherit}
 .groot.goud{background:var(--goud);color:#1a1206;border-color:var(--goud)}
 .groot.breed{grid-column:1/-1}
 .groot.rood{border-color:#7a2520;color:#ffb3ad}
+/* 25-11-2026 (Marius: 'kleur alle knoppen'): alle knoppen in kleur */
+.groot.kleur.kgoud{background:linear-gradient(160deg,#ffd36b,#d89a12);color:#1a1206;text-shadow:none}
+.kaartknoppen button.kblauw{background:linear-gradient(160deg,#4a9dff,#1f5fc4);border-color:#9cc8ff;color:#fff}
+.kaartknoppen button.kgroen{background:linear-gradient(160deg,#35c26f,#13803f);border-color:#9be8b9;color:#fff}
+.chip.kroute{background:rgba(19,92,52,.72);border-color:#35c26f}
+.chip.kroute.aan{background:linear-gradient(160deg,#35c26f,#13803f);border-color:#9be8b9}
+.chip.kroute.aan .stip{background:#d9ffe6;box-shadow:0 0 10px #9be8b9}
+.chip.kstem{background:rgba(31,74,150,.72);border-color:#4a9dff}
+.chip.kstem.aan{background:linear-gradient(160deg,#4a9dff,#1f5fc4);border-color:#9cc8ff}
+.chip.kstem.aan .stip{background:#e3efff;box-shadow:0 0 10px #9cc8ff}
+.chip.kroute small,.chip.kstem small{color:#e9f2ee}
+.filters button.fgoud{border-color:#d89a12;color:#ffd36b}
+.filters button.foranje{border-color:#e0700b;color:#ffb23e}
+.filters button.fpaars{border-color:#6236c9;color:#c3a4ff}
+.filters button.frood{border-color:#b3221a;color:#ff8f87}
+.filters button.fblauw{border-color:#1f5fc4;color:#8fc0ff}
+.filters button.aan{color:#fff;border-color:transparent}
+.filters button.fgoud.aan{background:linear-gradient(160deg,#ffd36b,#d89a12);color:#1a1206}
+.filters button.foranje.aan{background:linear-gradient(160deg,#ffb23e,#e0700b);color:#241300}
+.filters button.fpaars.aan{background:linear-gradient(160deg,#a774ff,#6236c9)}
+.filters button.frood.aan{background:linear-gradient(160deg,#ff5a4f,#b3221a)}
+.filters button.fblauw.aan{background:linear-gradient(160deg,#4a9dff,#1f5fc4)}
+.terug button{background:linear-gradient(160deg,#4a9dff,#1f5fc4);border:0;color:#fff}
 /* 25-11-2026 (Marius: 'maak hier kleuren van'): elke knop bij Gegevens een eigen kleur met een icoontje */
 .groot.kleur{display:flex;align-items:center;justify-content:center;gap:10px;color:#fff;border:0;text-shadow:0 1px 2px rgba(0,0,0,.35);box-shadow:0 4px 14px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.25)}
 .groot.kleur svg{flex:none}
@@ -179,15 +202,15 @@ nav button.aan svg{opacity:1;filter:saturate(1.1) drop-shadow(0 0 7px rgba(242,1
   <video id="cam" playsinline muted autoplay></video>
   <div id="camUit">
     <div>De camera staat nog uit.</div>
-    <button class="groot goud" id="camAanKnop" style="padding:0 24px">Camera aanzetten</button>
+    <button class="groot kleur kgoud" id="camAanKnop" style="padding:0 24px">Camera aanzetten</button>
     <div class="uitleg">Geef toestemming voor camera en locatie als je telefoon erom vraagt.</div>
   </div>
   <div id="richt"><i></i><i></i><i></i><i></i><span class="kruis"></span><span class="hint">Leg de vondst in het vak</span></div>
   <div id="flits"></div>
   <div class="bovenbalk">
     <div class="chip" id="gpsChip"><span class="stip"></span><span class="tk">GPS<small id="gpsTekst">zoeken…</small></span></div>
-    <button class="chip" id="routeKnop"><span class="stip"></span><span class="tk">Route<small id="routeTekst">uit</small></span></button>
-    <button class="chip" id="stemKnop"><span class="stip"></span><span class="tk">Stem<small id="stemStatus">uit</small></span></button>
+    <button class="chip kroute" id="routeKnop"><span class="stip"></span><span class="tk">Route<small id="routeTekst">uit</small></span></button>
+    <button class="chip kstem" id="stemKnop"><span class="stip"></span><span class="tk">Stem<small id="stemStatus">uit</small></span></button>
   </div>
   <div id="stemTekst"></div>
   <div class="onderbalk">
@@ -201,8 +224,8 @@ nav button.aan svg{opacity:1;filter:saturate(1.1) drop-shadow(0 0 7px rgba(242,1
 <section id="kaart" class="scherm">
   <div id="kaartDiv"></div>
   <div class="kaartknoppen">
-    <button id="volgKnop" title="Naar mijn plek">◎</button>
-    <button id="laagKnop" title="Kaart / satelliet">🛰</button>
+    <button id="volgKnop" class="kblauw" title="Naar mijn plek">◎</button>
+    <button id="laagKnop" class="kgroen" title="Kaart / satelliet">🛰</button>
   </div>
 </section>
 
@@ -210,11 +233,11 @@ nav button.aan svg{opacity:1;filter:saturate(1.1) drop-shadow(0 0 7px rgba(242,1
 <section id="vondsten" class="scherm">
   <div class="kop">Mijn vondsten</div>
   <div class="filters" id="filters">
-    <button data-f="alle" class="aan">Alle</button>
-    <button data-f="onzeker">Onzeker</button>
-    <button data-f="wacht">Wacht op AI</button>
-    <button data-f="gevaar">Gevaar</button>
-    <button data-f="pan">Gemeld bij PAN</button>
+    <button data-f="alle" class="aan fgoud">Alle</button>
+    <button data-f="onzeker" class="foranje">Onzeker</button>
+    <button data-f="wacht" class="fpaars">Wacht op AI</button>
+    <button data-f="gevaar" class="frood">Gevaar</button>
+    <button data-f="pan" class="fblauw">Gemeld bij PAN</button>
   </div>
   <div id="lijst"></div>
 </section>
@@ -230,8 +253,8 @@ nav button.aan svg{opacity:1;filter:saturate(1.1) drop-shadow(0 0 7px rgba(242,1
       <input id="keyInput" type="password" placeholder="sk-..." autocomplete="off">
     </div>
     <div class="knoppen" style="margin:0">
-      <button class="groot goud" id="keyOpslaan">Opslaan en testen</button>
-      <button class="groot" id="keyWis">Sleutel wissen</button>
+      <button class="groot kleur kgroen" id="keyOpslaan">Opslaan en testen</button>
+      <button class="groot kleur krood" id="keyWis">Sleutel wissen</button>
     </div>
     <div id="keyStatus" class="uitleg"></div>
     <div class="veld" style="margin-top:10px">

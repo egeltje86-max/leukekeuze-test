@@ -610,10 +610,10 @@ async function openDetail(id){
     ${a.foto_advies ? `<div class="blok"><h3>Tip voor een betere foto</h3><p>${esc(a.foto_advies)}</p></div>` : ''}
     ${a.schoonmaak_advies ? `<div class="blok"><h3>Schoonmaken</h3><p>${esc(a.schoonmaak_advies)}</p></div>` : ''}
     <div class="knoppen">
-      <button class="groot goud breed" onclick="extraFoto('${f.id}')">📷 Nieuwe foto toevoegen (schoongemaakt)</button>
-      <button class="groot" onclick="Herken.wachtrij('${f.id}')">🔄 Opnieuw herkennen</button>
-      <button class="groot" onclick="toonOpKaart('${f.id}')">🗺️ Op de kaart</button>
-      <button class="groot breed" onclick="meldPan('${f.id}')">🏛️ ${f.panGemeld ? 'Gemeld bij PAN ✓ (opnieuw openen)' : 'Melden bij PAN (jouw keuze)'}</button>
+      <button class="groot kleur kgoud breed" onclick="extraFoto('${f.id}')">📷 Nieuwe foto toevoegen (schoongemaakt)</button>
+      <button class="groot kleur kpaars" onclick="Herken.wachtrij('${f.id}')">🔄 Opnieuw herkennen</button>
+      <button class="groot kleur kblauw" onclick="toonOpKaart('${f.id}')">🗺️ Op de kaart</button>
+      <button class="groot kleur kgroen breed" onclick="meldPan('${f.id}')">🏛️ ${f.panGemeld ? 'Gemeld bij PAN ✓ (opnieuw openen)' : 'Melden bij PAN (jouw keuze)'}</button>
     </div>
     <div class="blok">
       <h3>Vindplek</h3>
@@ -625,9 +625,9 @@ async function openDetail(id){
       <div class="veld"><label>Eigen naam (overschrijft de AI)</label><input id="dNaam" value="${esc(f.eigenNaam)}"></div>
       <div class="veld"><label>Diepte in cm</label><input id="dDiepte" inputmode="numeric" value="${esc(f.diepte)}"></div>
       <div class="veld"><label>Notitie</label><textarea id="dNotitie" rows="3">${esc(f.notitie)}</textarea></div>
-      <button class="groot goud" style="width:100%" onclick="bewaarEigen('${f.id}')">Opslaan</button>
+      <button class="groot kleur kgroen" style="width:100%" onclick="bewaarEigen('${f.id}')">Opslaan</button>
     </div>
-    <div class="knoppen"><button class="groot rood breed" onclick="verwijder('${f.id}')">🗑️ Vondst verwijderen</button></div>
+    <div class="knoppen"><button class="groot kleur krood breed" onclick="verwijder('${f.id}')">🗑️ Vondst verwijderen</button></div>
     ${a.model ? `<p class="uitleg" style="padding:0 16px">Herkend door ${esc(a.model)} op ${esc(datumTekst(a.tijd))}</p>` : ''}
   `;
   d.classList.add('open');
