@@ -179,6 +179,7 @@ async function verfijnPlek(id, start){
   f.lat = pos.lat; f.lon = pos.lon; f.acc = Math.round(pos.acc * 10) / 10; f.gpsMetingen = pos.n;
   await DB.put('finds', f);
   Kaart.verversVondsten();
+  Plek.vulVondst(id);
 }
 
 /* ================= ROUTE ================= */
@@ -230,6 +231,7 @@ var Route = window.Route = {
     const minStap = minAcc <= 15 ? Math.max(1.2, minAcc * 0.25) : minAcc * 0.35;
     if (vorige && !p[4] && afstand(vorige, p) < minStap) return;
     s.punten.push(p);
+    if (!s.plek && !s.plekBezig && minAcc <= 25) { s.plekBezig = true; Plek.vulRoute(s).finally(() => { s.plekBezig = false; }); }
     if (vorige && isGat(vorige, p)) Kaart.verversRoutes(); else Kaart.routePunt(p);
     DB.put('tracks', s);
     Route.toon();
@@ -242,7 +244,7 @@ var Route = window.Route = {
     if (!s) { $('#routeTekst').textContent = 'uit'; return; }
     const min = Math.floor((Date.now() - s.start) / 60000);
     const m = Route.lengte(s);
-    $('#routeTekst').textContent = (m >= 1000 ? (m / 1000).toFixed(1) + ' km' : Math.round(m) + ' m') + ' · ' + min + ' min';
+    $('#routeTekst').textContent = (s.naam ? s.naam.slice(0, 14) + ' · ' : '') + (m >= 1000 ? (m / 1000).toFixed(1) + ' km' : Math.round(m) + ' m') + ' · ' + min + ' min';
   },
 };
 setInterval(() => Route.sessie && Route.toon(), 20000);
@@ -656,6 +658,7 @@ var Kaart = window.Kaart = {
       const actief = Route.sessie && t0.id === Route.sessie.id;
       const t = actief ? Route.sessie : t0;
       if (t.punten.length < 2 && !actief) continue;
+      if (!Routes.zichtbaar(t0)) continue;
       const kleur = actief ? routeKleur() : oudeRouteKleur();
       const { delen, gaten } = segmenten(t.punten);
       for (const [a, b] of gaten) {
@@ -704,6 +707,169 @@ async function toonOpKaart(id){
   sluitDetail(); kiesScherm('kaart'); Kaart.volgen = false;
   Kaart.map.setView([f.lat, f.lon], 20);
 }
+
+/* ================= PLAATSNAMEN ================= */
+// Nederland: PDOK Locatieserver (Kadaster, open data). Buiten Nederland: OpenStreetMap (Nominatim).
+const Plek = {
+  cache: (() => { try { return JSON.parse(localStorage.getItem('v_plekcache') || '{}'); } catch (e) { return {}; } })(),
+  sleutel: (lat, lon) => lat.toFixed(4) + ',' + lon.toFixed(4),
+  bewaarCache(){
+    const k = Object.keys(Plek.cache);
+    if (k.length > 400) k.slice(0, k.length - 400).forEach(x => delete Plek.cache[x]);
+    try { localStorage.setItem('v_plekcache', JSON.stringify(Plek.cache)); } catch (e) {}
+  },
+  async pdok(lat, lon, type){
+    const r = await fetch(`https://api.pdok.nl/bzk/locatieserver/search/v3_1/reverse?lat=${lat}&lon=${lon}&rows=1&type=${type}&fl=*`);
+    if (!r.ok) return null;
+    const j = await r.json();
+    return (j.response && j.response.docs && j.response.docs[0]) || null;
+  },
+  async zoek(lat, lon){
+    if (lat == null) return null;
+    const k = Plek.sleutel(lat, lon);
+    if (Plek.cache[k]) return Plek.cache[k];
+    if (!navigator.onLine) return null;
+    let p = null;
+    try {
+      const [adres, weg, perceel] = await Promise.all([Plek.pdok(lat, lon, 'adres'), Plek.pdok(lat, lon, 'weg'), Plek.pdok(lat, lon, 'perceel')]);
+      const nl = adres && adres.afstand != null && adres.afstand < 3000;
+      if (nl) p = {
+        land: 'Nederland',
+        provincie: adres.provincienaam || '', gemeente: adres.gemeentenaam || '', plaats: adres.woonplaatsnaam || '',
+        straat: (weg && weg.straatnaam) || adres.straatnaam || '',
+        adres: adres.afstand <= 60 ? adres.weergavenaam : '',
+        afstandAdres: Math.round(adres.afstand || 0),
+        perceel: perceel ? (perceel.weergavenaam || perceel.identificatie || '') : '',
+        bron: 'Kadaster / PDOK',
+      };
+    } catch (e) {}
+    if (!p) {
+      try {
+        const r = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&zoom=17&addressdetails=1&accept-language=nl`);
+        if (r.ok) {
+          const j = await r.json(), a = j.address || {};
+          p = {
+            land: a.country || '', provincie: a.state || a.province || '', gemeente: a.municipality || a.city || a.town || '',
+            plaats: a.village || a.town || a.city || a.hamlet || a.suburb || '', straat: a.road || '',
+            adres: '', afstandAdres: null, perceel: '', bron: 'OpenStreetMap',
+          };
+        }
+      } catch (e) {}
+    }
+    if (p) { Plek.cache[k] = p; Plek.bewaarCache(); }
+    return p;
+  },
+  kort(p){ if (!p) return ''; return [p.plaats || p.gemeente, p.land && p.land !== 'Nederland' ? p.land : ''].filter(Boolean).join(', '); },
+  lang(p){
+    if (!p) return '';
+    const waar = p.adres ? p.adres : (p.straat ? (p.afstandAdres > 150 ? 'Buitengebied langs ' : 'Bij ') + p.straat : 'Buitengebied');
+    return [waar, p.plaats && !(p.adres || '').includes(p.plaats) ? p.plaats : '', p.gemeente && p.gemeente !== p.plaats ? 'gemeente ' + p.gemeente : '', p.provincie, p.land].filter(Boolean).join(', ');
+  },
+  async vulVondst(id){
+    const f0 = await DB.get('finds', id); if (!f0 || f0.lat == null) return;
+    const p = await Plek.zoek(f0.lat, f0.lon); if (!p) return;
+    const f = await DB.get('finds', id); if (!f) return;
+    f.plek = p; await DB.put('finds', f);
+    if (huidigScherm === 'vondsten') toonLijst();
+    if ($('#detail').classList.contains('open') && $('#detail').dataset.id === id) openDetail(id);
+  },
+  async vulRoute(t){
+    const pt = t.punten.find(x => x[2] <= 25) || t.punten[0]; if (!pt) return null;
+    const p = await Plek.zoek(pt[0], pt[1]); if (!p) return null;
+    const vers = (Route.sessie && Route.sessie.id === t.id) ? Route.sessie : await DB.get('tracks', t.id);
+    if (!vers) return null;
+    vers.plek = p; await DB.put('tracks', vers);
+    return p;
+  },
+  async vulOntbrekende(){
+    if (!navigator.onLine) return;
+    const finds = (await DB.all('finds')).filter(f => !f.plek && f.lat != null).slice(-30);
+    for (const f of finds) { await Plek.vulVondst(f.id); await wacht(1100); }
+    const tracks = (await DB.all('tracks')).filter(t => !t.plek && t.punten.length);
+    for (const t of tracks) { await Plek.vulRoute(t); await wacht(1100); }
+  },
+};
+window.addEventListener('online', () => Plek.vulOntbrekende());
+
+/* ================= ROUTES-OVERZICHT ================= */
+const Routes = {
+  alleenVandaag: () => localStorage.getItem('v_alleenvandaag') === '1',
+  zichtbaar(t){
+    if (Route.sessie && t.id === Route.sessie.id) return true;
+    if (t.verborgen) return false;
+    if (Routes.alleenVandaag()) { const d = new Date(); d.setHours(0, 0, 0, 0); return t.start >= d.getTime(); }
+    return true;
+  },
+  naam(t){ return t.naam || (t.plek ? Plek.kort(t.plek) : '') || 'Route van ' + new Date(t.start).toLocaleDateString('nl-NL', { day: 'numeric', month: 'short' }); },
+  async open(){ await Routes.toon(); $('#routesPaneel').classList.add('open'); },
+  async toon(){
+    const tracks = (await DB.all('tracks')).map(t => (Route.sessie && t.id === Route.sessie.id) ? Route.sessie : t)
+      .filter(t => t.punten.length || (Route.sessie && t.id === Route.sessie.id)).sort((a, b) => b.start - a.start);
+    const finds = await DB.all('finds');
+    const el = $('#routesLijst');
+    let html = `<div class="routeknoppen">
+      <button class="groot ${Route.sessie ? '' : 'goud'}" onclick="Routes.nieuw()">${Route.sessie ? '⏹ Stoppen en nieuwe route starten' : '▶ Nieuwe route starten'}</button>
+      <label class="vandaag"><input type="checkbox" ${Routes.alleenVandaag() ? 'checked' : ''} onchange="Routes.zetVandaag(this.checked)"> Alleen routes van vandaag op de kaart</label></div>`;
+    if (!tracks.length) html += '<div class="leeg">Nog geen routes. Zet Route aan op het zoekscherm.</div>';
+    html += tracks.map(t => {
+      const actief = Route.sessie && t.id === Route.sessie.id;
+      const eind = t.eind || (t.punten.length ? t.punten[t.punten.length - 1][3] : t.start);
+      const min = Math.max(0, Math.round((eind - t.start) / 60000));
+      const m = Route.lengte(t);
+      const aantal = finds.filter(f => f.sessie === t.id).length;
+      const zicht = Routes.zichtbaar(t);
+      if (!t.plek && t.punten.length && navigator.onLine) Plek.vulRoute(t).then(p => p && Routes.toon());
+      return `<div class="routekaart ${actief ? 'actief' : ''}">
+        <div class="rk-kop"><b>${esc(Routes.naam(t))}</b>${actief ? '<span class="label l-herkend">loopt nu</span>' : ''}</div>
+        <div class="rk-sub">${esc(new Date(t.start).toLocaleString('nl-NL', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }))} · ${min >= 60 ? Math.floor(min / 60) + ' u ' + (min % 60) + ' min' : min + ' min'} · ${m >= 1000 ? (m / 1000).toFixed(1) + ' km' : Math.round(m) + ' m'} · ${aantal} ${aantal === 1 ? 'vondst' : 'vondsten'}</div>
+        ${t.plek ? `<div class="rk-sub">📍 ${esc(Plek.lang(t.plek))}</div>` : ''}
+        <div class="rk-knoppen">
+          <button onclick="Routes.bekijk('${t.id}')">🔍 Bekijk</button>
+          <button onclick="Routes.hernoem('${t.id}')">✏️ Naam</button>
+          ${actief ? '' : `<button onclick="Routes.wisselZicht('${t.id}')">${zicht ? '🙈 Verberg' : '👁 Toon'}</button>
+          <button class="rood" onclick="Routes.verwijder('${t.id}')">🗑️</button>`}
+        </div></div>`;
+    }).join('');
+    el.innerHTML = html;
+  },
+  async haal(id){ return (Route.sessie && Route.sessie.id === id) ? Route.sessie : DB.get('tracks', id); },
+  async bekijk(id){
+    const t = await Routes.haal(id); if (!t || !t.punten.length) return melding('Deze route heeft nog geen punten');
+    if (t.verborgen) { t.verborgen = false; await DB.put('tracks', t); }
+    $('#routesPaneel').classList.remove('open');
+    if (huidigScherm !== 'kaart') kiesScherm('kaart');
+    await Kaart.verversRoutes();
+    Kaart.volgen = false;
+    Kaart.map.fitBounds(L.latLngBounds(t.punten.map(p => [p[0], p[1]])), { padding: [40, 40], maxZoom: 19 });
+  },
+  async hernoem(id){
+    const t = await Routes.haal(id); if (!t) return;
+    const n = prompt('Naam voor deze route (bijvoorbeeld "Akker boer Jansen"):', t.naam || '');
+    if (n === null) return;
+    t.naam = n.trim(); await DB.put('tracks', t);
+    Routes.toon(); Route.toon();
+  },
+  async wisselZicht(id){
+    const t = await DB.get('tracks', id); if (!t) return;
+    t.verborgen = !t.verborgen; await DB.put('tracks', t);
+    Routes.toon(); Kaart.verversRoutes();
+  },
+  async verwijder(id){
+    const t = await DB.get('tracks', id); if (!t) return;
+    if (!confirm('Route "' + Routes.naam(t) + '" verwijderen? Je vondsten blijven bewaard.')) return;
+    await DB.del('tracks', id);
+    Routes.toon(); Kaart.verversRoutes(); melding('Route verwijderd');
+  },
+  zetVandaag(aan){ localStorage.setItem('v_alleenvandaag', aan ? '1' : '0'); Kaart.verversRoutes(); },
+  async nieuw(){
+    if (Route.sessie) await Route.uit();
+    await Route.aan();
+    Routes.toon();
+  },
+};
+window.Routes = Routes;
+$('#routesKnop').onclick = () => Routes.open();
+$('#routesDicht').onclick = () => $('#routesPaneel').classList.remove('open');
 
 /* ================= ROUTEKLEUR ================= */
 const ROUTEKLEUREN = [
@@ -921,16 +1087,19 @@ async function toonLijst(){
   if (filter === 'wacht') alle = alle.filter(f => ['wacht', 'geenkey', 'bezig'].includes(f.status));
   if (filter === 'gevaar') alle = alle.filter(f => f.status === 'gevaar');
   if (filter === 'pan') alle = alle.filter(f => f.panGemeld);
+  const routeNamen = {}; (await DB.all('tracks')).forEach(t => { if (t.naam) routeNamen[t.id] = t.naam; });
   const l = $('#lijst');
   if (!alle.length) { l.innerHTML = '<div class="leeg">Nog geen vondsten hier.<br>Ga naar Zoeken en druk op de gouden knop.</div>'; return; }
   l.innerHTML = alle.map(f => {
     const foto = f.fotos[f.fotos.length - 1];
     const naam = f.eigenNaam || (f.ai && f.ai.naam) || 'Nog niet herkend';
     const sub = f.ai ? [f.ai.periode, f.ai.materiaal].filter(Boolean).join(' · ') : '';
+    const rt = f.sessie && routeNamen[f.sessie];
+    const waar = f.eigenPlek || (rt ? rt + (f.plek && f.plek.plaats ? ', ' + f.plek.plaats : '') : Plek.kort(f.plek));
     const [kl, tk] = statusLabel[f.status] || statusLabel.wacht;
     return `<button class="kaartje ${f.status === 'gevaar' ? 'gevaar' : ''}" onclick="openDetail('${f.id}')">
       <img src="${fotoUrl(foto.blob, f.id + foto.t)}" alt="">
-      <div><div class="naam">${esc(naam)}</div><div class="sub">${esc(sub)}</div><div class="sub">${esc(datumTekst(f.t))}</div>
+      <div><div class="naam">${esc(naam)}</div><div class="sub">${esc(sub)}</div><div class="sub">${esc(datumTekst(f.t))}${waar ? ' · 📍 ' + esc(waar) : ''}</div>
       <span class="label ${kl}">${tk}${f.ai && f.status !== 'gevaar' ? ' · ' + f.ai.zekerheid + '%' : ''}</span>${f.panGemeld ? '<span class="label l-pan">PAN</span>' : ''}</div>
     </button>`;
   }).join('');
@@ -949,6 +1118,7 @@ function veiligBalk(a){
 }
 async function openDetail(id){
   const f = await DB.get('finds', id); if (!f) return;
+  const route = f.sessie ? await DB.get('tracks', f.sessie) : null;
   const d = $('#detail'); d.dataset.id = id;
   const a = f.ai || {};
   const naam = f.eigenNaam || a.naam || 'Nog niet herkend';
@@ -978,12 +1148,15 @@ async function openDetail(id){
     </div>
     <div class="blok">
       <h3>Vindplek</h3>
+      ${f.eigenPlek || route && route.naam ? `<p style="font-weight:800;font-size:17px">📍 ${esc(f.eigenPlek || route.naam)}</p>` : ''}
+      ${f.plek ? `<p>${esc(Plek.lang(f.plek))}</p>` + (f.plek.perceel ? rij('Kadastraal perceel', f.plek.perceel) : '') : (f.lat != null ? '<p class="uitleg">Plaatsnaam wordt opgezocht zodra je internet hebt…</p>' : '')}
       ${f.lat != null ? rij('Coördinaten', f.lat.toFixed(6) + ', ' + f.lon.toFixed(6)) + rij('Nauwkeurigheid', '± ' + f.acc + ' m' + (f.gpsMetingen ? ' (' + f.gpsMetingen + ' metingen)' : '')) : '<p>Geen GPS-plek opgeslagen.</p>'}
       ${rij('Datum en tijd', datumTekst(f.t))}
     </div>
     <div class="blok">
       <h3>Eigen gegevens</h3>
       <div class="veld"><label>Eigen naam (overschrijft de AI)</label><input id="dNaam" value="${esc(f.eigenNaam)}"></div>
+      <div class="veld"><label>Naam van de plek (bijv. "Akker boer Jansen")</label><input id="dPlek" value="${esc(f.eigenPlek || '')}"></div>
       <div class="veld"><label>Diepte in cm</label><input id="dDiepte" inputmode="numeric" value="${esc(f.diepte)}"></div>
       <div class="veld"><label>Notitie</label><textarea id="dNotitie" rows="3">${esc(f.notitie)}</textarea></div>
       <button class="groot kleur kgroen" style="width:100%" onclick="bewaarEigen('${f.id}')">Opslaan</button>
@@ -996,6 +1169,7 @@ async function openDetail(id){
 function sluitDetail(){ $('#detail').classList.remove('open'); if (huidigScherm === 'vondsten') toonLijst(); }
 async function bewaarEigen(id){
   const f = await DB.get('finds', id);
+  f.eigenPlek = $('#dPlek').value.trim();
   f.eigenNaam = $('#dNaam').value.trim(); f.diepte = $('#dDiepte').value.trim(); f.notitie = $('#dNotitie').value.trim();
   await DB.put('finds', f); melding('Opgeslagen'); openDetail(id); Kaart.verversVondsten();
 }
@@ -1018,6 +1192,7 @@ async function meldPan(id){
     'Vondst: ' + (f.eigenNaam || a.naam || 'onbekend'),
     a.categorie && 'Categorie: ' + a.categorie, a.periode && 'Periode: ' + a.periode, a.datering && 'Datering: ' + a.datering,
     a.materiaal && 'Materiaal: ' + a.materiaal, 'Datum vondst: ' + new Date(f.t).toLocaleDateString('nl-NL'),
+    f.plek && 'Vindplaats: ' + Plek.lang(f.plek), f.plek && f.plek.perceel && 'Kadastraal perceel: ' + f.plek.perceel,
     f.lat != null && 'Coördinaten (WGS84): ' + f.lat.toFixed(6) + ', ' + f.lon.toFixed(6) + ' (± ' + f.acc + ' m)',
     f.diepte && 'Diepte: ' + f.diepte + ' cm', a.beschrijving && 'Beschrijving: ' + a.beschrijving, f.notitie && 'Notitie: ' + f.notitie,
   ].filter(Boolean).join('\n');
@@ -1110,11 +1285,12 @@ function terug(){
   if ($('#gevaar').classList.contains('open')) { $('#gevaar').classList.remove('open'); return true; }
   if ($('#detail').classList.contains('open')) { sluitDetail(); return true; }
   if ($('#lagenPaneel').classList.contains('open')) { $('#lagenPaneel').classList.remove('open'); return true; }
+  if ($('#routesPaneel').classList.contains('open')) { $('#routesPaneel').classList.remove('open'); return true; }
   if ($('#kleurKeuze').classList.contains('open')) { $('#kleurKeuze').classList.remove('open'); return true; }
   if (huidigScherm !== 'zoeken') { kiesScherm('zoeken'); return true; }
   return false;
 }
-const opBasis = () => huidigScherm === 'zoeken' && !['#gevaar', '#detail', '#lagenPaneel', '#kleurKeuze'].some(x => $(x).classList.contains('open'));
+const opBasis = () => huidigScherm === 'zoeken' && !['#gevaar', '#detail', '#lagenPaneel', '#routesPaneel', '#kleurKeuze'].some(x => $(x).classList.contains('open'));
 if (NATIEF) {
   const App = plugin('App');
   App.addListener('backButton', () => { if (!terug()) App.minimizeApp(); });
@@ -1173,6 +1349,7 @@ document.addEventListener('keydown', e => {
   if (!instel.key) setTimeout(() => melding('Tip: zet je OpenAI-sleutel in Instellingen voor herkenning', 4000), 1500);
   Herken.allesWachtend();
   Lagen.laad();
+  setTimeout(() => Plek.vulOntbrekende(), 4000);
   if (Stem.gewenst) Stem.start(); // stem stond aan: meteen weer luisteren
   if (!NATIEF && 'serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 })();

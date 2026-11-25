@@ -112,6 +112,23 @@ input,textarea,select{font:inherit}
   background:linear-gradient(#1f1a14,#14110d);border-top:2px solid rgba(242,182,48,.45);border-radius:20px 20px 0 0;
   box-shadow:0 -10px 30px rgba(0,0,0,.6);padding:0 0 14px}
 #lagenPaneel.open{display:block}
+#routesPaneel{position:absolute;left:0;right:0;bottom:0;z-index:710;max-height:78%;overflow:auto;display:none;
+  background:linear-gradient(#1f1a14,#14110d);border-top:2px solid rgba(242,182,48,.45);border-radius:20px 20px 0 0;
+  box-shadow:0 -10px 30px rgba(0,0,0,.6);padding:0 0 14px}
+#routesPaneel.open{display:block}
+.kaartknoppen button.kroutes{background:linear-gradient(160deg,#a66bff,#6a3fd1);border-color:#d2b8ff;color:#fff}
+.routeknoppen{padding:4px 12px 8px;display:flex;flex-direction:column;gap:10px}
+.routeknoppen .groot{width:100%}
+.vandaag{display:flex;align-items:center;gap:10px;font-size:15px;color:var(--tekst)}
+.vandaag input{width:24px;height:24px}
+.routekaart{margin:8px 12px;padding:12px;border-radius:14px;background:#241e17;border:1.5px solid var(--lijn)}
+.routekaart.actief{border-color:var(--goud)}
+.rk-kop{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:17px}
+.rk-kop .label{margin-top:0}
+.rk-sub{font-size:13.5px;color:var(--zacht);margin-top:4px;line-height:1.35}
+.rk-knoppen{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+.rk-knoppen button{flex:1;min-width:70px;min-height:44px;border-radius:12px;background:#2f271e;border:1.5px solid var(--lijn);font-weight:700;font-size:14px}
+.rk-knoppen button.rood{flex:0 0 56px;border-color:#7a2520;color:#ffb3ad}
 .paneelkop{position:sticky;top:0;display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:#1f1a14;font-size:19px}
 .paneelkop button{background:var(--goud);color:#1a1206;font-weight:800;border-radius:12px;padding:10px 18px}
 .lgroep{padding:6px 16px 2px;font-size:13px;font-weight:800;color:var(--goud2);text-transform:uppercase;letter-spacing:.6px}
@@ -272,9 +289,14 @@ nav button.aan svg{opacity:1;filter:saturate(1.1) drop-shadow(0 0 7px rgba(242,1
     <button id="laagKnop" class="kgroen" title="Kaart / satelliet">🛰</button>
     <button id="lagenKnop" class="kgoudlaag" title="Historische lagen">📜</button>
     <button id="kleurKnop" class="kkleur" title="Kleur van de route"><span id="kleurStaal"></span></button>
+    <button id="routesKnop" class="kroutes" title="Mijn routes">🧭</button>
   </div>
   <div id="kleurKeuze"></div>
   <div id="nietZoeken">⛔ Je bent in een gebied waar je <b>niet mag zoeken</b><small id="nietZoekenNaam"></small></div>
+  <div id="routesPaneel" class="paneel">
+    <div class="paneelkop"><b>Mijn routes</b><button id="routesDicht">Klaar</button></div>
+    <div id="routesLijst"></div>
+  </div>
   <div id="lagenPaneel">
     <div class="paneelkop"><b>Kaartlagen</b><button id="lagenDicht">Klaar</button></div>
     <div id="lagenLijst"></div>
