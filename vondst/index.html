@@ -123,6 +123,28 @@ input,textarea,select{font:inherit}
 .dekking{font-size:14px;line-height:1.5}
 .veiligbalk{line-height:1.5;font-size:16px}
 
+/* ---------- UITLEG ---------- */
+#uitleg{position:fixed;inset:0;z-index:7000;background:radial-gradient(circle at 50% 20%,#2a2116,#0d0b08 70%);display:none;flex-direction:column;
+  padding:calc(24px + env(safe-area-inset-top)) 22px calc(20px + env(safe-area-inset-bottom))}
+#uitleg.open{display:flex}
+.u-dia{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:16px;overflow:auto}
+.u-ico{font-size:72px;line-height:1;filter:drop-shadow(0 6px 16px rgba(0,0,0,.6))}
+.u-dia h2{margin:0;font-size:27px;line-height:1.2;color:var(--goud2)}
+.u-dia p{margin:0;font-size:18px;line-height:1.55;max-width:460px;color:var(--tekst)}
+.u-dia .u-lijst{text-align:left;max-width:460px;display:flex;flex-direction:column;gap:12px;font-size:17px;line-height:1.45}
+.u-dia .u-lijst div{background:rgba(255,255,255,.06);border:1px solid rgba(242,182,48,.25);border-radius:14px;padding:12px 14px}
+.u-dia b{color:#fff}
+.u-zeg{display:inline-block;background:var(--goud);color:#1a1206;font-weight:900;border-radius:10px;padding:2px 10px;margin:2px}
+.u-stippen{display:flex;justify-content:center;gap:8px;margin:14px 0}
+.u-stippen i{width:9px;height:9px;border-radius:50%;background:#5a4a35}
+.u-stippen i.aan{background:var(--goud);width:24px;border-radius:5px}
+.u-knoppen{display:flex;gap:12px}
+.u-knoppen button{flex:1;min-height:58px;border-radius:16px;font-size:18px;font-weight:800;background:#2a2219;border:1.5px solid var(--lijn)}
+.u-knoppen button.goud{background:var(--goud);color:#1a1206;border-color:var(--goud);flex:1.4}
+#stemHint{position:absolute;left:50%;transform:translateX(-50%);top:calc(84px + env(safe-area-inset-top));z-index:2;display:none;
+  background:rgba(31,95,196,.9);color:#fff;font-weight:700;font-size:15px;padding:8px 16px;border-radius:999px;white-space:nowrap;box-shadow:0 4px 14px rgba(0,0,0,.5)}
+#stemHint.open{display:block}
+
 /* ---------- LAGEN ---------- */
 #lagenPaneel{position:absolute;left:0;right:0;bottom:0;z-index:700;max-height:72%;overflow:auto;display:none;
   background:linear-gradient(#1f1a14,#14110d);border-top:2px solid rgba(242,182,48,.45);border-radius:20px 20px 0 0;
@@ -290,6 +312,7 @@ nav button.aan svg{opacity:1;filter:saturate(1.1) drop-shadow(0 0 7px rgba(242,1
     <button class="chip kstem" id="stemKnop"><span class="stip"></span><span class="tk">Stem<small id="stemStatus">uit</small></span></button>
   </div>
   <div id="stemTekst"></div>
+  <div id="stemHint">🎤 Zeg <b>“hebbes”</b> of <b>“vondst”</b></div>
   <div class="onderbalk">
     <div class="knoprij"><button id="munitieKnop" aria-label="Mogelijk munitie">⚠️</button><button id="knop" aria-label="Vondst vastleggen">VONDST</button><span class="knopvuller"></span></div>
     <div id="teller">Druk op de knop of zeg "vondst"</div>
@@ -335,6 +358,7 @@ nav button.aan svg{opacity:1;filter:saturate(1.1) drop-shadow(0 0 7px rgba(242,1
 <!-- INSTELLINGEN -->
 <section id="instellingen" class="scherm">
   <div class="kop">Instellingen</div>
+  <div class="blok"><button class="groot goud" style="width:100%" onclick="Uitleg.open()">📖 Uitleg: zo werkt de app</button></div>
 
   <div class="blok">
     <h3>AI-herkenning (OpenAI)</h3>
@@ -399,6 +423,11 @@ nav button.aan svg{opacity:1;filter:saturate(1.1) drop-shadow(0 0 7px rgba(242,1
   <button id="gevaarDicht">Sluiten</button>
 </div>
 
+<div id="uitleg" aria-modal="true" role="dialog">
+  <div class="u-dia" id="uDia"></div>
+  <div class="u-stippen" id="uStippen"></div>
+  <div class="u-knoppen"><button id="uOverslaan">Overslaan</button><button id="uVolgende" class="goud">Volgende</button></div>
+</div>
 <div id="melding"></div>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>

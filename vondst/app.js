@@ -1287,6 +1287,7 @@ $('#allesWissen').onclick = async () => {
 /* ================= TERUGKNOP ================= */
 // Eén stap terug: eerst open schermpjes sluiten, dan naar het zoekscherm. Op het zoekscherm gaat de app naar de achtergrond (route loopt door).
 function terug(){
+  if ($('#uitleg').classList.contains('open')) { Uitleg.dicht(); return true; }
   if ($('#gevaar').classList.contains('open')) { $('#gevaar').classList.remove('open'); return true; }
   if ($('#detail').classList.contains('open')) { sluitDetail(); return true; }
   if ($('#lagenPaneel').classList.contains('open')) { $('#lagenPaneel').classList.remove('open'); return true; }
@@ -1295,7 +1296,7 @@ function terug(){
   if (huidigScherm !== 'zoeken') { kiesScherm('zoeken'); return true; }
   return false;
 }
-const opBasis = () => huidigScherm === 'zoeken' && !['#gevaar', '#detail', '#lagenPaneel', '#routesPaneel', '#kleurKeuze'].some(x => $(x).classList.contains('open'));
+const opBasis = () => huidigScherm === 'zoeken' && !['#uitleg', '#gevaar', '#detail', '#lagenPaneel', '#routesPaneel', '#kleurKeuze'].some(x => $(x).classList.contains('open'));
 if (NATIEF) {
   const App = plugin('App');
   App.addListener('backButton', () => { if (!terug()) App.minimizeApp(); });
@@ -1306,6 +1307,52 @@ if (NATIEF) {
   window.addEventListener('popstate', () => { terug(); setTimeout(bewaak, 0); });
   setInterval(bewaak, 500);
 }
+
+/* ================= UITLEG ================= */
+const Uitleg = {
+  stap: 0,
+  dias(){
+    const knop = NATIEF ? 'de <b>gouden knop</b>, de <b>volumeknop</b> van je telefoon of een bluetooth-knopje' : 'de <b>gouden knop</b> op het scherm';
+    return [
+      { ico: '🪙', titel: 'Welkom bij Vondst', tekst: '<p>Leg je vondsten vast met één druk op de knop. De app bewaart de <b>foto, de plek, de datum en de tijd</b> en vertelt je wat je gevonden hebt.</p>' },
+      { ico: '📸', titel: 'Een vondst vastleggen', tekst: `<p>Ga naar <b>Zoeken</b>. Leg je vondst in het <b>gouden vak</b> en druk op ${knop}.</p><p>Klaar. De rest gaat vanzelf.</p>` },
+      { ico: '🎤', titel: 'Vieze handen? Gebruik je stem', tekst: '<p>Tik bovenin op <b>Stem</b>. Als het blauw is, luistert de app. Zeg dan:</p><p><span class="u-zeg">hebbes</span> <span class="u-zeg">vondst</span> <span class="u-zeg">foto</span></p><p>De app maakt meteen een foto. Stem blijft aan, ook als je de app later weer opent.</p>' },
+      { ico: '🧭', titel: 'Je route op de kaart', tekst: `<p>Tik op <b>Route</b> voordat je begint. Op de <b>Kaart</b> zie je dan precies waar je gelopen hebt en waar je wat vond.</p><p>${NATIEF ? 'De route loopt door met het scherm uit en de telefoon in je zak.' : 'Houd de app open, dan blijft de route meelopen.'} Met de paarse knop 🧭 op de kaart geef je routes een naam of verwijder je ze.</p>` },
+      { ico: '⛔', titel: 'Veilig en volgens de regels', tekst: '<div class="u-lijst"><div><b>Rood op de kaart</b>: hier mag je niet zoeken. Loop je erin, dan waarschuwt de app.</div><div><b>Rode ⚠️-knop</b>: denk je dat het munitie is? Raak het niet aan en druk op deze knop voor de alarmnummers.</div><div>Vraag altijd <b>toestemming aan de grondeigenaar</b>.</div></div>' },
+      { ico: '🔍', titel: 'Wat heb ik gevonden?', tekst: '<p>Zet bij <b>Instellingen</b> je OpenAI-sleutel. Dan herkent de app je vondst: wat het is, hoe oud en van welk materiaal.</p><p>Was de foto vies? Maak thuis een <b>nieuwe foto als hij schoon is</b>. De app kijkt dan opnieuw.</p>' },
+      { ico: '🏛️', titel: 'Klaar om te zoeken!', tekst: '<p>Bij een oude vondst kun je hem met één knop <b>melden bij PAN</b>, als je dat wilt.</p><p>Deze uitleg vind je altijd terug bij <b>Instellingen</b>. Veel succes en mooie vondsten!</p>' },
+    ];
+  },
+  open(){ Uitleg.stap = 0; Uitleg.toon(); $('#uitleg').classList.add('open'); },
+  dicht(){ $('#uitleg').classList.remove('open'); localStorage.setItem('v_uitleg_gezien', '1'); },
+  toon(){
+    const d = Uitleg.dias(), x = d[Uitleg.stap];
+    $('#uDia').innerHTML = `<div class="u-ico">${x.ico}</div><h2>${x.titel}</h2>${x.tekst}`;
+    $('#uStippen').innerHTML = d.map((_, i) => `<i class="${i === Uitleg.stap ? 'aan' : ''}"></i>`).join('');
+    const laatste = Uitleg.stap === d.length - 1;
+    $('#uVolgende').textContent = laatste ? 'Beginnen' : 'Volgende';
+    $('#uOverslaan').textContent = Uitleg.stap ? 'Terug' : 'Overslaan';
+  },
+};
+$('#uVolgende').onclick = () => { if (Uitleg.stap >= Uitleg.dias().length - 1) Uitleg.dicht(); else { Uitleg.stap++; Uitleg.toon(); } };
+$('#uOverslaan').onclick = () => { if (Uitleg.stap) { Uitleg.stap--; Uitleg.toon(); } else Uitleg.dicht(); };
+(() => { // vegen tussen de dia's
+  let x0 = null;
+  $('#uitleg').addEventListener('touchstart', e => { x0 = e.touches[0].clientX; }, { passive: true });
+  $('#uitleg').addEventListener('touchend', e => {
+    if (x0 == null) return; const dx = e.changedTouches[0].clientX - x0; x0 = null;
+    if (dx < -60) $('#uVolgende').click(); else if (dx > 60 && Uitleg.stap) $('#uOverslaan').click();
+  });
+})();
+window.Uitleg = Uitleg;
+// Hint zolang de stem luistert en er nog niets gezegd is
+function toonStemHint(){
+  const h = $('#stemHint');
+  const aan = Stem.aan && huidigScherm === 'zoeken' && Date.now() - (Stem.laatsteKeer || 0) > 8000 && !$('#stemTekst').textContent;
+  h.classList.toggle('open', !!aan);
+}
+setInterval(toonStemHint, 1000);
+setInterval(() => { if ($('#stemTekst').textContent) $('#stemTekst').textContent = ''; }, 6000);
 
 /* ================= NAVIGATIE ================= */
 let huidigScherm = 'zoeken';
@@ -1329,7 +1376,7 @@ $('#zoeken').addEventListener('click', e => {
 });
 $('#camAanKnop').onclick = e => { e.stopPropagation(); startCamera(); };
 $('#routeKnop').onclick = e => { e.stopPropagation(); Route.sessie ? (confirm('Route stoppen?') && Route.uit()) : Route.aan(); };
-$('#stemKnop').onclick = e => { e.stopPropagation(); Stem.aan ? Stem.stop() : Stem.start(true); };
+$('#stemKnop').onclick = e => { e.stopPropagation(); if (Stem.aan) Stem.stop(); else { Stem.start(true); melding('🎤 Stem staat aan. Zeg “hebbes”, “vondst” of “foto”.', 3500); } };
 window.vondstExternKnop = () => { if (huidigScherm === 'zoeken' && !$('#detail').classList.contains('open')) vondst('knop-extern'); else melding('Ga naar Zoeken om met de knop een foto te maken'); };
 document.addEventListener('keydown', e => {
   if (e.target.matches('input, textarea, select')) return;
@@ -1355,6 +1402,7 @@ document.addEventListener('keydown', e => {
   Herken.allesWachtend();
   Lagen.laad();
   setTimeout(() => Plek.vulOntbrekende(), 4000);
+  if (!localStorage.getItem('v_uitleg_gezien')) Uitleg.open();
   if (Stem.gewenst) Stem.start(); // stem stond aan: meteen weer luisteren
   if (!NATIEF && 'serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 })();
