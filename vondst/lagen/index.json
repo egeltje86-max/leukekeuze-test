@@ -281,28 +281,8 @@
     6.3855,
     50.8121
    ]
-  },
-  {
-   "id": "romeins-nl-utrecht",
-   "naam": "Romeinse tijd · Utrecht",
-   "groep": "periode",
-   "type": "geojson",
-   "url": "lagen/romeins/romeins-nl-utrecht.geojson",
-   "kleur": "#c39754",
-   "standaardAan": false,
-   "minZoom": 9,
-   "bron": "RomeinenNU / musea / Kadaster BAG via PDOK",
-   "licentie": "CC0 1.0 (BAG); feitelijke gegevens en eigen tekst",
-   "naamsvermelding": "Kadaster BAG via PDOK; historische bron per locatie",
-   "periode": "romeins",
-   "bbox": [
-    4.8845,
-    52.0585,
-    5.1684,
-    52.091
-   ]
   }
  ],
  "proef": true,
- "dekking": "Proefversie van Nova (25-11-2026). Rood: archeologische rijksmonumenten in heel Nederland (RCE) en geklasseerde gebieden in Wallonië (SPW). Nog niet: gemeentelijke verboden, Vlaanderen en Brussel. Geen rood betekent níet dat zoeken mag: check gemeente en grondeigenaar."
+ "dekking": "Rood: archeologische rijksmonumenten in heel Nederland (RCE) en geklasseerde gebieden in Wallonië (SPW). Nog niet: gemeentelijke verboden, Vlaanderen en Brussel. Geen rood betekent níet dat zoeken mag: check gemeente en grondeigenaar."
 }
