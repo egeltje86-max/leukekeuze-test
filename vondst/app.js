@@ -372,7 +372,7 @@ const Stem = {
   verwerk(tekst){
     const t = (tekst || '').toLowerCase();
     if (t.trim()) $('#stemTekst').textContent = '“' + tekst.trim() + '”';
-    if (/\b(vondst|vonst|fonds|foto|hebbes|bingo)\b/.test(t) && Date.now() - Stem.laatsteKeer > 2500) {
+    if (/\b(vondst|vondsten|vonst|fonds|fondst|vonts|foto|foto's|photo|hebbes|hebbers|hebbus|hebbe|heppes|ebbes|bingo)\b/.test(t) && Date.now() - Stem.laatsteKeer > 2500) {
       Stem.laatsteKeer = Date.now();
       vondst('stem');
       return true;
