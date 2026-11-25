@@ -37,6 +37,7 @@ jobs:
         with:
           distribution: temurin
           java-version: 21
+          cache: gradle
 
       - name: Pakketten installeren
         working-directory: vondst-android
@@ -45,6 +46,33 @@ jobs:
       - name: Webapp klaarzetten als Android-project
         working-directory: vondst-android
         run: node scripts/voorbereiden.js
+
+      - name: Spraakmodel (Nederlands, offline) ophalen
+        uses: actions/cache@v4
+        id: model
+        with:
+          path: vondst-android/model-nl
+          key: vosk-model-small-nl-0.22
+
+      - name: Spraakmodel downloaden
+        if: steps.model.outputs.cache-hit != 'true'
+        working-directory: vondst-android
+        run: |
+          curl -L --retry 3 -o model.zip https://alphacephei.com/vosk/models/vosk-model-small-nl-0.22.zip
+          unzip -q model.zip
+          mv vosk-model-small-nl-0.22 model-nl
+          rm model.zip
+
+      - name: Spraakmodel in de app zetten
+        working-directory: vondst-android
+        run: |
+          mkdir -p android/app/src/main/assets
+          rm -rf android/app/src/main/assets/model-nl
+          cp -r model-nl android/app/src/main/assets/model-nl
+          du -sh android/app/src/main/assets/model-nl
+          echo "Woorden in het model:"
+          for w in hebbes vondst hebbe heb hebbers; do if grep -qx "$w" <(cut -d' ' -f1 model-nl/graph/words.txt 2>/dev/null); then echo "  $w: ja"; else echo "  $w: NEE"; fi; done
+          ls model-nl model-nl/graph | head -30
 
       - name: App-icoon maken
         working-directory: vondst-android

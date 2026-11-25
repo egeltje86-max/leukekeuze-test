@@ -19,7 +19,8 @@ if (!fs.existsSync(path.join(hier, 'android'))) run('npx cap add android');
 // 3. eigen MainActivity (volumeknoppen)
 const javaMap = path.join(hier, 'android/app/src/main/java/nl/leukekeuze/vondst');
 fs.mkdirSync(javaMap, { recursive: true });
-fs.copyFileSync(path.join(hier, 'native/MainActivity.java'), path.join(javaMap, 'MainActivity.java'));
+for (const f of fs.readdirSync(path.join(hier, 'native')).filter(f => f.endsWith('.java')))
+  fs.copyFileSync(path.join(hier, 'native', f), path.join(javaMap, f));
 
 // 4. rechten in het manifest
 const mf = path.join(hier, 'android/app/src/main/AndroidManifest.xml');
@@ -32,10 +33,15 @@ const rechten = [
   '<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />',
   '<uses-permission android:name="android.permission.POST_NOTIFICATIONS" />',
   '<uses-permission android:name="android.permission.VIBRATE" />',
+  '<uses-permission android:name="android.permission.FOREGROUND_SERVICE" />',
+  '<uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />',
+  '<uses-permission android:name="android.permission.WAKE_LOCK" />',
   '<uses-feature android:name="android.hardware.camera" android:required="false" />',
 ];
 for (const r of rechten) if (!m.includes(r)) m = m.replace('</manifest>', '    ' + r + '\n</manifest>');
 m = m.replace('<activity', '<activity android:screenOrientation="portrait"');
+// eigen woordherkenner als dienst die ook met het scherm uit blijft luisteren
+if (!m.includes('StemService')) m = m.replace('</application>', '        <service android:name=".StemService" android:exported="false" android:foregroundServiceType="microphone" />\n    </application>');
 fs.writeFileSync(mf, m);
 
 // 5. tekst van de meldingsbalk
@@ -48,6 +54,12 @@ fs.writeFileSync(sx, s);
 // 6. vaste ondertekening, zodat een nieuwe versie over de oude heen installeert (gegevens blijven bewaard)
 const bg = path.join(hier, 'android/app/build.gradle');
 let g = fs.readFileSync(bg, 'utf8');
+if (!g.includes('vosk-android')) g += `
+dependencies {
+    implementation 'net.java.dev.jna:jna:5.13.0@aar'
+    implementation 'com.alphacephei:vosk-android:0.3.47@aar'
+}
+`;
 if (!g.includes('vondst-debug.keystore')) g += `
 android {
     signingConfigs {

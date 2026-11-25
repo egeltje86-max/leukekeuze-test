@@ -73,6 +73,7 @@ input,textarea,select{font:inherit}
 #knop:active{transform:scale(.93)}
 #knop.bezig{filter:grayscale(.55) brightness(.85)}
 #teller{font-size:13px;color:var(--zacht)}
+.speldchip{align-items:center;gap:6px;padding:8px 14px;border-radius:999px;background:rgba(122,63,209,.85);border:1.5px solid #d2b8ff;color:#fff;font-weight:700;font-size:14px}
 .knoprij{display:flex;align-items:center;justify-content:center;gap:26px;width:100%}
 #munitieKnop,.knopvuller{width:52px;height:52px;flex:none}
 #munitieKnop{border-radius:50%;background:rgba(179,20,14,.85);border:2px solid #ff8a80;font-size:22px;box-shadow:0 4px 12px rgba(0,0,0,.5)}
@@ -344,6 +345,7 @@ nav button.aan svg{opacity:1;filter:saturate(1.1) drop-shadow(0 0 7px rgba(242,1
   <div class="onderbalk">
     <div class="knoprij"><button id="munitieKnop" aria-label="Mogelijk munitie">⚠️</button><button id="knop" aria-label="Vondst vastleggen">VONDST</button><span class="knopvuller"></span></div>
     <div id="teller">Druk op de knop of zeg "vondst"</div>
+    <button id="speldChip" class="speldchip" style="display:none"></button>
     <div id="laatste"></div>
   </div>
 </section>
@@ -379,6 +381,7 @@ nav button.aan svg{opacity:1;filter:saturate(1.1) drop-shadow(0 0 7px rgba(242,1
     <button data-f="wacht" class="fpaars">Wacht op AI</button>
     <button data-f="gevaar" class="frood">Gevaar</button>
     <button data-f="pan" class="fblauw">Gemeld bij PAN</button>
+    <button data-f="speld">📍 Spelden</button>
   </div>
   <div id="lijst"></div>
 </section>

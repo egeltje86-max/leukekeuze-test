@@ -1,10 +1,17 @@
 package nl.leukekeuze.vondst;
 
+import android.os.Bundle;
 import android.view.KeyEvent;
 import com.getcapacitor.BridgeActivity;
 
 // Volumeknoppen (en bluetooth-sluiterknopjes, die als volumeknop werken) maken een foto.
 public class MainActivity extends BridgeActivity {
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        registerPlugin(StemPlugin.class);
+        super.onCreate(savedInstanceState);
+    }
+
     @Override
     public boolean dispatchKeyEvent(KeyEvent event) {
         int k = event.getKeyCode();

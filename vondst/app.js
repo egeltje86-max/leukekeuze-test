@@ -65,6 +65,8 @@ function afstand(a, b){ // meters tussen [lat,lon]
 }
 function esc(s){ return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 const urlCache = new Map();
+const SPELD_IMG = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#241e17"/><path d="M50 18c-13 0-23 10-23 23 0 17 23 41 23 41s23-24 23-41c0-13-10-23-23-23z" fill="#ff4a3d" stroke="#fff" stroke-width="3"/><circle cx="50" cy="41" r="8" fill="#fff"/></svg>');
+function fotoSrc(f){ const p = f.fotos && f.fotos[f.fotos.length - 1]; return p ? fotoUrl(p.blob, f.id + p.t) : SPELD_IMG; }
 function fotoUrl(blob, sleutel){
   if (sleutel && urlCache.has(sleutel)) return urlCache.get(sleutel);
   const u = URL.createObjectURL(blob);
@@ -258,7 +260,7 @@ async function houdSchermAan(){
   } catch (e) {}
 }
 document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') { houdSchermAan(); if (huidigScherm === 'zoeken') startCamera(); if (Stem.gewenst) Stem.start(); }
+  if (document.visibilityState === 'visible') { haalNatieveSpelden(); houdSchermAan(); if (huidigScherm === 'zoeken') startCamera(); if (Stem.gewenst) Stem.start(); }
   else { stopCamera(); Stem.pauze(); if (!NATIEF) Route.pauze(); }
 });
 
@@ -354,11 +356,10 @@ function vraagFoto(){
 
 async function toonLaatste(item){
   const l = $('#laatste');
-  const f = item.fotos[item.fotos.length - 1];
   const naam = item.eigenNaam || (item.ai && item.ai.naam) || (item.status === 'bezig' ? 'Herkennen…' : 'Opgeslagen');
   let sub = item.ai ? [item.ai.periode, item.ai.zekerheid != null ? item.ai.zekerheid + '% zeker' : ''].filter(Boolean).join(' · ')
-    : (item.status === 'geenkey' ? 'Zet je OpenAI-sleutel in Instellingen' : item.status === 'pro' ? 'Gratis herkenningen op · tik voor Pro' : item.status === 'wacht' ? 'Wacht op herkenning…' : '');
-  l.innerHTML = `<img src="${fotoUrl(f.blob, item.id + f.t)}" alt=""><div class="tx"><div class="t">${esc(naam)}</div><div class="s">${esc(sub)}</div></div><span class="pijl">›</span>`;
+    : (item.status === 'geenkey' ? 'Zet je OpenAI-sleutel in Instellingen' : item.status === 'pro' ? 'Gratis herkenningen op · tik voor Pro' : item.status === 'speld' ? 'Speld gezet · voeg later een foto toe' : item.status === 'wacht' ? 'Wacht op herkenning…' : '');
+  l.innerHTML = `<img src="${fotoSrc(item)}" alt=""><div class="tx"><div class="t">${esc(naam)}</div><div class="s">${esc(sub)}</div></div><span class="pijl">›</span>`;
   l.style.display = 'flex';
   l.onclick = () => openDetail(item.id);
   l.dataset.id = item.id;
@@ -369,6 +370,13 @@ const Stem = {
   rec: null, aan: false, loopt: false, laatsteKeer: 0, laatsteStart: 0,
   get gewenst(){ return localStorage.getItem('v_stem') === '1'; },
   set gewenst(v){ localStorage.setItem('v_stem', v ? '1' : '0'); },
+  // Woord van de eigen herkenner terwijl de app open is
+  natiefWoord(woord){
+    Stem.laatsteKeer = Date.now();
+    $('#stemTekst').textContent = '“' + woord + '”';
+    if (huidigScherm === 'zoeken' && !$('#detail').classList.contains('open')) vondst('stem');
+    else zetSpeld('stem');
+  },
   verwerk(tekst){
     const t = (tekst || '').toLowerCase();
     if (t.trim()) $('#stemTekst').textContent = '“' + tekst.trim() + '”';
@@ -381,6 +389,24 @@ const Stem = {
   },
   // ---- Android-app: spraakherkenning van de telefoon zelf ----
   async startNatief(handmatig){
+    // Eerst de eigen offline woordherkenner (luistert ook met het scherm uit)
+    if (!Stem.geenVosk) {
+      try {
+        const VS = plugin('VondstStem');
+        await VS.start();
+        if (!Stem.voskLuisteraar) {
+          Stem.voskLuisteraar = true;
+          VS.addListener('woord', d => Stem.natiefWoord(d.woord));
+        }
+        Stem.vosk = VS; Stem.gewenst = true; Stem.aan = true; Stem.loopt = true;
+        $('#stemKnop').classList.add('aan'); $('#stemStatus').textContent = 'luistert';
+        setTimeout(async () => { try { const st = await VS.status(); if (!st.actief && !st.bezig && st.fout) { Stem.geenVosk = true; Stem.vosk = null; Stem.loopt = false; melding('Eigen spraakherkenning lukte niet, ik gebruik die van de telefoon'); Stem.startNatief(handmatig); } } catch (e) {} }, 8000);
+        return;
+      } catch (e) {
+        if (String(e && e.message || e).includes('toestemming')) { melding('Geen toestemming voor de microfoon'); return; }
+        Stem.geenVosk = true;
+      }
+    }
     const SR = plugin('SpeechRecognition');
     try { const a = await SR.available(); if (!a.available) { if (handmatig) melding('Spraakherkenning is niet beschikbaar op deze telefoon'); return; } } catch (e) {}
     try {
@@ -428,6 +454,7 @@ const Stem = {
     Stem.herstart();
   },
   herstart(){
+    if (Stem.vosk) return; // de eigen woordherkenner luistert zelf onafgebroken
     if (NATIEF) {
       if (!Stem.aan || Stem.loopt || document.visibilityState !== 'visible') return;
       Stem.loopt = true; Stem.laatsteStart = Date.now();
@@ -439,6 +466,7 @@ const Stem = {
     try { Stem.rec.start(); } catch (e) {}
   },
   pauze(){ // app weggeklikt: microfoon los, maar de stem blijft 'gewenst'
+    if (Stem.vosk) return; // blijft luisteren: met scherm uit zet hij spelden
     Stem.loopt = false;
     if (NATIEF) { plugin('SpeechRecognition').stop().catch(() => {}); return; }
     try { Stem.rec && Stem.rec.abort(); } catch (e) {}
@@ -446,7 +474,8 @@ const Stem = {
   stop(){
     Stem.gewenst = false; Stem.aan = false; Stem.loopt = false; Stem.wachtOpTik(false);
     $('#stemKnop').classList.remove('aan'); $('#stemStatus').textContent = 'uit'; $('#stemTekst').textContent = '';
-    if (NATIEF) plugin('SpeechRecognition').stop().catch(() => {});
+    if (Stem.vosk) { Stem.vosk.stop().catch(() => {}); Stem.vosk = null; }
+    if (NATIEF && !Stem.geenVosk) {} else if (NATIEF) plugin('SpeechRecognition').stop().catch(() => {});
     try { Stem.rec && Stem.rec.abort(); } catch (e) {}
     Stem.rec = null;
   },
@@ -461,6 +490,43 @@ const Stem = {
 };
 // Waakhond: soms stopt Chrome het luisteren zonder melding; dan starten we hem opnieuw.
 setInterval(() => { if (Stem.aan && !Stem.loopt && document.visibilityState === 'visible' && Date.now() - Stem.laatsteStart > 3000) Stem.herstart(); }, 3000);
+
+/* ================= SPELDEN (vondst zonder foto, bijv. met de telefoon in je zak) ================= */
+async function zetSpeld(bron, data){
+  const pos = data || GPS.laatste;
+  const t = data ? data.t : Date.now();
+  const heeftPlek = pos && pos.lat != null;
+  const item = {
+    id: nieuwId(), t, bron,
+    lat: heeftPlek ? pos.lat : null, lon: heeftPlek ? pos.lon : null, acc: heeftPlek && pos.acc != null ? Math.round(pos.acc) : null,
+    sessie: Route.sessie && t >= Route.sessie.start ? Route.sessie.id : null,
+    fotos: [], status: 'speld', ai: null, eigenNaam: '', diepte: '', panGemeld: null,
+    notitie: data && data.gpsLeeftijd > 120000 ? 'Let op: de GPS-plek was ' + Math.round(data.gpsLeeftijd / 60000) + ' minuten oud.' : '',
+  };
+  await DB.put('finds', item);
+  Kaart.verversVondsten();
+  if (!data) { tril([0, 120, 100, 120]); piep(880, .12); melding('📍 Speld gezet. Voeg later een foto toe.'); verfijnPlek(item.id, Date.now()); }
+  Plek.vulVondst(item.id);
+  toonSpeldChip();
+  return item;
+}
+async function haalNatieveSpelden(){
+  if (!NATIEF) return;
+  try {
+    const r = await plugin('VondstStem').haalSpelden();
+    const lijst = JSON.parse(r.json || '[]');
+    for (const sp of lijst) await zetSpeld('stem-slot', sp);
+    if (lijst.length) melding(`📍 ${lijst.length} ${lijst.length === 1 ? 'speld' : 'spelden'} gezet terwijl je telefoon op slot was. Voeg later een foto toe.`, 5500);
+  } catch (e) {}
+  toonSpeldChip();
+}
+async function toonSpeldChip(){
+  const n = (await DB.all('finds')).filter(f => f.status === 'speld').length;
+  const c = $('#speldChip'); if (!c) return;
+  c.style.display = n ? 'inline-flex' : 'none';
+  c.textContent = `📍 ${n} ${n === 1 ? 'speld' : 'spelden'} zonder foto`;
+}
+window.zetSpeld = zetSpeld;
 
 /* ================= AI-HERKENNING ================= */
 const PROMPT = `Je bent een ervaren Nederlandse vondstdeskundige: archeoloog, numismaat en munitiekenner tegelijk. Je helpt metaaldetectorzoekers in Nederland en Vlaanderen hun vondsten te herkennen. Vondsten zijn vaak vuil, gecorrodeerd, verbogen of maar een deel van het oorspronkelijke voorwerp. Herken dan het oorspronkelijke voorwerp aan het stuk dat er nog is (vorm, groeven, rand, gaatjes, opschrift, versiering).
@@ -527,6 +593,7 @@ const Herken = {
   },
   async een(id){
     const f = await DB.get('finds', id); if (!f) return;
+    if (!f.fotos || !f.fotos.length) { if (f.status !== 'speld') { f.status = 'speld'; await DB.put('finds', f); } Herken.na(f); return; }
     if (!instel.key) { f.status = 'geenkey'; await DB.put('finds', f); Herken.na(f); return; }
     if (!Pro.mag()) { f.status = 'pro'; await DB.put('finds', f); Herken.na(f); if (!Herken.proGetoond) { Herken.proGetoond = true; Pro.open(); } return; }
     if (!navigator.onLine) { f.status = 'wacht'; await DB.put('finds', f); Herken.na(f); return; }
@@ -679,11 +746,10 @@ var Kaart = window.Kaart = {
     const alle = await DB.all('finds');
     for (const f of alle) {
       if (f.lat == null) continue;
-      const kleur = f.status === 'gevaar' ? '#ff3b30' : f.status === 'herkend' ? '#3ecf6e' : f.status === 'onzeker' ? '#ffb020' : '#cccccc';
+      const kleur = f.status === 'gevaar' ? '#ff3b30' : f.status === 'herkend' ? '#3ecf6e' : f.status === 'onzeker' ? '#ffb020' : f.status === 'speld' ? '#b06bff' : '#cccccc';
       const m = L.circleMarker([f.lat, f.lon], { radius: 9, color: '#000', weight: 2, fillColor: kleur, fillOpacity: 1 }).addTo(Kaart.vondstLaag);
-      const foto = f.fotos[f.fotos.length - 1];
-      const naam = f.eigenNaam || (f.ai && f.ai.naam) || 'Nog niet herkend';
-      m.bindPopup(`<img src="${fotoUrl(foto.blob, f.id + foto.t)}"><b>${esc(naam)}</b><br>${esc(datumTekst(f.t))}<button class="popknop" onclick="openDetail('${f.id}')">Bekijk</button>`);
+      const naam = f.eigenNaam || (f.ai && f.ai.naam) || (f.status === 'speld' ? 'Speld (nog geen foto)' : 'Nog niet herkend');
+      m.bindPopup(`<img src="${fotoSrc(f)}"><b>${esc(naam)}</b><br>${esc(datumTekst(f.t))}<button class="popknop" onclick="openDetail('${f.id}')">Bekijk</button>`);
     }
   },
   mijnPlek(fix){
@@ -1081,7 +1147,7 @@ $('#lagenDicht').onclick = () => $('#lagenPaneel').classList.remove('open');
 let filter = 'alle';
 const statusLabel = {
   herkend: ['l-herkend', 'Herkend'], onzeker: ['l-onzeker', 'Onzeker'], gevaar: ['l-gevaar', 'GEVAAR'],
-  wacht: ['l-wacht', 'Wacht op AI'], bezig: ['l-wacht', 'Bezig…'], geenkey: ['l-wacht', 'Geen AI-sleutel'], pro: ['l-onzeker', 'Herkennen met Pro'],
+  speld: ['l-pan', '📍 Speld · foto toevoegen'], wacht: ['l-wacht', 'Wacht op AI'], bezig: ['l-wacht', 'Bezig…'], geenkey: ['l-wacht', 'Geen AI-sleutel'], pro: ['l-onzeker', 'Herkennen met Pro'],
 };
 async function toonLijst(){
   let alle = (await DB.all('finds')).sort((a, b) => b.t - a.t);
@@ -1089,23 +1155,28 @@ async function toonLijst(){
   if (filter === 'wacht') alle = alle.filter(f => ['wacht', 'geenkey', 'bezig'].includes(f.status));
   if (filter === 'gevaar') alle = alle.filter(f => f.status === 'gevaar');
   if (filter === 'pan') alle = alle.filter(f => f.panGemeld);
+  if (filter === 'speld') alle = alle.filter(f => f.status === 'speld');
   const routeNamen = {}; (await DB.all('tracks')).forEach(t => { if (t.naam) routeNamen[t.id] = t.naam; });
   const l = $('#lijst');
   if (!alle.length) { l.innerHTML = '<div class="leeg">Nog geen vondsten hier.<br>Ga naar Zoeken en druk op de gouden knop.</div>'; return; }
   l.innerHTML = alle.map(f => {
-    const foto = f.fotos[f.fotos.length - 1];
-    const naam = f.eigenNaam || (f.ai && f.ai.naam) || 'Nog niet herkend';
+    const naam = f.eigenNaam || (f.ai && f.ai.naam) || (f.status === 'speld' ? 'Speld (nog geen foto)' : 'Nog niet herkend');
     const sub = f.ai ? [f.ai.periode, f.ai.materiaal].filter(Boolean).join(' · ') : '';
     const rt = f.sessie && routeNamen[f.sessie];
     const waar = f.eigenPlek || (rt ? rt + (f.plek && f.plek.plaats ? ', ' + f.plek.plaats : '') : Plek.kort(f.plek));
     const [kl, tk] = statusLabel[f.status] || statusLabel.wacht;
     return `<button class="kaartje ${f.status === 'gevaar' ? 'gevaar' : ''}" onclick="openDetail('${f.id}')">
-      <img src="${fotoUrl(foto.blob, f.id + foto.t)}" alt="">
+      <img src="${fotoSrc(f)}" alt="">
       <div><div class="naam">${esc(naam)}</div><div class="sub">${esc(sub)}</div><div class="sub">${esc(datumTekst(f.t))}${waar ? ' · 📍 ' + esc(waar) : ''}</div>
       <span class="label ${kl}">${tk}${f.ai && f.status !== 'gevaar' ? ' · ' + f.ai.zekerheid + '%' : ''}</span>${f.panGemeld ? '<span class="label l-pan">PAN</span>' : ''}</div>
     </button>`;
   }).join('');
 }
+$('#speldChip').onclick = e => {
+  e.stopPropagation(); filter = 'speld';
+  $$('#filters button').forEach(x => x.classList.toggle('aan', x.dataset.f === 'speld'));
+  kiesScherm('vondsten');
+};
 $('#filters').onclick = e => {
   const b = e.target.closest('button'); if (!b) return;
   filter = b.dataset.f; $$('#filters button').forEach(x => x.classList.toggle('aan', x === b)); toonLijst();
@@ -1123,18 +1194,18 @@ async function openDetail(id){
   const route = f.sessie ? await DB.get('tracks', f.sessie) : null;
   const d = $('#detail'); d.dataset.id = id;
   const a = f.ai || {};
-  const naam = f.eigenNaam || a.naam || 'Nog niet herkend';
+  const naam = f.eigenNaam || a.naam || (f.status === 'speld' ? 'Speld (nog geen foto)' : 'Nog niet herkend');
   const [kl, tk] = statusLabel[f.status] || statusLabel.wacht;
   const rij = (k, v) => v ? `<div class="rij"><span>${k}</span><span>${esc(v)}</span></div>` : '';
   d.innerHTML = `
     <div class="terug"><button onclick="sluitDetail()">← Terug</button><div style="font-weight:800;font-size:18px">${esc(naam)}</div></div>
-    <div class="fotos">${f.fotos.map((p, i) => `<figure><img src="${fotoUrl(p.blob, f.id + p.t)}" alt=""><figcaption>Foto ${i + 1} · ${p.soort === 'veld' ? 'in het veld' : 'thuis / schoon'} · ${esc(datumTekst(p.t))}</figcaption></figure>`).join('')}</div>
+    <div class="fotos">${!f.fotos.length ? `<figure><img src="${SPELD_IMG}" alt=""><figcaption>Speld gezet met je stem (${esc(datumTekst(f.t))}). Voeg hieronder een foto toe, dan wordt hij herkend.</figcaption></figure>` : ''}${f.fotos.map((p, i) => `<figure><img src="${fotoUrl(p.blob, f.id + p.t)}" alt=""><figcaption>Foto ${i + 1} · ${p.soort === 'veld' ? 'in het veld' : 'thuis / schoon'} · ${esc(datumTekst(p.t))}</figcaption></figure>`).join('')}</div>
     ${a.veiligheid ? veiligBalk(a) : ''}
     <div class="blok">
       <h3>Wat is het?</h3>
       <span class="label ${kl}">${tk}</span>
       ${a.zekerheid != null ? `<div style="margin-top:8px;font-size:14px;color:var(--zacht)">Zekerheid ${a.zekerheid}%</div><div class="balk"><div style="width:${+a.zekerheid || 0}%"></div></div>` : ''}
-      ${a.beschrijving ? `<p>${esc(a.beschrijving)}</p>` : f.status === 'geenkey' ? '<p>Zet je OpenAI-sleutel in Instellingen, dan wordt deze vondst herkend.</p>' : f.status === 'pro' ? '<p>Je gratis herkenningen zijn op.</p><button class="groot goud" style="width:100%" onclick="Pro.open()">⭐ Herken met Vondst Pro</button>' : f.fout ? `<p>Laatste poging mislukte: ${esc(f.fout)}</p>` : '<p>Nog niet herkend.</p>'}
+      ${a.beschrijving ? `<p>${esc(a.beschrijving)}</p>` : f.status === 'speld' ? '<p>Voeg een foto toe, dan wordt deze vondst herkend.</p>' : f.status === 'geenkey' ? '<p>Zet je OpenAI-sleutel in Instellingen, dan wordt deze vondst herkend.</p>' : f.status === 'pro' ? '<p>Je gratis herkenningen zijn op.</p><button class="groot goud" style="width:100%" onclick="Pro.open()">⭐ Herken met Vondst Pro</button>' : f.fout ? `<p>Laatste poging mislukte: ${esc(f.fout)}</p>` : '<p>Nog niet herkend.</p>'}
       ${rij('Categorie', a.categorie)}${rij('Periode', a.periode)}${rij('Datering', a.datering)}${rij('Materiaal', a.materiaal)}${rij('Merk / model', a.merk_model)}${rij('Zeldzaamheid', a.zeldzaamheid)}${rij('Waarde (grof)', a.waarde_indicatie)}
     </div>
     ${a.herkenningstekens ? `<div class="blok"><h3>Waaraan herkend</h3><p>${esc(a.herkenningstekens)}</p></div>` : ''}
@@ -1142,7 +1213,7 @@ async function openDetail(id){
     ${a.foto_advies ? `<div class="blok"><h3>Tip voor een betere foto</h3><p>${esc(a.foto_advies)}</p></div>` : ''}
     ${a.schoonmaak_advies ? `<div class="blok"><h3>Schoonmaken</h3><p>${esc(a.schoonmaak_advies)}</p></div>` : ''}
     <div class="knoppen">
-      <button class="groot kleur kgoud breed" onclick="extraFoto('${f.id}')">📷 Nieuwe foto toevoegen (schoongemaakt)</button>
+      <button class="groot kleur kgoud breed" onclick="extraFoto('${f.id}')">${f.fotos.length ? '📷 Nieuwe foto toevoegen (schoongemaakt)' : '📷 Foto toevoegen'}</button>
       <button class="groot kleur kpaars" onclick="Herken.wachtrij('${f.id}')">🔄 Opnieuw herkennen</button>
       <button class="groot kleur kblauw" onclick="toonOpKaart('${f.id}')">🗺️ Op de kaart</button>
       <button class="groot rood breed" onclick="toonGevaar(null, true)">⚠️ Dit kan munitie zijn</button>
@@ -1178,9 +1249,11 @@ async function bewaarEigen(id){
 async function extraFoto(id){
   const blob = await vraagFoto(); if (!blob) return;
   const f = await DB.get('finds', id);
-  f.fotos.push({ blob: await verkleinFoto(blob, 1800, 0.88), t: Date.now(), soort: 'thuis' });
+  f.fotos.push({ blob: await verkleinFoto(blob, 1800, 0.88), t: Date.now(), soort: f.status === 'speld' ? 'veld' : 'thuis' });
+  if (f.status === 'speld') f.status = 'wacht';
   await DB.put('finds', f);
   melding('Foto toegevoegd, opnieuw herkennen…');
+  toonSpeldChip();
   openDetail(id);
   Herken.wachtrij(id);
 }
@@ -1210,8 +1283,8 @@ Object.assign(window, { openDetail, sluitDetail, bewaarEigen, extraFoto, verwijd
 function toonInstellingen(){
   Pro.toonBlok();
   if (NATIEF) {
-    $('#uitlegKnop').textContent = 'de volumeknoppen van je telefoon en een bluetooth-sluiterknopje maken ook een foto (op het zoekscherm).';
-    const v = $('#uitlegVersie'); v.textContent = 'Android-app: de route loopt door met het scherm uit en de telefoon in je zak. Je ziet dan een melding "Vondst houdt je route bij". Stem werkt alleen met het scherm aan.';
+    $('#uitlegKnop').textContent = 'de volumeknoppen van je telefoon en een bluetooth-sluiterknopje maken ook een foto (op het zoekscherm). Stem: zeg "hebbes" of "vondst"; met je telefoon op slot zet hij een speld.';
+    const v = $('#uitlegVersie'); v.textContent = 'Android-app: de route loopt door met het scherm uit en de telefoon in je zak. Je ziet dan een melding "Vondst houdt je route bij". Stem werkt ook met het scherm uit: dan zet hij een speld op de kaart (trilt twee keer).';
     v.previousElementSibling.textContent = 'Over deze app';
   }
   $('#keyInput').value = instel.key ? '••••••••' + instel.key.slice(-4) : '';
@@ -1365,7 +1438,9 @@ const Uitleg = {
     return [
       { ico: '🪙', titel: 'Welkom bij Vondst', tekst: '<p>Leg je vondsten vast met één druk op de knop. De app bewaart de <b>foto, de plek, de datum en de tijd</b> en vertelt je wat je gevonden hebt.</p>' },
       { ico: '📸', titel: 'Een vondst vastleggen', tekst: `<p>Ga naar <b>Zoeken</b>. Leg je vondst in het <b>gouden vak</b> en druk op ${knop}.</p><p>Klaar. De rest gaat vanzelf.</p>` },
-      { ico: '🎤', titel: 'Vieze handen? Gebruik je stem', tekst: '<p>Tik bovenin op <b>Stem</b>. Als het blauw is, luistert de app. Zeg dan:</p><p><span class="u-zeg">hebbes</span> <span class="u-zeg">vondst</span> <span class="u-zeg">foto</span></p><p>De app maakt meteen een foto. Stem blijft aan, ook als je de app later weer opent.</p>' },
+      NATIEF
+        ? { ico: '🎤', titel: 'Vieze handen? Gebruik je stem', tekst: '<p>Tik bovenin op <b>Stem</b>. Zeg dan:</p><p><span class="u-zeg">hebbes</span> <span class="u-zeg">vondst</span></p><p>Staat de app open op Zoeken, dan maakt hij <b>meteen een foto</b>.</p><p>Zit je telefoon in je zak of op slot, dan zet hij een <b>📍 speld</b> op de kaart en trilt hij twee keer. De foto voeg je later toe. Dit werkt ook zonder internet.</p>' }
+        : { ico: '🎤', titel: 'Vieze handen? Gebruik je stem', tekst: '<p>Tik bovenin op <b>Stem</b>. Als het blauw is, luistert de app. Zeg dan:</p><p><span class="u-zeg">hebbes</span> <span class="u-zeg">vondst</span> <span class="u-zeg">foto</span></p><p>De app maakt meteen een foto. Stem blijft aan, ook als je de app later weer opent.</p>' },
       { ico: '🧭', titel: 'Je route op de kaart', tekst: `<p>Tik op <b>Route</b> voordat je begint. Op de <b>Kaart</b> zie je dan precies waar je gelopen hebt en waar je wat vond.</p><p>${NATIEF ? 'De route loopt door met het scherm uit en de telefoon in je zak.' : 'Houd de app open, dan blijft de route meelopen.'} Met de paarse knop 🧭 op de kaart geef je routes een naam of verwijder je ze.</p>` },
       { ico: '⛔', titel: 'Veilig en volgens de regels', tekst: '<div class="u-lijst"><div><b>Rood op de kaart</b>: hier mag je niet zoeken. Loop je erin, dan waarschuwt de app.</div><div><b>Rode ⚠️-knop</b>: denk je dat het munitie is? Raak het niet aan en druk op deze knop voor de alarmnummers.</div><div>Vraag altijd <b>toestemming aan de grondeigenaar</b>.</div></div>' },
       { ico: '🔍', titel: 'Wat heb ik gevonden?', tekst: '<p>Zet bij <b>Instellingen</b> je OpenAI-sleutel. Dan herkent de app je vondst: wat het is, hoe oud en van welk materiaal.</p><p>Was de foto vies? Maak thuis een <b>nieuwe foto als hij schoon is</b>. De app kijkt dan opnieuw.</p>' },
@@ -1425,7 +1500,7 @@ $('#zoeken').addEventListener('click', e => {
 });
 $('#camAanKnop').onclick = e => { e.stopPropagation(); startCamera(); };
 $('#routeKnop').onclick = e => { e.stopPropagation(); Route.sessie ? (confirm('Route stoppen?') && Route.uit()) : Route.aan(); };
-$('#stemKnop').onclick = e => { e.stopPropagation(); if (Stem.aan) Stem.stop(); else { Stem.start(true); melding('🎤 Stem staat aan. Zeg “hebbes”, “vondst” of “foto”.', 3500); } };
+$('#stemKnop').onclick = e => { e.stopPropagation(); if (Stem.aan) Stem.stop(); else { Stem.start(true); melding(NATIEF ? '🎤 Stem staat aan. Zeg “hebbes” of “vondst”. Werkt ook met je telefoon in je zak.' : '🎤 Stem staat aan. Zeg “hebbes”, “vondst” of “foto”.', 4000); } };
 window.vondstExternKnop = () => { if (huidigScherm === 'zoeken' && !$('#detail').classList.contains('open')) vondst('knop-extern'); else melding('Ga naar Zoeken om met de knop een foto te maken'); };
 document.addEventListener('keydown', e => {
   if (e.target.matches('input, textarea, select')) return;
@@ -1450,6 +1525,7 @@ document.addEventListener('keydown', e => {
   if (!instel.key) setTimeout(() => melding('Tip: zet je OpenAI-sleutel in Instellingen voor herkenning', 4000), 1500);
   Herken.allesWachtend();
   Lagen.laad();
+  haalNatieveSpelden();
   setTimeout(() => Plek.vulOntbrekende(), 4000);
   if (!localStorage.getItem('v_uitleg_gezien')) Uitleg.open();
   if (Stem.gewenst) Stem.start(); // stem stond aan: meteen weer luisteren
