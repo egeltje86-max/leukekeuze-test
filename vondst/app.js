@@ -1192,7 +1192,9 @@ function veiligBalk(a){
 async function openDetail(id){
   const f = await DB.get('finds', id); if (!f) return;
   const route = f.sessie ? await DB.get('tracks', f.sessie) : null;
-  const d = $('#detail'); d.dataset.id = id;
+  const d = $('#detail');
+  const zelfde = d.classList.contains('open') && d.dataset.id === id; // alleen bijwerken: scrollplek houden
+  d.dataset.id = id;
   const a = f.ai || {};
   const naam = f.eigenNaam || a.naam || (f.status === 'speld' ? 'Speld (nog geen foto)' : 'Nog niet herkend');
   const [kl, tk] = statusLabel[f.status] || statusLabel.wacht;
@@ -1238,8 +1240,9 @@ async function openDetail(id){
     ${a.model ? `<p class="uitleg" style="padding:0 16px">Herkend door ${esc(a.model)} op ${esc(datumTekst(a.tijd))}</p>` : ''}
   `;
   d.classList.add('open');
+  if (!zelfde) d.scrollTop = 0; // een andere vondst begint altijd bovenaan
 }
-function sluitDetail(){ $('#detail').classList.remove('open'); if (huidigScherm === 'vondsten') toonLijst(); }
+function sluitDetail(){ $('#detail').classList.remove('open'); $('#detail').scrollTop = 0; if (huidigScherm === 'vondsten') toonLijst(); }
 async function bewaarEigen(id){
   const f = await DB.get('finds', id);
   f.eigenPlek = $('#dPlek').value.trim();
