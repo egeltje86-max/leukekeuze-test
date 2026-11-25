@@ -1,0 +1,9 @@
+{
+  "appId": "nl.leukekeuze.vondst",
+  "appName": "Vondst",
+  "webDir": "www",
+  "android": {
+    "useLegacyBridge": true,
+    "allowMixedContent": false
+  }
+}

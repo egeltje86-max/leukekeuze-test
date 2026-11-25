@@ -106,24 +106,54 @@ async function dataUrlNaarBlob(u){ return (await fetch(u)).blob(); }
 
 /* ================= GPS ================= */
 const GPS = { laatste: null, recent: [], wachters: [] };
+// Draait de app als echte Android-app (Capacitor)?
+const CAP = window.capacitorExports;
+const NATIEF = !!(CAP && CAP.Capacitor && CAP.Capacitor.isNativePlatform && CAP.Capacitor.isNativePlatform());
+const plugin = naam => NATIEF ? CAP.registerPlugin(naam) : null;
+
+function verwerkFix(fix){
+  GPS.laatste = fix;
+  GPS.recent.push(fix);
+  const grens = Date.now() - 30000;
+  GPS.recent = GPS.recent.filter(f => f.t >= grens);
+  toonGps();
+  Route.punt(fix);
+  Kaart.mijnPlek(fix);
+  Lagen.check(fix);
+  GPS.wachters.splice(0).forEach(w => w(fix));
+}
+const NatiefGps = {
+  id: null, achtergrond: null,
+  // Met achtergrond = true blijft de GPS doorlopen met het scherm uit (melding 'Route bijhouden').
+  async start(achtergrond){
+    const BG = plugin('BackgroundGeolocation');
+    if (NatiefGps.id && NatiefGps.achtergrond === achtergrond) return;
+    if (NatiefGps.id) { try { await BG.removeWatcher({ id: NatiefGps.id }); } catch (e) {} NatiefGps.id = null; }
+    const opties = { requestPermissions: true, stale: false, distanceFilter: 0 };
+    if (achtergrond) { opties.backgroundTitle = 'Vondst houdt je route bij'; opties.backgroundMessage = 'Tik om de app te openen'; }
+    NatiefGps.achtergrond = achtergrond;
+    NatiefGps.id = await BG.addWatcher(opties, (loc, err) => {
+      if (err) {
+        $('#gpsTekst').textContent = err.code === 'NOT_AUTHORIZED' ? 'geen toestemming' : 'geen signaal';
+        $('#gpsChip').className = 'chip slecht';
+        if (err.code === 'NOT_AUTHORIZED' && confirm('Vondst heeft je locatie nodig. Instellingen openen?')) BG.openSettings();
+        return;
+      }
+      if (!loc) return;
+      verwerkFix({ lat: loc.latitude, lon: loc.longitude, acc: loc.accuracy, alt: loc.altitude, t: Date.now() });
+    });
+  },
+};
 function startGps(){
+  setInterval(toonGps, 3000);
+  if (NATIEF) { NatiefGps.start(!!(Route && Route.sessie)); return; }
   if (!('geolocation' in navigator)) { $('#gpsTekst').textContent = 'niet beschikbaar'; return; }
   navigator.geolocation.watchPosition(p => {
-    const fix = { lat: p.coords.latitude, lon: p.coords.longitude, acc: p.coords.accuracy, alt: p.coords.altitude, t: Date.now() };
-    GPS.laatste = fix;
-    GPS.recent.push(fix);
-    const grens = Date.now() - 30000;
-    GPS.recent = GPS.recent.filter(f => f.t >= grens);
-    toonGps();
-    Route.punt(fix);
-    Kaart.mijnPlek(fix);
-    Lagen.check(fix);
-    GPS.wachters.splice(0).forEach(w => w(fix));
+    verwerkFix({ lat: p.coords.latitude, lon: p.coords.longitude, acc: p.coords.accuracy, alt: p.coords.altitude, t: Date.now() });
   }, err => {
     $('#gpsTekst').textContent = err.code === 1 ? 'geen toestemming' : 'geen signaal';
     $('#gpsChip').className = 'chip slecht';
   }, { enableHighAccuracy: true, maximumAge: 0, timeout: 30000 });
-  setInterval(toonGps, 3000);
 }
 function toonGps(){
   const f = GPS.laatste, chip = $('#gpsChip');
@@ -172,7 +202,8 @@ var Route = window.Route = {
     await DB.put('tracks', Route.sessie);
     localStorage.setItem('v_route', Route.sessie.id);
     Route.toon(); Kaart.verversRoutes();
-    melding('Route staat aan');
+    if (NATIEF) NatiefGps.start(true);
+    melding(NATIEF ? 'Route staat aan, ook met het scherm uit' : 'Route staat aan');
     houdSchermAan();
   },
   async uit(){
@@ -181,6 +212,7 @@ var Route = window.Route = {
     await DB.put('tracks', Route.sessie);
     Route.sessie = null; localStorage.removeItem('v_route');
     Route.toon(); Kaart.verversRoutes();
+    if (NATIEF) NatiefGps.start(false);
     melding('Route gestopt en bewaard');
   },
   ruw: [], naPauze: false,
@@ -225,7 +257,7 @@ async function houdSchermAan(){
 }
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') { houdSchermAan(); if (huidigScherm === 'zoeken') startCamera(); if (Stem.gewenst) Stem.start(); }
-  else { stopCamera(); Stem.pauze(); Route.pauze(); }
+  else { stopCamera(); Stem.pauze(); if (!NATIEF) Route.pauze(); }
 });
 
 /* ================= CAMERA ================= */
@@ -335,7 +367,41 @@ const Stem = {
   rec: null, aan: false, loopt: false, laatsteKeer: 0, laatsteStart: 0,
   get gewenst(){ return localStorage.getItem('v_stem') === '1'; },
   set gewenst(v){ localStorage.setItem('v_stem', v ? '1' : '0'); },
+  verwerk(tekst){
+    const t = (tekst || '').toLowerCase();
+    if (t.trim()) $('#stemTekst').textContent = '“' + tekst.trim() + '”';
+    if (/\b(vondst|vonst|fonds|foto|hebbes|bingo)\b/.test(t) && Date.now() - Stem.laatsteKeer > 2500) {
+      Stem.laatsteKeer = Date.now();
+      vondst('stem');
+      return true;
+    }
+    return false;
+  },
+  // ---- Android-app: spraakherkenning van de telefoon zelf ----
+  async startNatief(handmatig){
+    const SR = plugin('SpeechRecognition');
+    try { const a = await SR.available(); if (!a.available) { if (handmatig) melding('Spraakherkenning is niet beschikbaar op deze telefoon'); return; } } catch (e) {}
+    try {
+      const p = await SR.checkPermissions();
+      if (p.speechRecognition !== 'granted') {
+        const r = await SR.requestPermissions();
+        if (r.speechRecognition !== 'granted') { melding('Geen toestemming voor de microfoon'); return; }
+      }
+    } catch (e) {}
+    Stem.gewenst = true; Stem.aan = true;
+    $('#stemKnop').classList.add('aan'); $('#stemStatus').textContent = 'luistert';
+    if (!Stem.natiefLuisteraars) {
+      Stem.natiefLuisteraars = true;
+      SR.addListener('partialResults', d => { for (const m of (d.matches || [])) if (Stem.verwerk(m)) break; });
+      SR.addListener('listeningState', d => {
+        Stem.loopt = d.status === 'started';
+        if (d.status === 'stopped' && Stem.aan && document.visibilityState === 'visible') setTimeout(Stem.herstart, 400);
+      });
+    }
+    Stem.herstart();
+  },
   start(handmatig){
+    if (NATIEF) return Stem.startNatief(handmatig);
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SR) { if (handmatig) melding('Spraak werkt niet in deze browser. Gebruik Chrome.'); return; }
     Stem.gewenst = true; Stem.aan = true;
@@ -346,15 +412,7 @@ const Stem = {
     r.onstart = () => { Stem.loopt = true; Stem.wachtOpTik(false); };
     r.onresult = e => {
       for (let i = e.resultIndex; i < e.results.length; i++) {
-        for (let j = 0; j < e.results[i].length; j++) {
-          const t = e.results[i][j].transcript.toLowerCase();
-          $('#stemTekst').textContent = '“' + e.results[i][0].transcript.trim() + '”';
-          if (/\b(vondst|vonst|fonds|foto|hebbes|bingo)\b/.test(t) && Date.now() - Stem.laatsteKeer > 2500) {
-            Stem.laatsteKeer = Date.now();
-            vondst('stem');
-            return;
-          }
-        }
+        for (let j = 0; j < e.results[i].length; j++) if (Stem.verwerk(e.results[i][j].transcript)) return;
       }
     };
     r.onerror = e => {
@@ -368,17 +426,25 @@ const Stem = {
     Stem.herstart();
   },
   herstart(){
+    if (NATIEF) {
+      if (!Stem.aan || Stem.loopt || document.visibilityState !== 'visible') return;
+      Stem.loopt = true; Stem.laatsteStart = Date.now();
+      plugin('SpeechRecognition').start({ language: 'nl-NL', maxResults: 3, partialResults: true, popup: false }).catch(() => { Stem.loopt = false; });
+      return;
+    }
     if (!Stem.rec || !Stem.aan || Stem.loopt || document.visibilityState !== 'visible') return;
     Stem.laatsteStart = Date.now();
     try { Stem.rec.start(); } catch (e) {}
   },
   pauze(){ // app weggeklikt: microfoon los, maar de stem blijft 'gewenst'
     Stem.loopt = false;
+    if (NATIEF) { plugin('SpeechRecognition').stop().catch(() => {}); return; }
     try { Stem.rec && Stem.rec.abort(); } catch (e) {}
   },
   stop(){
     Stem.gewenst = false; Stem.aan = false; Stem.loopt = false; Stem.wachtOpTik(false);
     $('#stemKnop').classList.remove('aan'); $('#stemStatus').textContent = 'uit'; $('#stemTekst').textContent = '';
+    if (NATIEF) plugin('SpeechRecognition').stop().catch(() => {});
     try { Stem.rec && Stem.rec.abort(); } catch (e) {}
     Stem.rec = null;
   },
@@ -986,6 +1052,7 @@ $('#zoeken').addEventListener('click', e => {
 $('#camAanKnop').onclick = e => { e.stopPropagation(); startCamera(); };
 $('#routeKnop').onclick = e => { e.stopPropagation(); Route.sessie ? (confirm('Route stoppen?') && Route.uit()) : Route.aan(); };
 $('#stemKnop').onclick = e => { e.stopPropagation(); Stem.aan ? Stem.stop() : Stem.start(true); };
+window.vondstExternKnop = () => { if (huidigScherm === 'zoeken' && !$('#detail').classList.contains('open')) vondst('knop-extern'); else melding('Ga naar Zoeken om met de knop een foto te maken'); };
 document.addEventListener('keydown', e => {
   if (e.target.matches('input, textarea, select')) return;
   if (huidigScherm !== 'zoeken') return;
@@ -1010,5 +1077,5 @@ document.addEventListener('keydown', e => {
   Herken.allesWachtend();
   Lagen.laad();
   if (Stem.gewenst) Stem.start(); // stem stond aan: meteen weer luisteren
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+  if (!NATIEF && 'serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 })();
