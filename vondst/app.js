@@ -544,7 +544,7 @@ var Kaart = window.Kaart = {
       if (t.punten.length < 2 && !(Route.sessie && t.id === Route.sessie.id)) continue;
       const actief = Route.sessie && t.id === Route.sessie.id;
       const lijn = L.polyline((actief ? Route.sessie : t).punten.map(p => [p[0], p[1]]), {
-        color: actief ? '#ffd36b' : '#7fd1ff', opacity: actief ? 0.55 : 0.35, weight: w, lineCap: 'round', lineJoin: 'round',
+        color: actief ? routeKleur() : oudeRouteKleur(), opacity: actief ? 0.6 : 0.35, weight: w, lineCap: 'round', lineJoin: 'round',
       }).addTo(Kaart.routeLaag);
       if (actief) Kaart.actieveLijn = lijn;
     }
@@ -586,6 +586,27 @@ async function toonOpKaart(id){
   sluitDetail(); kiesScherm('kaart'); Kaart.volgen = false;
   Kaart.map.setView([f.lat, f.lon], 20);
 }
+
+/* ================= ROUTEKLEUR ================= */
+const ROUTEKLEUREN = [
+  ['#ffd36b', 'Goud'], ['#ffffff', 'Wit'], ['#ff2bd6', 'Roze'], ['#00e5ff', 'Lichtblauw'],
+  ['#ff3b30', 'Rood'], ['#7dff3a', 'Felgroen'], ['#ff8a00', 'Oranje'], ['#7a5cff', 'Paars'],
+];
+const routeKleur = () => localStorage.getItem('v_routekleur') || '#ffd36b';
+const oudeRouteKleur = () => routeKleur() === '#00e5ff' ? '#ffffff' : '#7fd1ff';
+function toonKleurKeuze(){
+  $('#kleurStaal').style.background = routeKleur();
+  $('#kleurKeuze').innerHTML = ROUTEKLEUREN.map(([k, n]) =>
+    `<button title="${n}" aria-label="${n}" style="background:${k}" class="${k === routeKleur() ? 'aan' : ''}" onclick="kiesRouteKleur('${k}')"></button>`).join('');
+}
+function kiesRouteKleur(k){
+  localStorage.setItem('v_routekleur', k);
+  toonKleurKeuze(); Kaart.verversRoutes();
+  setTimeout(() => $('#kleurKeuze').classList.remove('open'), 250);
+}
+window.kiesRouteKleur = kiesRouteKleur;
+$('#kleurKnop').onclick = () => { toonKleurKeuze(); $('#kleurKeuze').classList.toggle('open'); };
+toonKleurKeuze();
 
 /* ================= HISTORISCHE LAGEN (van Nova, volgens lagen/index.json) ================= */
 const PERIODES = {

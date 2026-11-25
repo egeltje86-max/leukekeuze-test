@@ -93,6 +93,17 @@ input,textarea,select{font:inherit}
 .popknop{display:block;width:100%;margin-top:6px;padding:9px;border-radius:8px;background:var(--goud);color:#111;font-weight:800}
 
 
+
+/* ---------- ROUTEKLEUR ---------- */
+.kaartknoppen button.kkleur{background:#000c;display:flex;align-items:center;justify-content:center}
+#kleurStaal{width:30px;height:30px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px #000}
+#kleurKeuze{position:absolute;right:76px;top:calc(10px + env(safe-area-inset-top) + 3*66px);z-index:600;display:none;
+  gap:10px;padding:10px;background:rgba(12,10,8,.85);border:1.5px solid rgba(255,255,255,.18);border-radius:16px;
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);flex-wrap:wrap;max-width:calc(100vw - 96px)}
+#kleurKeuze.open{display:flex}
+#kleurKeuze button{width:46px;height:46px;border-radius:50%;border:3px solid rgba(255,255,255,.35)}
+#kleurKeuze button.aan{border-color:#fff;box-shadow:0 0 0 3px var(--goud)}
+
 /* ---------- LAGEN ---------- */
 #lagenPaneel{position:absolute;left:0;right:0;bottom:0;z-index:700;max-height:72%;overflow:auto;display:none;
   background:linear-gradient(#1f1a14,#14110d);border-top:2px solid rgba(242,182,48,.45);border-radius:20px 20px 0 0;
@@ -252,7 +263,9 @@ nav button.aan svg{opacity:1;filter:saturate(1.1) drop-shadow(0 0 7px rgba(242,1
     <button id="volgKnop" class="kblauw" title="Naar mijn plek">◎</button>
     <button id="laagKnop" class="kgroen" title="Kaart / satelliet">🛰</button>
     <button id="lagenKnop" class="kgoudlaag" title="Historische lagen">📜</button>
+    <button id="kleurKnop" class="kkleur" title="Kleur van de route"><span id="kleurStaal"></span></button>
   </div>
+  <div id="kleurKeuze"></div>
   <div id="nietZoeken">⛔ Je bent in een gebied waar je <b>niet mag zoeken</b><small id="nietZoekenNaam"></small></div>
   <div id="lagenPaneel">
     <div class="paneelkop"><b>Kaartlagen</b><button id="lagenDicht">Klaar</button></div>
