@@ -92,6 +92,30 @@ input,textarea,select{font:inherit}
 .leaflet-popup-content img{width:180px;height:140px;object-fit:cover;border-radius:8px;display:block;margin-bottom:6px}
 .popknop{display:block;width:100%;margin-top:6px;padding:9px;border-radius:8px;background:var(--goud);color:#111;font-weight:800}
 
+
+/* ---------- LAGEN ---------- */
+#lagenPaneel{position:absolute;left:0;right:0;bottom:0;z-index:700;max-height:72%;overflow:auto;display:none;
+  background:linear-gradient(#1f1a14,#14110d);border-top:2px solid rgba(242,182,48,.45);border-radius:20px 20px 0 0;
+  box-shadow:0 -10px 30px rgba(0,0,0,.6);padding:0 0 14px}
+#lagenPaneel.open{display:block}
+.paneelkop{position:sticky;top:0;display:flex;justify-content:space-between;align-items:center;padding:14px 16px;background:#1f1a14;font-size:19px}
+.paneelkop button{background:var(--goud);color:#1a1206;font-weight:800;border-radius:12px;padding:10px 18px}
+.lgroep{padding:6px 16px 2px;font-size:13px;font-weight:800;color:var(--goud2);text-transform:uppercase;letter-spacing:.6px}
+.lrij{display:flex;align-items:center;gap:12px;width:calc(100% - 24px);margin:6px 12px;padding:12px;border-radius:14px;
+  background:#241e17;border:1.5px solid var(--lijn);text-align:left}
+.lrij .kl{width:22px;height:22px;border-radius:6px;flex:none;border:2px solid rgba(255,255,255,.3)}
+.lrij .nm{flex:1;font-weight:700;font-size:16px}
+.lrij .nm small{display:block;font-weight:500;font-size:12px;color:var(--zacht);margin-top:2px}
+.schakel{width:52px;height:30px;border-radius:15px;background:#444;position:relative;flex:none;transition:background .2s}
+.schakel:after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:left .2s}
+.lrij.aan .schakel{background:var(--groen)} .lrij.aan .schakel:after{left:25px}
+.lrij.vast{opacity:.9} .lrij.vast .schakel{background:#7a2520}
+#nietZoeken{position:absolute;left:10px;right:80px;top:calc(10px + env(safe-area-inset-top));z-index:650;display:none;
+  background:#b3140e;color:#fff;font-weight:700;padding:12px 14px;border-radius:14px;box-shadow:0 6px 20px rgba(0,0,0,.5);line-height:1.3}
+#nietZoeken small{display:block;font-weight:500;font-size:12.5px;opacity:.9}
+#nietZoeken.open{display:block}
+.lpop b{font-size:15px} .lpop .m{color:#555;font-size:12.5px;margin:2px 0 6px} .lpop .b{font-size:11.5px;color:#777;margin-top:6px}
+
 /* ---------- LIJST ---------- */
 .kop{padding:calc(18px + env(safe-area-inset-top)) 16px 8px;font-size:26px;font-weight:900;letter-spacing:.3px}
 .kop:after{content:"";display:block;width:44px;height:3px;border-radius:2px;background:var(--goud);margin-top:8px}
@@ -133,6 +157,7 @@ input,textarea,select{font:inherit}
 /* 25-11-2026 (Marius: 'kleur alle knoppen'): alle knoppen in kleur */
 .groot.kleur.kgoud{background:linear-gradient(160deg,#ffd36b,#d89a12);color:#1a1206;text-shadow:none}
 .kaartknoppen button.kblauw{background:linear-gradient(160deg,#4a9dff,#1f5fc4);border-color:#9cc8ff;color:#fff}
+.kaartknoppen button.kgoudlaag{background:linear-gradient(160deg,#ffd36b,#d89a12);border-color:#ffe7a6;color:#1a1206}
 .kaartknoppen button.kgroen{background:linear-gradient(160deg,#35c26f,#13803f);border-color:#9be8b9;color:#fff}
 .chip.kroute{background:rgba(19,92,52,.72);border-color:#35c26f}
 .chip.kroute.aan{background:linear-gradient(160deg,#35c26f,#13803f);border-color:#9be8b9}
@@ -226,6 +251,12 @@ nav button.aan svg{opacity:1;filter:saturate(1.1) drop-shadow(0 0 7px rgba(242,1
   <div class="kaartknoppen">
     <button id="volgKnop" class="kblauw" title="Naar mijn plek">◎</button>
     <button id="laagKnop" class="kgroen" title="Kaart / satelliet">🛰</button>
+    <button id="lagenKnop" class="kgoudlaag" title="Historische lagen">📜</button>
+  </div>
+  <div id="nietZoeken">⛔ Je bent in een gebied waar je <b>niet mag zoeken</b><small id="nietZoekenNaam"></small></div>
+  <div id="lagenPaneel">
+    <div class="paneelkop"><b>Kaartlagen</b><button id="lagenDicht">Klaar</button></div>
+    <div id="lagenLijst"></div>
   </div>
 </section>
 

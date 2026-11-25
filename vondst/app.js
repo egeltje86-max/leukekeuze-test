@@ -117,6 +117,7 @@ function startGps(){
     toonGps();
     Route.punt(fix);
     Kaart.mijnPlek(fix);
+    Lagen.check(fix);
     GPS.wachters.splice(0).forEach(w => w(fix));
   }, err => {
     $('#gpsTekst').textContent = err.code === 1 ? 'geen toestemming' : 'geen signaal';
@@ -476,7 +477,7 @@ function toonGevaar(f){
 $('#gevaarDicht').onclick = () => $('#gevaar').classList.remove('open');
 
 /* ================= KAART ================= */
-const Kaart = {
+var Kaart = window.Kaart = {
   map: null, lagen: {}, laag: 'sat', vondstLaag: null, routeLaag: null, actieveLijn: null, mijnMarker: null, mijnCirkel: null, volgen: true,
   init(){
     if (Kaart.map || !window.L) return;
@@ -490,6 +491,7 @@ const Kaart = {
     map.on('dragstart', () => { Kaart.volgen = false; });
     Kaart.map = map;
     Kaart.verversRoutes(); Kaart.verversVondsten();
+    Lagen.opKaart(map);
     if (GPS.laatste) { map.setView([GPS.laatste.lat, GPS.laatste.lon], 19); Kaart.mijnPlek(GPS.laatste); }
   },
   // Een zoekstrook van ongeveer 1 meter breed (zwaai van de detector)
@@ -554,6 +556,145 @@ async function toonOpKaart(id){
   sluitDetail(); kiesScherm('kaart'); Kaart.volgen = false;
   Kaart.map.setView([f.lat, f.lon], 20);
 }
+
+/* ================= HISTORISCHE LAGEN (van Nova, volgens lagen/index.json) ================= */
+const PERIODES = {
+  'prehistorie': 'Prehistorie', 'romeins': 'Romeinse tijd', 'vroege-middeleeuwen': 'Vroege middeleeuwen',
+  'late-middeleeuwen': 'Late middeleeuwen', 'nieuwe-tijd': 'Nieuwe tijd', 'negentiende-eeuw': '19e eeuw',
+  'wereldoorlogen': 'Wereldoorlogen', 'modern': 'Na 1945',
+};
+const GROEPEN = { 'veiligheid': 'Veiligheid', 'periode': 'Historische perioden', 'historische-kaart': 'Oude kaarten' };
+const jaar = j => j == null || j === '' ? '' : (+j < 0 ? (-j) + ' v.Chr.' : String(j));
+const Lagen = {
+  lijst: [], data: {}, kaartLagen: {}, map: null, gewaarschuwd: '', laatsteCheck: 0,
+  aan(l){
+    if (l.uitzetbaar === false) return true;
+    const v = localStorage.getItem('v_laag_' + l.id);
+    return v === null ? !!l.standaardAan : v === '1';
+  },
+  async laad(){
+    try {
+      const r = await fetch('lagen/index.json', { cache: 'no-cache' });
+      if (!r.ok) return;
+      const j = await r.json();
+      Lagen.lijst = (j.lagen || []).filter(l => l && l.id && l.url && l.type);
+    } catch (e) { Lagen.lijst = []; }
+    // veiligheidslagen altijd vooraf laden, ook als de kaart nog niet open is geweest
+    for (const l of Lagen.lijst) if (l.type === 'geojson' && (l.groep === 'veiligheid' || Lagen.aan(l))) Lagen.haalData(l);
+    Lagen.toonMenu();
+  },
+  async haalData(l){
+    if (Lagen.data[l.id]) return Lagen.data[l.id];
+    try {
+      const r = await fetch(l.url);
+      if (!r.ok) throw new Error(r.status);
+      Lagen.data[l.id] = await r.json();
+    } catch (e) { melding('Laag "' + l.naam + '" kon niet geladen worden'); return null; }
+    if (Lagen.map) Lagen.bijwerken();
+    return Lagen.data[l.id];
+  },
+  opKaart(map){ Lagen.map = map; map.on('zoomend', Lagen.bijwerken); Lagen.bijwerken(); },
+  maakLaag(l){
+    if (l.type === 'xyz') return L.tileLayer(l.url, { maxZoom: 22, maxNativeZoom: l.maxNativeZoom || 19, opacity: l.doorzichtigheid ?? 0.75, attribution: l.naamsvermelding || '' });
+    if (l.type === 'wms') return L.tileLayer.wms(l.url, { layers: l.wmsLagen || '', format: 'image/png', transparent: true, maxZoom: 22, opacity: l.doorzichtigheid ?? 0.75, attribution: l.naamsvermelding || '' });
+    if (l.type === 'wmts') return L.tileLayer(l.url, { maxZoom: 22, maxNativeZoom: l.maxNativeZoom || 19, opacity: l.doorzichtigheid ?? 0.75, attribution: l.naamsvermelding || '' });
+    if (l.type === 'geojson') {
+      const gj = Lagen.data[l.id]; if (!gj) { Lagen.haalData(l); return null; }
+      const kleur = l.kleur || '#f2b630';
+      const verboden = l.groep === 'veiligheid';
+      return L.geoJSON(gj, {
+        attribution: l.naamsvermelding || '',
+        style: f => (f && f.geometry && /Point/.test(f.geometry.type)) ? { radius: 8, color: '#000', weight: 1.5, fillColor: kleur, fillOpacity: .95 } : ({ color: kleur, weight: verboden ? 2.5 : 3, opacity: .95, fillColor: kleur, fillOpacity: verboden ? .28 : .18, dashArray: verboden ? '6 5' : null }),
+        pointToLayer: (f, ll) => L.circleMarker(ll, { radius: 7, color: '#000', weight: 1.5, fillColor: kleur, fillOpacity: .95 }),
+        onEachFeature: (f, laag) => {
+          const p = f.properties || {};
+          const tijd = [jaar(p.van), jaar(p.tot)].filter(Boolean).join(' – ');
+          const meta = [p.soort, PERIODES[p.periode] || p.periode, tijd].filter(Boolean).join(' · ');
+          laag.bindPopup(`<div class="lpop"><b>${esc(p.naam || l.naam)}</b><div class="m">${esc(meta)}</div>${p.beschrijving ? esc(p.beschrijving) : ''}` +
+            `${p.zekerheid ? `<div class="b">Zekerheid plek: ${esc(p.zekerheid)}${p.nauwkeurigheid_m ? ' (± ' + esc(p.nauwkeurigheid_m) + ' m)' : ''}</div>` : ''}` +
+            `<div class="b">Bron: ${p.bron_url ? `<a href="${esc(p.bron_url)}" target="_blank" rel="noopener">${esc(p.bron || 'link')}</a>` : esc(p.bron || l.bron || '')}</div></div>`);
+        },
+      });
+    }
+    return null;
+  },
+  bijwerken(){
+    const map = Lagen.map; if (!map) return;
+    const z = map.getZoom();
+    for (const l of Lagen.lijst) {
+      const moet = Lagen.aan(l) && z >= (l.minZoom || 0);
+      let k = Lagen.kaartLagen[l.id];
+      if (moet && !k) { k = Lagen.maakLaag(l); if (k) { Lagen.kaartLagen[l.id] = k; k.addTo(map); if (l.type !== 'geojson') k.bringToBack(), Kaart.lagen[Kaart.laag].bringToBack(); } }
+      else if (moet && k && !map.hasLayer(k)) k.addTo(map);
+      else if (!moet && k && map.hasLayer(k)) map.removeLayer(k);
+    }
+    // vondsten en route altijd bovenop
+    Kaart.routeLaag && Kaart.routeLaag.eachLayer(x => x.bringToFront && x.bringToFront());
+    Kaart.vondstLaag && Kaart.vondstLaag.eachLayer(x => x.bringToFront && x.bringToFront());
+    Lagen.toonMenu();
+  },
+  wissel(id){
+    const l = Lagen.lijst.find(x => x.id === id); if (!l) return;
+    if (l.uitzetbaar === false) return melding('Deze veiligheidslaag staat altijd aan');
+    localStorage.setItem('v_laag_' + id, Lagen.aan(l) ? '0' : '1');
+    if (Lagen.aan(l) && l.type === 'geojson') Lagen.haalData(l);
+    if (Lagen.aan(l) && Lagen.map && l.minZoom && Lagen.map.getZoom() < l.minZoom) melding('Zoom verder in om deze laag te zien');
+    Lagen.bijwerken(); Lagen.toonMenu();
+  },
+  toonMenu(){
+    const el = $('#lagenLijst'); if (!el) return;
+    if (!Lagen.lijst.length) { el.innerHTML = '<div class="leeg">Er zijn nog geen historische lagen.<br>Zodra Nova de eerste levert, verschijnen ze hier.</div>'; return; }
+    const z = Lagen.map ? Lagen.map.getZoom() : 99;
+    const groepen = {};
+    for (const l of Lagen.lijst) (groepen[l.groep || 'overig'] = groepen[l.groep || 'overig'] || []).push(l);
+    const volgorde = ['veiligheid', 'periode', 'historische-kaart', ...Object.keys(groepen)].filter((g, i, a) => groepen[g] && a.indexOf(g) === i);
+    el.innerHTML = volgorde.map(g => `<div class="lgroep">${esc(GROEPEN[g] || g)}</div>` + groepen[g].map(l => {
+      const aan = Lagen.aan(l), vast = l.uitzetbaar === false;
+      const sub = [l.periode && PERIODES[l.periode] !== l.naam && PERIODES[l.periode], vast ? 'staat altijd aan' : '', aan && l.minZoom && z < l.minZoom ? 'zoom verder in' : ''].filter(Boolean).join(' · ');
+      return `<button class="lrij ${aan ? 'aan' : ''} ${vast ? 'vast' : ''}" onclick="Lagen.wissel('${esc(l.id)}')">
+        <span class="kl" style="background:${esc(l.kleur || '#888')}"></span>
+        <span class="nm">${esc(l.naam)}${sub ? `<small>${esc(sub)}</small>` : ''}</span><span class="schakel"></span></button>`;
+    }).join('')).join('');
+  },
+  // waarschuwing als je een 'niet zoeken'-gebied binnenloopt
+  check(fix){
+    if (Date.now() - Lagen.laatsteCheck < 4000) return;
+    Lagen.laatsteCheck = Date.now();
+    let treffer = '';
+    for (const l of Lagen.lijst) {
+      if (l.groep !== 'veiligheid' || !Lagen.aan(l) || !Lagen.data[l.id]) continue;
+      for (const f of Lagen.data[l.id].features || []) {
+        if (inGebied([fix.lon, fix.lat], f.geometry)) { treffer = (f.properties && f.properties.naam) || l.naam; break; }
+      }
+      if (treffer) break;
+    }
+    const b = $('#nietZoeken');
+    if (treffer) {
+      $('#nietZoekenNaam').textContent = treffer;
+      b.classList.add('open');
+      if (Lagen.gewaarschuwd !== treffer) { Lagen.gewaarschuwd = treffer; tril([300, 120, 300]); piep(440, .3); melding('⛔ Hier mag je niet zoeken: ' + treffer, 5000); }
+    } else { b.classList.remove('open'); Lagen.gewaarschuwd = ''; }
+  },
+};
+function inRing(pt, ring){
+  let binnen = false;
+  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
+    const [xi, yi] = ring[i], [xj, yj] = ring[j];
+    if (((yi > pt[1]) !== (yj > pt[1])) && (pt[0] < (xj - xi) * (pt[1] - yi) / (yj - yi) + xi)) binnen = !binnen;
+  }
+  return binnen;
+}
+function inPolygoon(pt, rings){ return inRing(pt, rings[0]) && !rings.slice(1).some(r => inRing(pt, r)); }
+function inGebied(pt, g){
+  if (!g) return false;
+  if (g.type === 'Polygon') return inPolygoon(pt, g.coordinates);
+  if (g.type === 'MultiPolygon') return g.coordinates.some(p => inPolygoon(pt, p));
+  if (g.type === 'GeometryCollection') return g.geometries.some(x => inGebied(pt, x));
+  return false;
+}
+window.Lagen = Lagen;
+$('#lagenKnop').onclick = () => { Lagen.toonMenu(); $('#lagenPaneel').classList.add('open'); };
+$('#lagenDicht').onclick = () => $('#lagenPaneel').classList.remove('open');
 
 /* ================= LIJST ================= */
 let filter = 'alle';
@@ -788,5 +929,6 @@ document.addEventListener('keydown', e => {
   if (sessieTeller) $('#teller').textContent = sessieTeller + (sessieTeller === 1 ? ' vondst' : ' vondsten') + ' vandaag vastgelegd';
   if (!instel.key) setTimeout(() => melding('Tip: zet je OpenAI-sleutel in Instellingen voor herkenning', 4000), 1500);
   Herken.allesWachtend();
+  Lagen.laad();
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
 })();
