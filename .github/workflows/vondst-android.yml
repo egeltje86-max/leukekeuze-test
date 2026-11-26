@@ -85,7 +85,7 @@ jobs:
       - name: App-icoon maken
         working-directory: vondst-android
         continue-on-error: true
-        run: npx capacitor-assets generate --android --iconBackgroundColor '#14110d' --splashBackgroundColor '#14110d'
+        run: npx capacitor-assets generate --android --iconBackgroundColor '#b2ebfc' --splashBackgroundColor '#eef4fa'
 
       - name: APK bouwen
         working-directory: vondst-android/android

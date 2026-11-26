@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
 <meta name="robots" content="noindex, nofollow">
-<meta name="theme-color" content="#14110d">
+<meta name="theme-color" content="#eef4fa">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
 <title>Vondst – testversie</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
@@ -344,6 +344,96 @@ nav button.aan svg{opacity:1;filter:saturate(1.1) drop-shadow(0 0 7px rgba(242,1
 #melding{position:fixed;left:50%;top:calc(90px + env(safe-area-inset-top));transform:translateX(-50%);z-index:6000;
   background:#000e;border:2px solid var(--goud);color:var(--tekst);padding:12px 18px;border-radius:14px;font-weight:700;
   max-width:90vw;text-align:center;display:none}
+
+/* =====================================================================
+   LICHTE STIJL (26-11-2026, Marius: "hele app licht maken")
+   ===================================================================== */
+:root{--bg:#eef4fa;--paneel:#ffffff;--lijn:#d3e0ec;--tekst:#0f2238;--zacht:#55697f;--goud:#f2b630;--goud2:#a86f00;--blauw:#1f6fd0}
+html,body{background:var(--bg);color:var(--tekst)}
+/* zoekscherm (over het camerabeeld) */
+.bovenbalk{background:linear-gradient(rgba(238,244,250,.65),rgba(238,244,250,0))}
+.chip{background:rgba(255,255,255,.9);border-color:rgba(31,111,208,.25);color:var(--tekst);box-shadow:0 4px 12px rgba(15,34,56,.18)}
+.chip small{color:var(--zacht)}
+.chip.kroute,.chip.kstem{background:rgba(255,255,255,.9);color:var(--tekst)}
+.chip.kroute.aan,.chip.kstem.aan{color:#fff}
+.chip.kroute.aan small,.chip.kstem.aan small{color:#eaf6ff}
+.onderbalk{background:linear-gradient(rgba(238,244,250,0),rgba(238,244,250,.94) 42%)}
+#teller{color:var(--zacht)}
+#laatste{background:rgba(255,255,255,.96);border-color:rgba(242,182,48,.7);box-shadow:0 4px 14px rgba(15,34,56,.15)}
+#laatste .t{color:var(--tekst)} #laatste .s{color:var(--zacht)} #laatste .pijl{color:var(--goud2)}
+#camUit{background:var(--bg);color:var(--zacht)}
+/* kaart */
+#kaartDiv{background:#dde6ee}
+.kaartknoppen button.kk{background:linear-gradient(165deg,#ffffff,#e6f0fa);border-color:rgba(31,111,208,.3);color:var(--tekst);box-shadow:0 6px 16px rgba(15,34,56,.25)}
+.kaartknoppen button.kk span{text-shadow:none}
+#kleurKeuze{background:rgba(255,255,255,.95);border-color:var(--lijn);box-shadow:0 8px 24px rgba(15,34,56,.25)}
+#kleurKeuze button{border-color:rgba(15,34,56,.2)}
+#kleurKeuze button.aan{border-color:var(--tekst)}
+.leaflet-control-attribution{background:rgba(255,255,255,.75) !important;color:#333 !important}
+.leaflet-control-attribution a{color:#1f5fc4 !important}
+#lagenPaneel,#routesPaneel{background:#fff;border-top-color:var(--goud);box-shadow:0 -10px 30px rgba(15,34,56,.25)}
+.paneelkop{background:#fff;color:var(--tekst)}
+.lrij{background:#f5f9fd;color:var(--tekst)}
+.lgroep{color:var(--goud2)}
+.routekaart{background:#f7fafd}
+.rk-knoppen button{background:#eef4fa;color:var(--tekst)}
+.rk-knoppen button.rood{color:#b3221a;border-color:#f1b5b0}
+.dekking{background:#fff8e6;border-color:#f0d9a0;color:#5a4300}
+.vandaag{color:var(--tekst)}
+/* lijst en detail */
+.kop{color:var(--tekst)}
+.kaartje{background:#fff;box-shadow:0 3px 12px rgba(15,34,56,.08)}
+.kaartje img{background:#e3ebf3}
+.kaartje .naam{color:var(--tekst)}
+.l-herkend{background:#dff7e8;color:#17713a} .l-onzeker{background:#fff1cc;color:#8a5a00}
+.l-gevaar{background:#ffe0dd;color:#a0150f} .l-wacht{background:#e9eef3;color:#4a5a6b} .l-pan{background:#e0efff;color:#1f5fc4}
+.filters button{background:#fff;color:var(--tekst)}
+.filters button.fgoud{color:#8a5a00} .filters button.foranje{color:#b35400} .filters button.fpaars{color:#5b2fc0} .filters button.frood{color:#b3221a} .filters button.fblauw{color:#1f5fc4}
+.filters button.aan{color:#fff}
+.filters button.fgoud.aan{color:#1a1206} .filters button.foranje.aan{color:#241300}
+.terug{background:var(--bg);border-bottom-color:var(--lijn)}
+.blok{background:#fff;box-shadow:0 3px 12px rgba(15,34,56,.07)}
+.blok h3{color:var(--goud2)}
+.rij{border-bottom-color:#e6edf4}
+.balk,.pro-teller{background:#e3ebf3}
+.fotos img{background:#e3ebf3}
+.groot{background:#fff;color:var(--tekst)}
+.groot.kleur{color:#fff;box-shadow:0 4px 12px rgba(15,34,56,.2),inset 0 1px 0 rgba(255,255,255,.25)}
+.groot.koranje{color:#241300}
+.groot.goud{color:#1a1206}
+.groot.rood{background:#fff;color:#b3221a;border-color:#f1b5b0}
+.veld input,.veld textarea,.veld select{background:#fff;color:var(--tekst);border-color:var(--lijn)}
+.v-veilig{background:#dff7e8;color:#135c2f} .v-voorzichtig{background:#fff1cc;color:#6b4500}
+.leeg{color:var(--zacht)}
+.uitleg{color:var(--zacht)}
+/* uitleg */
+#uitleg{background:radial-gradient(circle at 50% 18%,#ffffff,#e3eef8 70%)}
+.u-dia h2{color:var(--goud2)} .u-dia p{color:var(--tekst)} .u-dia b{color:var(--tekst)}
+.u-dia .u-lijst div{background:#fff;border-color:#f0d9a0}
+.u-stippen i{background:#c9d6e3}
+.u-knoppen button{background:#fff;color:var(--tekst)}
+.u-knoppen button.goud{color:#1a1206}
+.u-beeld{box-shadow:0 10px 30px rgba(15,34,56,.2)}
+/* pro */
+#pro{background:radial-gradient(circle at 50% 0%,#fff6dc,#eef4fa 55%);color:var(--tekst)}
+#pro h2{color:var(--tekst)}
+.pro-onder{color:var(--goud2)}
+.pro-dicht{background:#fff;border-color:var(--lijn);color:var(--tekst)}
+.pro-optie{background:#fff;color:var(--tekst)}
+.pro-optie.gekozen{background:#fff8e6}
+.pro-banner{box-shadow:0 10px 30px rgba(15,34,56,.2),0 0 0 1px rgba(242,182,48,.35)}
+/* menu onderin */
+nav{background:linear-gradient(#ffffff,#eef4fa);border-top-color:var(--lijn)}
+nav button{color:var(--zacht)}
+nav button.aan{color:var(--blauw)}
+nav button img{opacity:.75;filter:saturate(.8) drop-shadow(0 2px 3px rgba(15,34,56,.25))}
+nav button.aan img{filter:saturate(1.1) drop-shadow(0 0 8px rgba(31,111,208,.35))}
+#melding{background:#fff;color:var(--tekst);box-shadow:0 8px 24px rgba(15,34,56,.25)}
+#knop{background:radial-gradient(circle at 35% 28%,#fff1c4,#ffd36b 22%,#f2b630 58%,#b57f0c) !important;color:#1a1206}
+#richt i{border-color:#f2b630}
+.chip.kroute small,.chip.kstem small,.chip small{color:var(--zacht)}
+.chip.kroute.aan small,.chip.kstem.aan small{color:#eaf6ff}
+#stemTekst{color:#fff;text-shadow:0 1px 3px #000}
 </style>
 </head>
 <body>
