@@ -66,7 +66,7 @@ function afstand(a, b){ // meters tussen [lat,lon]
 function esc(s){ return String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])); }
 const urlCache = new Map();
 const SPELD_IMG = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect width="100" height="100" fill="#241e17"/><path d="M50 18c-13 0-23 10-23 23 0 17 23 41 23 41s23-24 23-41c0-13-10-23-23-23z" fill="#ff4a3d" stroke="#fff" stroke-width="3"/><circle cx="50" cy="41" r="8" fill="#fff"/></svg>');
-function fotoSrc(f){ const p = f.fotos && f.fotos[f.fotos.length - 1]; return p ? fotoUrl(p.blob, f.id + p.t) : SPELD_IMG; }
+function fotoSrc(f){ const p = f.fotos && f.fotos[f.fotos.length - 1]; return p ? fotoUrl(p.blob, f.id + p.t) : 'img/speld.webp'; }
 function fotoUrl(blob, sleutel){
   if (sleutel && urlCache.has(sleutel)) return urlCache.get(sleutel);
   const u = URL.createObjectURL(blob);
@@ -765,6 +765,7 @@ var Kaart = window.Kaart = {
     if (!Kaart.map) return;
     Kaart.map.removeLayer(Kaart.lagen[Kaart.laag]);
     Kaart.laag = Kaart.laag === 'sat' ? 'kaart' : 'sat';
+    const lt = $('#laagTekst'); if (lt) lt.textContent = Kaart.laag === 'sat' ? 'Kaart' : 'Satelliet';
     Kaart.lagen[Kaart.laag].addTo(Kaart.map).bringToBack();
   },
 };
@@ -1158,7 +1159,7 @@ async function toonLijst(){
   if (filter === 'speld') alle = alle.filter(f => f.status === 'speld');
   const routeNamen = {}; (await DB.all('tracks')).forEach(t => { if (t.naam) routeNamen[t.id] = t.naam; });
   const l = $('#lijst');
-  if (!alle.length) { l.innerHTML = '<div class="leeg">Nog geen vondsten hier.<br>Ga naar Zoeken en druk op de gouden knop.</div>'; return; }
+  if (!alle.length) { l.innerHTML = '<div class="leeg"><img src="img/leeg-vondsten.webp" alt="">Nog geen vondsten hier.<br>Ga naar Zoeken en druk op de gouden knop.</div>'; return; }
   l.innerHTML = alle.map(f => {
     const naam = f.eigenNaam || (f.ai && f.ai.naam) || (f.status === 'speld' ? 'Speld (nog geen foto)' : 'Nog niet herkend');
     const sub = f.ai ? [f.ai.periode, f.ai.materiaal].filter(Boolean).join(' · ') : '';
@@ -1201,7 +1202,7 @@ async function openDetail(id){
   const rij = (k, v) => v ? `<div class="rij"><span>${k}</span><span>${esc(v)}</span></div>` : '';
   d.innerHTML = `
     <div class="terug"><button onclick="sluitDetail()">← Terug</button><div style="font-weight:800;font-size:18px">${esc(naam)}</div></div>
-    <div class="fotos">${!f.fotos.length ? `<figure><img src="${SPELD_IMG}" alt=""><figcaption>Speld gezet met je stem (${esc(datumTekst(f.t))}). Voeg hieronder een foto toe, dan wordt hij herkend.</figcaption></figure>` : ''}${f.fotos.map((p, i) => `<figure><img src="${fotoUrl(p.blob, f.id + p.t)}" alt=""><figcaption>Foto ${i + 1} · ${p.soort === 'veld' ? 'in het veld' : 'thuis / schoon'} · ${esc(datumTekst(p.t))}</figcaption></figure>`).join('')}</div>
+    <div class="fotos">${!f.fotos.length ? `<figure><img src="img/speld.webp" alt="" style="object-fit:contain;background:#1c1712"><figcaption>Speld gezet met je stem (${esc(datumTekst(f.t))}). Voeg hieronder een foto toe, dan wordt hij herkend.</figcaption></figure>` : ''}${f.fotos.map((p, i) => `<figure><img src="${fotoUrl(p.blob, f.id + p.t)}" alt=""><figcaption>Foto ${i + 1} · ${p.soort === 'veld' ? 'in het veld' : 'thuis / schoon'} · ${esc(datumTekst(p.t))}</figcaption></figure>`).join('')}</div>
     ${a.veiligheid ? veiligBalk(a) : ''}
     <div class="blok">
       <h3>Wat is het?</h3>
@@ -1439,22 +1440,22 @@ const Uitleg = {
   dias(){
     const knop = NATIEF ? 'de <b>gouden knop</b>, de <b>volumeknop</b> van je telefoon of een bluetooth-knopje' : 'de <b>gouden knop</b> op het scherm';
     return [
-      { ico: '🪙', titel: 'Welkom bij Vondst', tekst: '<p>Leg je vondsten vast met één druk op de knop. De app bewaart de <b>foto, de plek, de datum en de tijd</b> en vertelt je wat je gevonden hebt.</p>' },
-      { ico: '📸', titel: 'Een vondst vastleggen', tekst: `<p>Ga naar <b>Zoeken</b>. Leg je vondst in het <b>gouden vak</b> en druk op ${knop}.</p><p>Klaar. De rest gaat vanzelf.</p>` },
+      { beeld: 'img/welkom.jpg', titel: 'Welkom bij Vondst', tekst: '<p>Leg je vondsten vast met één druk op de knop. De app bewaart de <b>foto, de plek, de datum en de tijd</b> en vertelt je wat je gevonden hebt.</p>' },
+      { ico: '<img src="img/menu-zoeken.webp" alt="">', titel: 'Een vondst vastleggen', tekst: `<p>Ga naar <b>Zoeken</b>. Leg je vondst in het <b>gouden vak</b> en druk op ${knop}.</p><p>Klaar. De rest gaat vanzelf.</p>` },
       NATIEF
-        ? { ico: '🎤', titel: 'Vieze handen? Gebruik je stem', tekst: '<p>Tik bovenin op <b>Stem</b>. Zeg dan:</p><p><span class="u-zeg">hebbes</span> <span class="u-zeg">vondst</span></p><p>Staat de app open op Zoeken, dan maakt hij <b>meteen een foto</b>.</p><p>Zit je telefoon in je zak of op slot, dan zet hij een <b>📍 speld</b> op de kaart en trilt hij twee keer. De foto voeg je later toe. Dit werkt ook zonder internet.</p>' }
-        : { ico: '🎤', titel: 'Vieze handen? Gebruik je stem', tekst: '<p>Tik bovenin op <b>Stem</b>. Als het blauw is, luistert de app. Zeg dan:</p><p><span class="u-zeg">hebbes</span> <span class="u-zeg">vondst</span> <span class="u-zeg">foto</span></p><p>De app maakt meteen een foto. Stem blijft aan, ook als je de app later weer opent.</p>' },
-      { ico: '🧭', titel: 'Je route op de kaart', tekst: `<p>Tik op <b>Route</b> voordat je begint. Op de <b>Kaart</b> zie je dan precies waar je gelopen hebt en waar je wat vond.</p><p>${NATIEF ? 'De route loopt door met het scherm uit en de telefoon in je zak.' : 'Houd de app open, dan blijft de route meelopen.'} Met de paarse knop 🧭 op de kaart geef je routes een naam of verwijder je ze.</p>` },
-      { ico: '⛔', titel: 'Veilig en volgens de regels', tekst: '<div class="u-lijst"><div><b>Rood op de kaart</b>: hier mag je niet zoeken. Loop je erin, dan waarschuwt de app.</div><div><b>Rode ⚠️-knop</b>: denk je dat het munitie is? Raak het niet aan en druk op deze knop voor de alarmnummers.</div><div>Vraag altijd <b>toestemming aan de grondeigenaar</b>.</div></div>' },
-      { ico: '🔍', titel: 'Wat heb ik gevonden?', tekst: '<p>Zet bij <b>Instellingen</b> je OpenAI-sleutel. Dan herkent de app je vondst: wat het is, hoe oud en van welk materiaal.</p><p>Was de foto vies? Maak thuis een <b>nieuwe foto als hij schoon is</b>. De app kijkt dan opnieuw.</p>' },
-      { ico: '🏛️', titel: 'Klaar om te zoeken!', tekst: '<p>Bij een oude vondst kun je hem met één knop <b>melden bij PAN</b>, als je dat wilt.</p><p>Deze uitleg vind je altijd terug bij <b>Instellingen</b>. Veel succes en mooie vondsten!</p>' },
+        ? { ico: '<img src="img/chip-stem.webp" alt="">', titel: 'Vieze handen? Gebruik je stem', tekst: '<p>Tik bovenin op <b>Stem</b>. Zeg dan:</p><p><span class="u-zeg">hebbes</span> <span class="u-zeg">vondst</span></p><p>Staat de app open op Zoeken, dan maakt hij <b>meteen een foto</b>.</p><p>Zit je telefoon in je zak of op slot, dan zet hij een <b>📍 speld</b> op de kaart en trilt hij twee keer. De foto voeg je later toe. Dit werkt ook zonder internet.</p>' }
+        : { ico: '<img src="img/chip-stem.webp" alt="">', titel: 'Vieze handen? Gebruik je stem', tekst: '<p>Tik bovenin op <b>Stem</b>. Als het blauw is, luistert de app. Zeg dan:</p><p><span class="u-zeg">hebbes</span> <span class="u-zeg">vondst</span> <span class="u-zeg">foto</span></p><p>De app maakt meteen een foto. Stem blijft aan, ook als je de app later weer opent.</p>' },
+      { ico: '<img src="img/knop-routes.webp" alt="">', titel: 'Je route op de kaart', tekst: `<p>Tik op <b>Route</b> voordat je begint. Op de <b>Kaart</b> zie je dan precies waar je gelopen hebt en waar je wat vond.</p><p>${NATIEF ? 'De route loopt door met het scherm uit en de telefoon in je zak.' : 'Houd de app open, dan blijft de route meelopen.'} Met de knop <b>Routes</b> op de kaart geef je routes een naam of verwijder je ze.</p>` },
+      { ico: '<img src="img/knop-munitie.webp" alt="">', titel: 'Veilig en volgens de regels', tekst: '<div class="u-lijst"><div><b>Rood op de kaart</b>: hier mag je niet zoeken. Loop je erin, dan waarschuwt de app.</div><div><b>Rode ⚠️-knop</b>: denk je dat het munitie is? Raak het niet aan en druk op deze knop voor de alarmnummers.</div><div>Vraag altijd <b>toestemming aan de grondeigenaar</b>.</div></div>' },
+      { beeld: 'img/pro-banner.jpg', titel: 'Wat heb ik gevonden?', tekst: '<p>Zet bij <b>Instellingen</b> je OpenAI-sleutel. Dan herkent de app je vondst: wat het is, hoe oud en van welk materiaal.</p><p>Was de foto vies? Maak thuis een <b>nieuwe foto als hij schoon is</b>. De app kijkt dan opnieuw.</p>' },
+      { ico: '<img src="img/menu-vondsten.webp" alt="">', titel: 'Klaar om te zoeken!', tekst: '<p>Bij een oude vondst kun je hem met één knop <b>melden bij PAN</b>, als je dat wilt.</p><p>Deze uitleg vind je altijd terug bij <b>Instellingen</b>. Veel succes en mooie vondsten!</p>' },
     ];
   },
   open(){ Uitleg.stap = 0; Uitleg.toon(); $('#uitleg').classList.add('open'); },
   dicht(){ $('#uitleg').classList.remove('open'); localStorage.setItem('v_uitleg_gezien', '1'); },
   toon(){
     const d = Uitleg.dias(), x = d[Uitleg.stap];
-    $('#uDia').innerHTML = `<div class="u-ico">${x.ico}</div><h2>${x.titel}</h2>${x.tekst}`;
+    $('#uDia').innerHTML = (x.beeld ? `<img class="u-beeld" src="${x.beeld}" alt="">` : `<div class="u-ico">${x.ico}</div>`) + `<h2>${x.titel}</h2>${x.tekst}`;
     $('#uStippen').innerHTML = d.map((_, i) => `<i class="${i === Uitleg.stap ? 'aan' : ''}"></i>`).join('');
     const laatste = Uitleg.stap === d.length - 1;
     $('#uVolgende').textContent = laatste ? 'Beginnen' : 'Volgende';

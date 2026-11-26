@@ -174,6 +174,29 @@ input,textarea,select{font:inherit}
 .pro-teller{height:10px;border-radius:5px;background:#000;overflow:hidden;margin:8px 0}
 .pro-teller div{height:100%;background:var(--goud)}
 
+
+/* ---------- PLAATJES VAN NOVA ---------- */
+.kaartknoppen{gap:7px}
+.kaartknoppen button.kk{width:64px;height:66px;border-radius:16px;padding:4px 2px 5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;
+  background:linear-gradient(165deg,rgba(28,32,40,.88),rgba(8,9,12,.88));border:1.5px solid rgba(79,195,255,.35);
+  box-shadow:0 6px 16px rgba(0,0,0,.55),inset 0 1px 0 rgba(255,255,255,.08);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#e8f6ff}
+.kaartknoppen button.kk img{width:38px;height:38px;object-fit:contain;filter:drop-shadow(0 2px 3px rgba(0,0,0,.6))}
+.kaartknoppen button.kk span{font-size:10.5px;font-weight:800;letter-spacing:.2px;line-height:1.1;text-shadow:0 1px 2px #000}
+.kaartknoppen button.kk:active{transform:scale(.94)}
+.kaartknoppen button.kk #kleurStaal{width:30px;height:30px;margin:4px 0 4px;font-size:0}
+#kleurKeuze{top:calc(10px + env(safe-area-inset-top) + 3*73px) !important}
+nav button img{width:38px;height:38px;object-fit:contain;opacity:.62;filter:saturate(.7) drop-shadow(0 2px 3px rgba(0,0,0,.6));transition:transform .15s,opacity .15s}
+nav button.aan img{opacity:1;filter:saturate(1.1) drop-shadow(0 0 8px rgba(79,195,255,.45));transform:translateY(-2px) scale(1.1)}
+.chip .ci{position:relative;width:30px;height:30px;flex:none}
+.chip .ci img{width:30px;height:30px;object-fit:contain;filter:drop-shadow(0 1px 2px rgba(0,0,0,.7))}
+.chip .ci .stip{position:absolute;right:-3px;top:-2px;width:10px;height:10px;border:1.5px solid #000}
+#munitieKnop{background:none !important;border:0 !important;box-shadow:none !important;padding:0}
+#munitieKnop img{width:56px;height:56px;object-fit:contain;filter:drop-shadow(0 4px 8px rgba(0,0,0,.6))}
+.pro-banner{width:100%;max-width:420px;border-radius:18px;box-shadow:0 10px 30px rgba(0,0,0,.6),0 0 0 1px rgba(242,182,48,.25)}
+.u-beeld{width:100%;max-width:340px;border-radius:20px;box-shadow:0 10px 30px rgba(0,0,0,.6)}
+.u-ico img{width:120px;height:120px;object-fit:contain}
+.leeg img{width:180px;height:180px;object-fit:contain;display:block;margin:0 auto 12px}
+
 /* ---------- LAGEN ---------- */
 #lagenPaneel{position:absolute;left:0;right:0;bottom:0;z-index:700;max-height:72%;overflow:auto;display:none;
   background:linear-gradient(#1f1a14,#14110d);border-top:2px solid rgba(242,182,48,.45);border-radius:20px 20px 0 0;
@@ -336,14 +359,14 @@ nav button.aan svg{opacity:1;filter:saturate(1.1) drop-shadow(0 0 7px rgba(242,1
   <div id="richt"><i></i><i></i><i></i><i></i><span class="kruis"></span><span class="hint">Leg de vondst in het vak</span></div>
   <div id="flits"></div>
   <div class="bovenbalk">
-    <div class="chip" id="gpsChip"><span class="stip"></span><span class="tk">GPS<small id="gpsTekst">zoeken…</small></span></div>
-    <button class="chip kroute" id="routeKnop"><span class="stip"></span><span class="tk">Route<small id="routeTekst">uit</small></span></button>
-    <button class="chip kstem" id="stemKnop"><span class="stip"></span><span class="tk">Stem<small id="stemStatus">uit</small></span></button>
+    <div class="chip" id="gpsChip"><span class="ci"><img src="img/chip-gps.webp" alt=""><span class="stip"></span></span><span class="tk">GPS<small id="gpsTekst">zoeken…</small></span></div>
+    <button class="chip kroute" id="routeKnop"><span class="ci"><img src="img/chip-route.webp" alt=""><span class="stip"></span></span><span class="tk">Route<small id="routeTekst">uit</small></span></button>
+    <button class="chip kstem" id="stemKnop"><span class="ci"><img src="img/chip-stem.webp" alt=""><span class="stip"></span></span><span class="tk">Stem<small id="stemStatus">uit</small></span></button>
   </div>
   <div id="stemTekst"></div>
   <div id="stemHint">🎤 Zeg <b>“hebbes”</b> of <b>“vondst”</b></div>
   <div class="onderbalk">
-    <div class="knoprij"><button id="munitieKnop" aria-label="Mogelijk munitie">⚠️</button><button id="knop" aria-label="Vondst vastleggen">VONDST</button><span class="knopvuller"></span></div>
+    <div class="knoprij"><button id="munitieKnop" aria-label="Mogelijk munitie"><img src="img/knop-munitie.webp" alt=""></button><button id="knop" aria-label="Vondst vastleggen">VONDST</button><span class="knopvuller"></span></div>
     <div id="teller">Druk op de knop of zeg "vondst"</div>
     <button id="speldChip" class="speldchip" style="display:none"></button>
     <div id="laatste"></div>
@@ -354,11 +377,11 @@ nav button.aan svg{opacity:1;filter:saturate(1.1) drop-shadow(0 0 7px rgba(242,1
 <section id="kaart" class="scherm">
   <div id="kaartDiv"></div>
   <div class="kaartknoppen">
-    <button id="volgKnop" class="kblauw" title="Naar mijn plek">◎</button>
-    <button id="laagKnop" class="kgroen" title="Kaart / satelliet">🛰</button>
-    <button id="lagenKnop" class="kgoudlaag" title="Historische lagen">📜</button>
-    <button id="kleurKnop" class="kkleur" title="Kleur van de route"><span id="kleurStaal"></span></button>
-    <button id="routesKnop" class="kroutes" title="Mijn routes">🧭</button>
+    <button id="volgKnop" class="kk" title="Naar mijn plek"><img src="img/knop-mijn-plek.webp" alt=""><span>Mijn plek</span></button>
+    <button id="laagKnop" class="kk" title="Kaart / satelliet"><img src="img/knop-satelliet.webp" alt=""><span id="laagTekst">Kaart</span></button>
+    <button id="lagenKnop" class="kk" title="Kaartlagen"><img src="img/knop-kaartlagen.webp" alt=""><span>Lagen</span></button>
+    <button id="kleurKnop" class="kk" title="Kleur van de route"><span id="kleurStaal"></span><span>Kleur</span></button>
+    <button id="routesKnop" class="kk" title="Mijn routes"><img src="img/knop-routes.webp" alt=""><span>Routes</span></button>
   </div>
   <div id="kleurKeuze"></div>
   <div id="nietZoeken">⛔ Je bent in een gebied waar je <b>niet mag zoeken</b><small id="nietZoekenNaam"></small></div>
@@ -463,7 +486,7 @@ nav button.aan svg{opacity:1;filter:saturate(1.1) drop-shadow(0 0 7px rgba(242,1
 <div id="pro" role="dialog" aria-modal="true">
   <button class="pro-dicht" id="proDicht" aria-label="Sluiten">✕</button>
   <div class="pro-inhoud">
-    <div class="pro-ico">🪙</div>
+    <img class="pro-banner" src="img/pro-banner.jpg" alt="">
     <h2>Vondst <span>Pro</span></h2>
     <p class="pro-onder">Weet direct wat je gevonden hebt</p>
     <ul class="pro-lijst">
@@ -499,10 +522,10 @@ nav button.aan svg{opacity:1;filter:saturate(1.1) drop-shadow(0 0 7px rgba(242,1
   <linearGradient id="gTand" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#eef1f5"/><stop offset="1" stop-color="#8b939e"/></linearGradient>
 </defs></svg>
 <nav>
-  <button data-s="zoeken" class="aan"><svg viewBox="0 0 48 48"><rect x="17" y="8" width="14" height="7" rx="2" fill="#5b636e"/><rect x="5" y="12" width="38" height="28" rx="6" fill="url(#gCamLijf)"/><rect x="5" y="12" width="38" height="5" rx="3" fill="#ffffff" opacity=".18"/><circle cx="24" cy="26" r="10.5" fill="#20252c"/><circle cx="24" cy="26" r="8" fill="url(#gLens)"/><circle cx="21" cy="23" r="2.4" fill="#fff" opacity=".8"/><rect x="34" y="16" width="5" height="3" rx="1.2" fill="#ffd36b"/></svg>Zoeken</button>
-  <button data-s="kaart"><svg viewBox="0 0 48 48"><path d="M5 11l12-4 14 4 12-4v30l-12 4-14-4-12 4z" fill="url(#gZee)"/><path d="M9 16c4-2 7 1 8 4s-1 6 2 8 7 0 8 3-2 5-6 5l-11 3z" fill="url(#gLand)"/><path d="M29 12c3 1 6-1 9 1s0 6 3 8v6c-4 1-7-2-8-5s-5-4-4-10z" fill="url(#gLand)"/><path d="M17 7v30M31 11v30" stroke="#0e4f8a" stroke-width="1.4" opacity=".55"/><path d="M33.5 21.5c0-3 2.2-5 4.6-5s4.6 2 4.6 5c0 3.5-4.6 8-4.6 8s-4.6-4.5-4.6-8z" fill="#ff4a3d" stroke="#fff" stroke-width="1.3" transform="translate(-6 2)"/><circle cx="32.1" cy="23.4" r="1.6" fill="#fff"/></svg>Kaart</button>
-  <button data-s="vondsten"><svg viewBox="0 0 48 48"><circle cx="24" cy="25" r="18" fill="#8a5a05"/><circle cx="24" cy="23" r="18" fill="url(#gMunt)"/><circle cx="24" cy="23" r="13.5" fill="none" stroke="#b57808" stroke-width="1.6" stroke-dasharray="2 2.2"/><path d="M24 14l2.6 5.6 6 .7-4.5 4.1 1.2 6-5.3-3-5.3 3 1.2-6-4.5-4.1 6-.7z" fill="#c98a0e" opacity=".9"/><ellipse cx="17" cy="14" rx="5" ry="2.6" fill="#fff" opacity=".45" transform="rotate(-35 17 14)"/></svg>Vondsten</button>
-  <button data-s="instellingen"><svg viewBox="0 0 48 48"><path d="M27.4 4.5l1.3 5.1a15 15 0 0 1 3.9 2.3l5-1.7 3.4 5.9-3.9 3.6a15 15 0 0 1 0 4.6l3.9 3.6-3.4 5.9-5-1.7a15 15 0 0 1-3.9 2.3l-1.3 5.1h-6.8l-1.3-5.1a15 15 0 0 1-3.9-2.3l-5 1.7-3.4-5.9 3.9-3.6a15 15 0 0 1 0-4.6L4.9 16.1l3.4-5.9 5 1.7a15 15 0 0 1 3.9-2.3l1.3-5.1z" fill="url(#gTand)" stroke="#5f6670" stroke-width="1"/><circle cx="24" cy="24" r="7.5" fill="#3a4049"/><circle cx="24" cy="24" r="4.5" fill="url(#gLens)"/></svg>Instellingen</button>
+  <button data-s="zoeken" class="aan"><img src="img/menu-zoeken.webp" alt="">Zoeken</button>
+  <button data-s="kaart"><img src="img/menu-kaart.webp" alt="">Kaart</button>
+  <button data-s="vondsten"><img src="img/menu-vondsten.webp" alt="">Vondsten</button>
+  <button data-s="instellingen"><img src="img/menu-instellingen.webp" alt="">Instellingen</button>
 </nav>
 
 <input type="file" id="extraFoto" accept="image/*" capture="environment" hidden>
